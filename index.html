@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gulf Project Dashboard</title>
+<style>
+  :root {
+    --primary: #1a3c5e;
+    --primary-light: #2d6a9f;
+    --accent: #f0a500;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --border: #dde3ec;
+    --text: #1e2535;
+    --text-muted: #6b7a99;
+    --green: #27ae60;
+    --red: #e74c3c;
+    --orange: #f39c12;
+    --blue: #2980b9;
+    --ahead: #1abc9c;
+
+    /* Type colors */
+    --solar: #f39c12;
+    --wind: #3498db;
+    --wte: #27ae60;
+    --gas: #9b59b6;
+    --hydro: #e67e22;
+    --datacenter: #1abc9c;
+    --infra: #95a5a6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--primary);
+    color: white;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: .3px; }
+  .header-right { display: flex; gap: 10px; align-items: center; }
+  .report-week { font-size: 12px; color: rgba(255,255,255,.75); }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .toolbar select, .toolbar input {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--text);
+    background: white;
+    height: 32px;
+  }
+  .toolbar select:focus, .toolbar input:focus { outline: none; border-color: var(--primary-light); }
+  .spacer { flex: 1; }
+  .btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    height: 32px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-light); }
+  .btn-outline { background: white; color: var(--primary); border: 1px solid var(--primary); }
+  .btn-outline:hover { background: var(--bg); }
+  .btn-success { background: var(--green); color: white; }
+  .btn-success:hover { background: #219a52; }
+
+  /* ── SUMMARY STRIP ── */
+  .summary-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 16px 24px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+  .stat-card .value { font-size: 26px; font-weight: 700; line-height: 1; }
+  .stat-card .sub { font-size: 11px; color: var(--text-muted); }
+  .stat-on-track .value { color: var(--green); }
+  .stat-delay .value { color: var(--red); }
+  .stat-ahead .value { color: var(--ahead); }
+  .stat-total .value { color: var(--primary); }
+
+  /* ── MAIN GRID ── */
+  .main { padding: 0 24px 32px; }
+
+  /* ── PROJECT TABLE ── */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 8px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .table-wrap {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--primary);
+    color: white;
+    padding: 9px 10px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .4px;
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #f0f4fb; }
+  td { padding: 8px 10px; vertical-align: middle; }
+
+  .prj-name { font-weight: 600; color: var(--primary); font-size: 12px; }
+  .prj-id { color: var(--text-muted); font-size: 11px; }
+
+  /* type badge */
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .type-Solar { background: #fff3cd; color: #856404; }
+  .type-Wind { background: #cce5ff; color: #004085; }
+  .type-WTE { background: #d4edda; color: #155724; }
+  .type-Gas { background: #e2d9f3; color: #432874; }
+  .type-Hydro { background: #ffe5d0; color: #7d3c00; }
+  .type-DataCenter { background: #d1f2eb; color: #0e6655; }
+  .type-Infrastructure { background: #f0f0f0; color: #555; }
+
+  /* status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .status-On.Track { background: #d4edda; color: #155724; }
+  .status-Delay { background: #f8d7da; color: #721c24; }
+  .status-Ahead { background: #d1f2eb; color: #0e6655; }
+  .status-TBD { background: #f0f0f0; color: #777; }
+
+  /* progress bar */
+  .prog-wrap { display: flex; flex-direction: column; gap: 2px; min-width: 150px; }
+  .prog-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); }
+  .prog-delay-tags { display: flex; flex-wrap: wrap; gap: 3px; min-height: 18px; align-items: center; }
+  .disc-delay-tag { font-size: 10px; font-weight: 700; color: #fff; background: var(--red); border-radius: 3px; padding: 1px 5px; white-space: nowrap; }
+  .prog-track { height: 7px; background: #e9ecef; border-radius: 4px; overflow: hidden; position: relative; }
+  .prog-plan { position: absolute; top: 0; left: 0; height: 100%; background: #aac4e0; border-radius: 4px; }
+  .prog-actual { position: absolute; top: 0; left: 0; height: 100%; border-radius: 4px; }
+  .prog-actual.on-track { background: var(--green); }
+  .prog-actual.delay { background: var(--red); }
+  .prog-actual.ahead { background: var(--ahead); }
+
+  .var-positive { color: var(--ahead); font-weight: 700; }
+  .var-negative { color: var(--red); font-weight: 700; }
+  .var-zero { color: var(--text-muted); }
+
+  /* detail row expand */
+  .expand-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--primary-light);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .detail-row { display: none; background: #f8faff; }
+  .detail-row.open { display: table-row; }
+  .detail-cell { padding: 0 !important; }
+  .detail-inner { padding: 14px 18px; }
+
+  /* discipline table inside detail */
+  .disc-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+  .disc-table th { background: #eef2f8; padding: 5px 8px; text-align: left; font-size: 11px; color: var(--text-muted); font-weight: 600; }
+  .disc-table td { padding: 5px 8px; border-bottom: 1px solid #e8ecf4; }
+
+  /* concern / next activity */
+  .detail-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+  .detail-block { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .detail-block h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); margin-bottom: 8px; }
+  .concern-item, .activity-item {
+    display: flex;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f2f7;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .concern-item:last-child, .activity-item:last-child { border-bottom: none; }
+  .concern-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); flex-shrink: 0; margin-top: 4px; }
+  .activity-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); flex-shrink: 0; margin-top: 4px; }
+
+  /* scope pills */
+  .scope-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .scope-pill {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: #eef2f8;
+    color: var(--primary);
+    font-weight: 600;
+    border: 1px solid #d5e0f0;
+  }
+  /* scope dropdown */
+  .scope-selector-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 160px; }
+  .scope-select {
+    font-size: 10px; padding: 3px 6px; border: 1px solid var(--border);
+    border-radius: 5px; background: #f5f8ff; color: var(--primary);
+    font-weight: 600; cursor: pointer; width: 100%;
+  }
+  .scope-select:focus { outline: none; border-color: var(--primary); }
+  .scope-disc-preview { font-size: 10px; }
+  .scope-disc-preview .disc-table { width: 100%; border-collapse: collapse; margin-top: 2px; }
+  .scope-disc-preview .disc-table th { font-size: 9px; padding: 2px 4px; background: #eef2f8; color: var(--text-muted); }
+  .scope-disc-preview .disc-table td { font-size: 10px; padding: 2px 4px; border-bottom: 1px solid #f0f0f0; }
+  .scope-disc-preview .scope-overall { font-size: 10px; color: var(--text-muted); padding: 2px 0; }
+
+  /* ── EXPORT MODAL ── */
+  .modal-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 12px;
+    width: 560px;
+    max-width: 95vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,.2);
+    overflow: hidden;
+  }
+  .modal-head {
+    background: var(--primary);
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .modal-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+  .form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px;
+  }
+  .form-group textarea { min-height: 60px; resize: vertical; }
+  .checkbox-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .checkbox-row label { display: flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; }
+
+  /* ── PRINT / EXPORT TABLE ── */
+  #print-area { display: none; }
+
+  @media print {
+    body > *:not(#print-area) { display: none !important; }
+    #print-area {
+      display: block !important;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 11px;
+    }
+    .print-header { text-align: center; margin-bottom: 20px; }
+    .print-header h1 { font-size: 16px; font-weight: 700; }
+    .print-header p { font-size: 11px; color: #555; }
+    .print-table { width: 100%; border-collapse: collapse; }
+    .print-table th {
+      background: #1a3c5e !important;
+      color: white !important;
+      padding: 6px 8px;
+      text-align: left;
+      font-size: 10px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .print-table td { padding: 5px 8px; border-bottom: 1px solid #ddd; font-size: 10px; }
+    .print-table tr:nth-child(even) td { background: #f5f7fb; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* loading overlay */
+  .loading { text-align: center; padding: 60px; color: var(--text-muted); }
+
+  /* no-data */
+  .no-data { text-align: center; padding: 30px; color: var(--text-muted); font-size: 12px; }
+
+  /* tabs for scope inside detail */
+  .scope-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+  .scope-tab {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: white;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .scope-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* week selector */
+  #weekLabel { font-weight: 600; color: var(--primary); min-width: 120px; text-align: center; font-size: 12px; }
+
+  .pill-contract { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; border-radius: 4px; font-size: 10px; padding: 1px 6px; font-weight: 700; }
+
+  @media (max-width: 768px) {
+    .detail-cols { grid-template-columns: 1fr; }
+    .summary-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <h1>⚡ Gulf Project Dashboard</h1>
+  <div class="header-right">
+    <span class="report-week" id="reportWeekLabel">Report Week: —</span>
+  </div>
+</header>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <button class="btn btn-outline" onclick="changeWeek(-1)">◀ Prev</button>
+  <span id="weekLabel">Week 1 / 2025</span>
+  <button class="btn btn-outline" onclick="changeWeek(1)">Next ▶</button>
+
+  <select id="filterType" onchange="renderAll()">
+    <option value="">All Types</option>
+    <option value="Solar">Solar</option>
+    <option value="Wind">Wind</option>
+    <option value="WTE">WTE</option>
+    <option value="Gas">Gas / LNG</option>
+    <option value="Hydro">Hydro</option>
+    <option value="DataCenter">Data Center</option>
+    <option value="Infrastructure">Infrastructure</option>
+  </select>
+
+  <select id="filterStatus" onchange="renderAll()">
+    <option value="">All Status</option>
+    <option value="On Track">On Track</option>
+    <option value="Delay">Delay</option>
+    <option value="Ahead">Ahead</option>
+  </select>
+
+  <select id="filterContract" onchange="renderAll()">
+    <option value="">All Contracts</option>
+    <option value="EPC">EPC</option>
+    <option value="Multi">Multi-Contract</option>
+  </select>
+
+  <input type="text" id="searchBox" placeholder="Search project..." oninput="renderAll()" style="width:160px">
+
+  <div class="spacer"></div>
+
+  <button class="btn btn-outline" onclick="openImport()">📂 Import PDF Data</button>
+  <button class="btn btn-success" onclick="openExportModal()">⬇ Export Report</button>
+</div>
+
+<!-- SUMMARY STRIP -->
+<div class="summary-strip" id="summaryStrip"></div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="section-title">Project Progress Overview</div>
+  <div class="table-wrap">
+    <table id="mainTable">
+      <thead>
+        <tr>
+          <th style="width:32px">#</th>
+          <th>Project ID</th>
+          <th>Project Name</th>
+          <th>Type</th>
+          <th>Contract</th>
+          <th>Scope / Discipline</th>
+          <th style="min-width:200px">Overall Progress</th>
+          <th>Status</th>
+          <th style="width:32px"></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-backdrop" id="exportModal">
+  <div class="modal">
+    <div class="modal-head">
+      Export Management Report
+      <button class="modal-close" onclick="closeExportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Report Title</label>
+        <input type="text" id="exportTitle" value="Project Progress Summary Report">
+      </div>
+      <div class="form-group">
+        <label>Reporting Period (Week / Date)</label>
+        <input type="text" id="exportPeriod" placeholder="e.g. Week 25, 2025 | 23 June 2025">
+      </div>
+      <div class="form-group">
+        <label>Prepared By</label>
+        <input type="text" id="exportBy" placeholder="e.g. Engineering Management Team">
+      </div>
+      <div class="form-group">
+        <label>Include Sections</label>
+        <div class="checkbox-row">
+          <label><input type="checkbox" id="chkProgress" checked> Progress Table</label>
+          <label><input type="checkbox" id="chkConcerns" checked> Concerns</label>
+          <label><input type="checkbox" id="chkActivities" checked> Next Activities</label>
+          <label><input type="checkbox" id="chkSummary" checked> Summary KPIs</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Filter (leave blank = all visible projects)</label>
+        <select id="exportFilter">
+          <option value="visible">Current Filter (as displayed)</option>
+          <option value="all">All Projects</option>
+          <option value="delay">Delay Projects Only</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeExportModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="exportHTML()">Export HTML</button>
+      <button class="btn btn-success" onclick="exportPrint()">🖨 Print / PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-backdrop" id="importModal">
+  <div class="modal">
+    <div class="modal-head">
+      Import PDF Report Data
+      <button class="modal-close" onclick="document.getElementById('importModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Paste extracted data from the PDF report. Supports JSON format for bulk import or manual entry per project.</p>
+      <div class="form-group">
+        <label>Select Project</label>
+        <select id="importProjectSel"></select>
+      </div>
+      <div class="form-group">
+        <label>Report Week</label>
+        <input type="text" id="importWeek" placeholder="e.g. 25">
+      </div>
+      <div class="form-group">
+        <label>Overall Plan % (cumulative)</label>
+        <input type="number" id="importPlan" min="0" max="100" step="0.1" placeholder="0.0">
+      </div>
+      <div class="form-group">
+        <label>Overall Actual % (cumulative)</label>
+        <input type="number" id="importActual" min="0" max="100" step="0.1" placeholder="0.0">
+      </div>
+      <div class="form-group">
+        <label>Concerns (one per line)</label>
+        <textarea id="importConcerns" placeholder="Enter concerns from report..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Next Period Activities (one per line)</label>
+        <textarea id="importActivities" placeholder="Enter planned activities..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Or paste full JSON (bulk import)</label>
+        <textarea id="importJSON" placeholder='[{"projectId":"PRJ-002","week":25,"plan":45.2,"actual":44.8,"concerns":["..."],"activities":["..."]}]' style="min-height:80px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="document.getElementById('importModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="importJSON()">Import JSON</button>
+      <button class="btn btn-success" onclick="saveImport()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="print-area"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════
+
+const PROJECTS = [
+  { id:"PRJ-002", name:"GOE2-NWT3",    type:"Solar",  contract:"Multi", scopes:["Solar Farm C&E","115kV Substation","115kV T/L"] },
+  { id:"PRJ-003", name:"GSPG-PTN",     type:"Solar",  contract:"Multi", scopes:["Solar Farm C&E","115kV Substation","115kV T/L"] },
+  { id:"PRJ-004", name:"GSPG-STN",     type:"Solar",  contract:"Multi", scopes:["Solar Farm C&E","115kV Substation","115kV T/L"] },
+  { id:"PRJ-001", name:"LNG",          type:"Gas",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-013", name:"GCE",          type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-014", name:"GSE",          type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-015", name:"KKE",          type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-016", name:"MKP",          type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-017", name:"MPE",          type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-018", name:"PFP",          type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-019", name:"PKP",          type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-020", name:"PSD",          type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-021", name:"PWW1",         type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-022", name:"PWW2",         type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-023", name:"TPP",          type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-024", name:"TSE",          type:"WTE",    contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-026", name:"Pak Beng",     type:"Hydro",  contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-025", name:"Pak Lay",      type:"Hydro",  contract:"EPC",   scopes:["EPC"] },
+  { id:"PRJ-010", name:"GULF_Alpha 2", type:"Wind",   contract:"Multi", scopes:["TSA","CBOP","EBOP","115kV T/L"] },
+  { id:"PRJ-009", name:"GULF_ALPHA 1", type:"Wind",   contract:"Multi", scopes:["TSA","CBOP","EBOP","115kV T/L"] },
+  { id:"PRJ-011", name:"GULF_ECE",     type:"Wind",   contract:"Multi", scopes:["TSA","CBOP","EBOP","115kV T/L"] },
+  { id:"PRJ-012", name:"GULF_Wayu",    type:"Wind",   contract:"Multi", scopes:["TSA","CBOP","EBOP","115kV T/L"] },
+  { id:"PRJ-005", name:"LNE",          type:"Solar",  contract:"Multi", scopes:["Solar Farm C&E","115kV Substation EPCM"] },
+  { id:"PRJ-007", name:"SDCE",         type:"Solar",  contract:"Multi", scopes:["Solar Farm C&E","115kV Substation EPCM"] },
+  { id:"PRJ-006", name:"SSE",          type:"Solar",  contract:"Multi", scopes:["Solar Farm C&E","115kV Substation EPCM"] },
+  { id:"PRJ-008", name:"GULF AC8",     type:"Wind",   contract:"Multi", scopes:["TSA","CBOP","EBOP","115kV T/L"] },
+  { id:"PRJ-027", name:"TTT (Gas)",    type:"Gas",    contract:"EPC",   scopes:["EPC"] },
+];
+
+// Progress data store: key = "projectId_week"
+// Each entry: { plan, actual, concerns:[], activities:[], disciplineData:{} }
+let progressData = JSON.parse(localStorage.getItem('gulfDashData') || '{}');
+
+let currentWeek = parseInt(localStorage.getItem('gulfWeek') || '1');
+let currentYear = parseInt(localStorage.getItem('gulfYear') || new Date().getFullYear());
+
+function saveData() {
+  localStorage.setItem('gulfDashData', JSON.stringify(progressData));
+  localStorage.setItem('gulfWeek', currentWeek);
+  localStorage.setItem('gulfYear', currentYear);
+}
+
+function dataKey(projectId, week, year) {
+  return `${projectId}_W${week}_${year}`;
+}
+
+function getProgress(projectId) {
+  const key = dataKey(projectId, currentWeek, currentYear);
+  return progressData[key] || { plan: null, actual: null, concerns: [], activities: [] };
+}
+
+function setProgress(projectId, data) {
+  const key = dataKey(projectId, currentWeek, currentYear);
+  progressData[key] = { ...getProgress(projectId), ...data };
+  saveData();
+}
+
+// Status calculation — checks disciplines/scopes first; overall as fallback
+function calcStatus(plan, actual, prog) {
+  // If prog provided, check if any discipline is delayed > 5%
+  if (prog) {
+    let hasDiscDelay = false;
+    let hasDiscAhead = false;
+    function checkDisc(disc) {
+      Object.values(disc).forEach(dd => {
+        if (dd.plan !== undefined && dd.actual !== undefined) {
+          const v = dd.actual - dd.plan;
+          if (v <= -5) hasDiscDelay = true;
+          if (v >= 5)  hasDiscAhead = true;
+        }
+      });
+    }
+    if (prog.scopes) {
+      Object.values(prog.scopes).forEach(sc => {
+        if (sc.disciplines && Object.keys(sc.disciplines).length) {
+          checkDisc(sc.disciplines);
+        } else if (sc.plan !== undefined && sc.actual !== undefined) {
+          const v = sc.actual - sc.plan;
+          if (v <= -5) hasDiscDelay = true;
+          if (v >= 5)  hasDiscAhead = true;
+        }
+      });
+    } else if (prog.disciplines) {
+      checkDisc(prog.disciplines);
+    }
+    if (hasDiscDelay) return 'Delay';
+    if (hasDiscAhead) return 'Ahead';
+    // Fall back to overall if no discipline data
+    if (prog.plan === null || prog.actual === null) return 'TBD';
+    const diff = prog.actual - prog.plan;
+    if (diff <= -5) return 'Delay';
+    if (diff >= 5)  return 'Ahead';
+    return 'On Track';
+  }
+  // Legacy fallback (no prog object)
+  if (plan === null || actual === null) return 'TBD';
+  const diff = actual - plan;
+  if (diff <= -5) return 'Delay';
+  if (diff >= 5)  return 'Ahead';
+  return 'On Track';
+}
+
+// ══════════════════════════════════════════════
+//  WEEK NAVIGATION
+// ══════════════════════════════════════════════
+function changeWeek(dir) {
+  currentWeek += dir;
+  if (currentWeek < 1)  { currentWeek = 52; currentYear--; }
+  if (currentWeek > 52) { currentWeek = 1;  currentYear++; }
+  saveData();
+  renderAll();
+}
+
+function updateWeekLabel() {
+  document.getElementById('weekLabel').textContent = `Week ${currentWeek} / ${currentYear}`;
+  // Approximate date
+  const jan1 = new Date(currentYear, 0, 1);
+  const weekDate = new Date(jan1.getTime() + (currentWeek - 1) * 7 * 86400000);
+  const opts = { day:'2-digit', month:'short', year:'numeric' };
+  document.getElementById('reportWeekLabel').textContent =
+    `Report Week ${currentWeek}: ${weekDate.toLocaleDateString('en-GB', opts)}`;
+  document.getElementById('exportPeriod') && (document.getElementById('exportPeriod').value =
+    `Week ${currentWeek}, ${currentYear} | ${weekDate.toLocaleDateString('en-GB', opts)}`);
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function getFiltered() {
+  const typeF   = document.getElementById('filterType').value;
+  const statusF = document.getElementById('filterStatus').value;
+  const contractF = document.getElementById('filterContract').value;
+  const search  = document.getElementById('searchBox').value.toLowerCase();
+
+  return PROJECTS.filter(p => {
+    if (typeF && p.type !== typeF) return false;
+    if (contractF && p.contract !== contractF) return false;
+    if (search && !p.name.toLowerCase().includes(search) && !p.id.toLowerCase().includes(search)) return false;
+    if (statusF) {
+      const prog = getProgress(p.id);
+      if (calcStatus(prog.plan, prog.actual, prog) !== statusF) return false;
+    }
+    return true;
+  });
+}
+
+function renderSummary(filtered) {
+  const stats = { total: filtered.length, onTrack: 0, delay: 0, ahead: 0, tbd: 0 };
+  filtered.forEach(p => {
+    const prog = getProgress(p.id);
+    const s = calcStatus(prog.plan, prog.actual, prog);
+    if (s === 'On Track') stats.onTrack++;
+    else if (s === 'Delay') stats.delay++;
+    else if (s === 'Ahead') stats.ahead++;
+    else stats.tbd++;
+  });
+
+  document.getElementById('summaryStrip').innerHTML = `
+    <div class="stat-card stat-total"><div class="label">Total Projects</div><div class="value">${stats.total}</div><div class="sub">Filtered view</div></div>
+    <div class="stat-card stat-on-track"><div class="label">On Track</div><div class="value">${stats.onTrack}</div><div class="sub">Within ±5%</div></div>
+    <div class="stat-card stat-delay"><div class="label">Delay</div><div class="value">${stats.delay}</div><div class="sub">< -5% variance</div></div>
+    <div class="stat-card stat-ahead"><div class="label">Ahead</div><div class="value">${stats.ahead}</div><div class="sub">> +5% variance</div></div>
+    <div class="stat-card"><div class="label">TBD / No Data</div><div class="value" style="color:var(--text-muted)">${stats.tbd}</div><div class="sub">Pending import</div></div>
+  `;
+}
+
+function getScopeAbbr(n) {
+  if (/C&E|GPD|GUE/i.test(n)) return 'C&E';
+  if (/Sub|Siemens/i.test(n)) return 'Sub';
+  if (/T\/L|SCT|ENCOM|RSS/i.test(n)) return 'T/L';
+  if (/BOP|PCZ/i.test(n)) return 'BOP';
+  if (/TSA/i.test(n)) return 'TSA';
+  if (/CBOP/i.test(n)) return 'CBOP';
+  return n.replace(/\(.*\)/,'').trim().substring(0,6);
+}
+function getDiscAbbr(d) {
+  const m = { Engineering:'ENG', Procurement:'PRO', Construction:'CON', Commissioning:'COM',
+              'Con & Com':'C&C', Civil:'CIV', Electrical:'EE', 'T&C':'T&C' };
+  return m[d] || d.substring(0,3).toUpperCase();
+}
+function buildDelayTags(prog) {
+  const THRESHOLD = -1;
+  const tags = [];
+  function addFromDisc(disc, prefix) {
+    Object.entries(disc).forEach(([dName, dd]) => {
+      if (dd.plan !== undefined && dd.actual !== undefined) {
+        const v = dd.actual - dd.plan;
+        if (v < THRESHOLD) tags.push({ label: (prefix ? prefix + ' ' : '') + getDiscAbbr(dName), v });
+      }
+    });
+  }
+  if (prog.scopes) {
+    Object.entries(prog.scopes).forEach(([sName, sc]) => {
+      if (sc.disciplines && Object.keys(sc.disciplines).length) {
+        addFromDisc(sc.disciplines, getScopeAbbr(sName));
+      } else if (sc.plan !== undefined && sc.actual !== undefined) {
+        // No sub-disciplines — use scope-level overall
+        const v = sc.actual - sc.plan;
+        if (v < THRESHOLD) tags.push({ label: getScopeAbbr(sName), v });
+      }
+    });
+  } else if (prog.disciplines) {
+    addFromDisc(prog.disciplines, '');
+  }
+  return tags.sort((a,b) => a.v - b.v); // most delayed first
+}
+
+function buildScopeSelector(p, prog) {
+  const scopeKeys = prog.scopes ? Object.keys(prog.scopes) : [];
+  if (!scopeKeys.length) {
+    // No multi-scope data — show simple pills
+    return `<div class="scope-pills">${p.scopes.map(s=>`<span class="scope-pill">${s}</span>`).join('')}</div>`;
+  }
+  const opts = scopeKeys.map(s => `<option value="${s}">${s}</option>`).join('');
+  const uid = p.id.replace('-','');
+  return `
+    <div class="scope-selector-wrap">
+      <select class="scope-select" id="ss-${uid}"
+        onchange="onScopeChange('${p.id}',this.value)"
+        onclick="event.stopPropagation()">
+        <option value="">— เลือก Scope —</option>
+        ${opts}
+      </select>
+      <div class="scope-disc-preview" id="sdp-${uid}"></div>
+    </div>`;
+}
+
+function onScopeChange(projectId, scopeName) {
+  const prog = getProgress(projectId);
+  const uid  = projectId.replace('-','');
+  const el   = document.getElementById(`sdp-${uid}`);
+  if (!el) return;
+  if (!scopeName || !prog.scopes || !prog.scopes[scopeName]) { el.innerHTML = ''; return; }
+  const sc   = prog.scopes[scopeName];
+  const discs = sc.disciplines || {};
+  const discEntries = Object.entries(discs);
+  if (!discEntries.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:10px">No discipline data</div>'; return; }
+  const rows = discEntries.map(([d, dd]) => {
+    const v = (dd.plan !== undefined && dd.actual !== undefined) ? dd.actual - dd.plan : null;
+    const vc = v === null ? '' : v < 0 ? 'var-negative' : v > 0 ? 'var-positive' : 'var-zero';
+    const vs = v === null ? '—' : `${v>0?'+':''}${v.toFixed(1)}%`;
+    return `<tr>
+      <td>${d}</td>
+      <td>${dd.plan!==undefined ? dd.plan.toFixed(1)+'%' : '—'}</td>
+      <td>${dd.actual!==undefined ? dd.actual.toFixed(1)+'%' : '—'}</td>
+      <td class="${vc}" style="font-weight:700">${vs}</td>
+    </tr>`;
+  }).join('');
+  const ov = (sc.plan !== undefined && sc.actual !== undefined)
+    ? `<div class="scope-overall">Overall: <b>${sc.plan.toFixed(1)}%</b> → <b>${sc.actual.toFixed(1)}%</b>
+       <span class="${(sc.actual-sc.plan)<0?'var-negative':'var-positive'}" style="font-weight:700">
+         ${(sc.actual-sc.plan)>0?'+':''}${(sc.actual-sc.plan).toFixed(1)}%</span></div>` : '';
+  el.innerHTML = `${ov}
+    <table class="disc-table">
+      <thead><tr><th>Discipline</th><th>Plan</th><th>Actual</th><th>Var</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function renderTable(filtered) {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="12" class="no-data">No projects match the current filter.</td></tr>';
+    return;
+  }
+
+  filtered.forEach((p, idx) => {
+    const prog = getProgress(p.id);
+    const status = calcStatus(prog.plan, prog.actual, prog);
+
+    const statusClass = status === 'On Track' ? 'status-On.Track' : status === 'Delay' ? 'status-Delay' : status === 'Ahead' ? 'status-Ahead' : 'status-TBD';
+    const statusIcon = status === 'On Track' ? '✔' : status === 'Delay' ? '⚠' : status === 'Ahead' ? '▲' : '–';
+
+    const progActualClass = status === 'Delay' ? 'delay' : status === 'Ahead' ? 'ahead' : 'on-track';
+    const planW = prog.plan !== null ? Math.min(prog.plan, 100) : 0;
+    const actW  = prog.actual !== null ? Math.min(prog.actual, 100) : 0;
+
+    const scopeCell = buildScopeSelector(p, prog);
+
+    const rowId = `row-${p.id.replace('-', '')}`;
+    const detailId = `detail-${p.id.replace('-', '')}`;
+
+    // Main row
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.setAttribute('data-pid', p.id);
+    tr.innerHTML = `
+      <td style="color:var(--text-muted);font-size:11px">${idx + 1}</td>
+      <td><span class="prj-id">${p.id}</span></td>
+      <td><span class="prj-name">${p.name}</span></td>
+      <td><span class="type-badge type-${p.type}">${p.type}</span></td>
+      <td><span class="pill-contract">${p.contract}</span></td>
+      <td>${scopeCell}</td>
+      <td>
+        <div class="prog-wrap">
+          <div class="prog-delay-tags">${(() => {
+            const tags = buildDelayTags(prog);
+            if (!tags.length) {
+              if (prog.plan === null) return '<span style="color:var(--text-muted);font-size:10px">No data</span>';
+              return '<span style="color:var(--success);font-size:10px;font-weight:600">✔ All on track</span>';
+            }
+            return tags.map(t =>
+              `<span class="disc-delay-tag">${t.label} ${t.v.toFixed(1)}%</span>`
+            ).join('');
+          })()}</div>
+        </div>
+      </td>
+      <td><span class="status-badge ${statusClass}">${statusIcon} ${status}</span></td>
+      <td><button class="expand-btn" onclick="toggleDetail('${p.id}')" title="Expand">▼</button></td>
+    `;
+    tr.onclick = (e) => { if (!e.target.classList.contains('expand-btn')) toggleDetail(p.id); };
+    tbody.appendChild(tr);
+
+    // Detail row
+    const dtr = document.createElement('tr');
+    dtr.className = 'detail-row';
+    dtr.id = detailId;
+    dtr.innerHTML = `<td colspan="9" class="detail-cell"><div class="detail-inner" id="detail-inner-${p.id.replace('-','')}"></div></td>`;
+    tbody.appendChild(dtr);
+  });
+}
+
+function toggleDetail(projectId) {
+  const detailId = `detail-${projectId.replace('-', '')}`;
+  const el = document.getElementById(detailId);
+  const isOpen = el.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.detail-row').forEach(r => r.classList.remove('open'));
+  if (!isOpen) {
+    el.classList.add('open');
+    renderDetail(projectId);
+  }
+}
+
+function renderDetail(projectId) {
+  const p = PROJECTS.find(x => x.id === projectId);
+  const prog = getProgress(projectId);
+  const innerId = `detail-inner-${projectId.replace('-', '')}`;
+  const el = document.getElementById(innerId);
+  if (!el) return;
+
+  const concerns = prog.concerns && prog.concerns.length
+    ? prog.concerns.map(c => `<div class="concern-item"><span class="concern-dot"></span><span>${c}</span></div>`).join('')
+    : '<div style="color:var(--text-muted);font-size:12px">No concerns recorded.</div>';
+
+  const activities = prog.activities && prog.activities.length
+    ? prog.activities.map(a => `<div class="activity-item"><span class="activity-dot"></span><span>${a}</span></div>`).join('')
+    : '<div style="color:var(--text-muted);font-size:12px">No activities recorded.</div>';
+
+  // Discipline table (EPCC breakdown if available)
+  const disc = prog.disciplines || {};
+  const discKeys = ['Engineering', 'Procurement', 'Construction', 'Commissioning'];
+  const discRows = discKeys.map(d => {
+    const dd = disc[d] || {};
+    const dPlan = dd.plan !== undefined ? dd.plan.toFixed(1) + '%' : '—';
+    const dActual = dd.actual !== undefined ? dd.actual.toFixed(1) + '%' : '—';
+    const dVar = dd.plan !== undefined && dd.actual !== undefined ? ((dd.actual - dd.plan).toFixed(1)) : null;
+    const dVarHtml = dVar === null ? '—' : `<span class="${parseFloat(dVar) < 0 ? 'var-negative' : parseFloat(dVar) > 0 ? 'var-positive' : 'var-zero'}">${parseFloat(dVar) > 0 ? '+' : ''}${dVar}%</span>`;
+    return `<tr><td>${d}</td><td>${dPlan}</td><td>${dActual}</td><td>${dVarHtml}</td></tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">EPCC Discipline Breakdown</div>
+        <table class="disc-table">
+          <thead><tr><th>Discipline</th><th>Plan %</th><th>Actual %</th><th>Variance</th></tr></thead>
+          <tbody>${discRows}</tbody>
+        </table>
+        <div style="margin-top:8px">
+          <button class="btn btn-outline" style="font-size:11px;height:28px" onclick="openDisciplineEdit('${projectId}')">✏ Edit Discipline Data</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Quick Update</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:8px;align-items:center;font-size:12px">
+            <label style="width:60px">Plan %</label>
+            <input type="number" id="qPlan_${projectId}" min="0" max="100" step="0.1" value="${prog.plan !== null ? prog.plan : ''}" placeholder="0.0" style="width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px">
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;font-size:12px">
+            <label style="width:60px">Actual %</label>
+            <input type="number" id="qActual_${projectId}" min="0" max="100" step="0.1" value="${prog.actual !== null ? prog.actual : ''}" placeholder="0.0" style="width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px">
+          </div>
+          <button class="btn btn-primary" style="font-size:11px;height:28px;width:fit-content" onclick="quickSave('${projectId}')">💾 Save Progress</button>
+        </div>
+      </div>
+    </div>
+    <div class="detail-cols">
+      <div class="detail-block">
+        <h4>⚠ Concerns</h4>
+        ${concerns}
+        <div style="margin-top:8px">
+          <textarea id="newConcern_${projectId}" placeholder="Add concern..." style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;font-size:11px;min-height:50px;resize:vertical"></textarea>
+          <button class="btn btn-outline" style="font-size:11px;height:26px;margin-top:4px" onclick="addConcern('${projectId}')">+ Add</button>
+        </div>
+      </div>
+      <div class="detail-block">
+        <h4>📋 Next Period Activities</h4>
+        ${activities}
+        <div style="margin-top:8px">
+          <textarea id="newActivity_${projectId}" placeholder="Add activity..." style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;font-size:11px;min-height:50px;resize:vertical"></textarea>
+          <button class="btn btn-outline" style="font-size:11px;height:26px;margin-top:4px" onclick="addActivity('${projectId}')">+ Add</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function quickSave(projectId) {
+  const plan   = parseFloat(document.getElementById(`qPlan_${projectId}`).value);
+  const actual = parseFloat(document.getElementById(`qActual_${projectId}`).value);
+  setProgress(projectId, {
+    plan:   isNaN(plan)   ? null : plan,
+    actual: isNaN(actual) ? null : actual,
+  });
+  renderAll();
+  toggleDetail(projectId);
+}
+
+function addConcern(projectId) {
+  const input = document.getElementById(`newConcern_${projectId}`);
+  const val = input.value.trim();
+  if (!val) return;
+  const prog = getProgress(projectId);
+  const concerns = [...(prog.concerns || []), val];
+  setProgress(projectId, { concerns });
+  input.value = '';
+  renderDetail(projectId);
+}
+
+function addActivity(projectId) {
+  const input = document.getElementById(`newActivity_${projectId}`);
+  const val = input.value.trim();
+  if (!val) return;
+  const prog = getProgress(projectId);
+  const activities = [...(prog.activities || []), val];
+  setProgress(projectId, { activities });
+  input.value = '';
+  renderDetail(projectId);
+}
+
+// ── DISCIPLINE EDIT (inline prompt) ──
+function openDisciplineEdit(projectId) {
+  const prog = getProgress(projectId);
+  const disc = prog.disciplines || {};
+  const keys = ['Engineering', 'Procurement', 'Construction', 'Commissioning'];
+  const lines = keys.map(d => {
+    const dd = disc[d] || {};
+    return `${d}: plan=${dd.plan !== undefined ? dd.plan : ''}, actual=${dd.actual !== undefined ? dd.actual : ''}`;
+  }).join('\n');
+  const result = prompt(`Edit EPCC Discipline Data for ${projectId}:\n(format: Discipline: plan=XX, actual=YY)\n\n${lines}`);
+  if (!result) return;
+  const newDisc = { ...disc };
+  result.split('\n').forEach(line => {
+    const m = line.match(/^(\w+):\s*plan=([\d.]*),\s*actual=([\d.]*)/i);
+    if (m) {
+      newDisc[m[1]] = {
+        plan:   m[2] !== '' ? parseFloat(m[2]) : undefined,
+        actual: m[3] !== '' ? parseFloat(m[3]) : undefined,
+      };
+    }
+  });
+  setProgress(projectId, { disciplines: newDisc });
+  renderDetail(projectId);
+}
+
+// ══════════════════════════════════════════════
+//  IMPORT
+// ══════════════════════════════════════════════
+function openImport() {
+  const sel = document.getElementById('importProjectSel');
+  sel.innerHTML = PROJECTS.map(p => `<option value="${p.id}">${p.id} – ${p.name}</option>`).join('');
+  document.getElementById('importWeek').value = currentWeek;
+  document.getElementById('importModal').classList.add('open');
+}
+
+function saveImport() {
+  const pid     = document.getElementById('importProjectSel').value;
+  const week    = parseInt(document.getElementById('importWeek').value) || currentWeek;
+  const plan    = parseFloat(document.getElementById('importPlan').value);
+  const actual  = parseFloat(document.getElementById('importActual').value);
+  const concerns   = document.getElementById('importConcerns').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const activities = document.getElementById('importActivities').value.split('\n').map(s => s.trim()).filter(Boolean);
+
+  const key = dataKey(pid, week, currentYear);
+  progressData[key] = {
+    ...(progressData[key] || {}),
+    plan:   isNaN(plan)   ? null : plan,
+    actual: isNaN(actual) ? null : actual,
+    concerns,
+    activities,
+  };
+  saveData();
+  document.getElementById('importModal').classList.remove('open');
+  renderAll();
+}
+
+function importJSON() {
+  const raw = document.getElementById('importJSON').value.trim();
+  if (!raw) return;
+  try {
+    const arr = JSON.parse(raw);
+    arr.forEach(entry => {
+      const { projectId, week, year, plan, actual, concerns, activities, disciplines } = entry;
+      const w = week || currentWeek;
+      const y = year || currentYear;
+      const key = dataKey(projectId, w, y);
+      progressData[key] = { plan, actual, concerns: concerns || [], activities: activities || [], disciplines: disciplines || {} };
+    });
+    saveData();
+    document.getElementById('importModal').classList.remove('open');
+    renderAll();
+    alert('Import successful.');
+  } catch(e) {
+    alert('Invalid JSON: ' + e.message);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════════
+function openExportModal() {
+  updateWeekLabel();
+  document.getElementById('exportModal').classList.add('open');
+}
+function closeExportModal() {
+  document.getElementById('exportModal').classList.remove('open');
+}
+
+function getExportProjects() {
+  const f = document.getElementById('exportFilter').value;
+  if (f === 'all') return PROJECTS;
+  if (f === 'delay') return PROJECTS.filter(p => {
+    const prog = getProgress(p.id);
+    return calcStatus(prog.plan, prog.actual, prog) === 'Delay';
+  });
+  return getFiltered();
+}
+
+function buildPrintContent() {
+  const title  = document.getElementById('exportTitle').value;
+  const period = document.getElementById('exportPeriod').value;
+  const by     = document.getElementById('exportBy').value;
+  const chkProgress   = document.getElementById('chkProgress').checked;
+  const chkConcerns   = document.getElementById('chkConcerns').checked;
+  const chkActivities = document.getElementById('chkActivities').checked;
+  const chkSummary    = document.getElementById('chkSummary').checked;
+
+  const projects = getExportProjects();
+  let onTrack=0, delay=0, ahead=0, tbd=0;
+  projects.forEach(p => {
+    const s = calcStatus(getProgress(p.id).plan, getProgress(p.id).actual);
+    if (s==='On Track') onTrack++; else if (s==='Delay') delay++; else if (s==='Ahead') ahead++; else tbd++;
+  });
+
+  let html = `
+    <div class="print-header">
+      <h1>${title}</h1>
+      <p>Reporting Period: ${period} &nbsp;|&nbsp; Prepared by: ${by}</p>
+      <p>Generated: ${new Date().toLocaleString('en-GB')}</p>
+    </div>
+  `;
+
+  if (chkSummary) {
+    html += `
+      <table class="print-table" style="margin-bottom:20px;width:auto">
+        <thead><tr><th>Total</th><th>On Track</th><th>Delay</th><th>Ahead</th><th>TBD</th></tr></thead>
+        <tbody><tr><td>${projects.length}</td><td>${onTrack}</td><td>${delay}</td><td>${ahead}</td><td>${tbd}</td></tr></tbody>
+      </table>
+    `;
+  }
+
+  if (chkProgress) {
+    html += `
+      <h2 style="font-size:13px;margin-bottom:8px;color:#1a3c5e">Project Progress Summary</h2>
+      <table class="print-table" style="margin-bottom:20px">
+        <thead>
+          <tr>
+            <th>#</th><th>Project ID</th><th>Project Name</th><th>Type</th><th>Contract</th>
+            <th>Plan %</th><th>Actual %</th><th>Variance</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${projects.map((p, i) => {
+            const prog = getProgress(p.id);
+            const status = calcStatus(prog.plan, prog.actual, prog);
+            const variance = prog.plan !== null && prog.actual !== null ? (prog.actual - prog.plan).toFixed(1) : '—';
+            return `<tr>
+              <td>${i+1}</td>
+              <td>${p.id}</td>
+              <td>${p.name}</td>
+              <td>${p.type}</td>
+              <td>${p.contract}</td>
+              <td>${prog.plan !== null ? prog.plan.toFixed(1)+'%' : '—'}</td>
+              <td>${prog.actual !== null ? prog.actual.toFixed(1)+'%' : '—'}</td>
+              <td>${variance !== '—' ? (parseFloat(variance)>0?'+':'')+variance+'%' : '—'}</td>
+              <td>${status}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  if (chkConcerns) {
+    const withConcerns = projects.filter(p => (getProgress(p.id).concerns || []).length > 0);
+    if (withConcerns.length) {
+      html += `<h2 style="font-size:13px;margin-bottom:8px;color:#1a3c5e">Concerns</h2>`;
+      html += `<table class="print-table" style="margin-bottom:20px"><thead><tr><th>Project</th><th>Concerns</th></tr></thead><tbody>`;
+      withConcerns.forEach(p => {
+        const concerns = getProgress(p.id).concerns || [];
+        html += `<tr><td style="white-space:nowrap">${p.id} ${p.name}</td><td>${concerns.map(c => `• ${c}`).join('<br>')}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+  }
+
+  if (chkActivities) {
+    const withAct = projects.filter(p => (getProgress(p.id).activities || []).length > 0);
+    if (withAct.length) {
+      html += `<h2 style="font-size:13px;margin-bottom:8px;color:#1a3c5e">Next Period Activities</h2>`;
+      html += `<table class="print-table" style="margin-bottom:20px"><thead><tr><th>Project</th><th>Activities</th></tr></thead><tbody>`;
+      withAct.forEach(p => {
+        const acts = getProgress(p.id).activities || [];
+        html += `<tr><td style="white-space:nowrap">${p.id} ${p.name}</td><td>${acts.map(a => `• ${a}`).join('<br>')}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+  }
+
+  return html;
+}
+
+function exportHTML() {
+  const content = buildPrintContent();
+  const blob = new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <style>
+      body{font-family:'Segoe UI',Arial,sans-serif;font-size:11px;padding:24px;color:#1e2535}
+      h1{font-size:16px;font-weight:700;text-align:center;color:#1a3c5e}
+      p{text-align:center;color:#666;margin:4px 0}
+      h2{font-size:13px;margin:16px 0 6px;color:#1a3c5e}
+      table{width:100%;border-collapse:collapse;margin-bottom:16px}
+      th{background:#1a3c5e;color:white;padding:6px 8px;text-align:left;font-size:10px}
+      td{padding:5px 8px;border-bottom:1px solid #ddd;font-size:10px}
+      tr:nth-child(even) td{background:#f5f7fb}
+    </style>
+  </head><body>${content}</body></html>`], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Gulf_ProjectReport_W${currentWeek}_${currentYear}.html`;
+  a.click();
+  closeExportModal();
+}
+
+function exportPrint() {
+  document.getElementById('print-area').innerHTML = buildPrintContent();
+  closeExportModal();
+  setTimeout(() => window.print(), 200);
+}
+
+// ══════════════════════════════════════════════
+//  MAIN RENDER
+// ══════════════════════════════════════════════
+function renderAll() {
+  updateWeekLabel();
+  const filtered = getFiltered();
+  renderSummary(filtered);
+  renderTable(filtered);
+}
+
+// ── SEED DATA (pre-loaded from PDF reports) ──
+function seedIfEmpty(key, data) {
+  if (!progressData[key]) { progressData[key] = data; }
+}
+
+// ── Solar SDCE (PRJ-007) Week 24 — SOSB2026/PBR8 Construction Progress Report No.38
+seedIfEmpty('PRJ-007_W24_2026', {
+  plan: 81.90, actual: 79.84,
+  concerns: [
+    '[115kV T/L] Project progress delayed — insufficient manpower and heavy equipment; mobilize additional teams to recover schedule',
+  ],
+  activities: [
+    '[GPD Civil] Continue permanent fence & steel structure installation at transformer station and BESS area',
+    '[GPD Elec] Continue Mounting/PV panel, DC cable, MV cable, SAT test, IV Curve test',
+    '[Siemens Civil] Continue ceramic tile, architecture work, start Crush stone at SWYD',
+    '[Siemens Elec] Protection relay panel completed, AC/DC panel completed',
+    '[PEA-TEC T/L] Continue foundation, concrete pole, top pole assembly, stinging AAC & OHGW, manhole',
+    '[PEA-TEC Add Bay] Take-off structure & MTS installation completed',
+    '[PEA-TCCL GIS] Continue masonry/plastering, cable trench, pipe jacking, rebar/formwork roof beam',
+  ],
+  scopes: {
+    'GPD (C&E)':          { plan: 81.90, actual: 79.84, disciplines: { Engineering:{plan:100,actual:97.25}, Procurement:{plan:97.00,actual:94.72}, 'Con & Com':{plan:81.41,actual:80.13} } },
+    'Siemens (Sub.)':     { plan: 63.99, actual: 68.30, disciplines: { Civil:{plan:96.93,actual:97.70}, Electrical:{plan:29.14,actual:48.38}, 'T&C':{plan:0,actual:0} } },
+    'PEA-TEC (T/L)':      { plan: 67.12, actual: 62.92, disciplines: {} },
+    'PEA-TCCL (GIS Sub.)':{ plan: 34.22, actual: 38.83, disciplines: {} },
+  },
+  disciplines: { Engineering:{plan:100,actual:97.25}, Procurement:{plan:97.00,actual:94.72}, 'Con & Com':{plan:81.41,actual:80.13} },
+});
+
+// ── Solar GOE2-NWT3 (PRJ-002) Week 24 — GSO2026/GOE2-NWT3 Construction Progress Report_Week38
+seedIfEmpty('PRJ-002_W24_2026', {
+  plan: 83.04, actual: 59.19,
+  concerns: [
+    '[PV Farm] Expedite manpower, machine, scaffolding & tools for mounting and PV module installation',
+    '[Substation] Expedite fabricate roof structure',
+    '[115kV T/L] Construction work can start only after Permit approval',
+  ],
+  activities: [],
+  scopes: {
+    'GUE (C&E)':        { plan: 83.04, actual: 59.19, disciplines: { Engineering:{plan:100,actual:98.05}, Procurement:{plan:99.64,actual:90.09}, Construction:{plan:86.30,actual:44.71}, Commissioning:{plan:0,actual:0} } },
+    'Siemens (Sub.)':   { plan: 51.25, actual: 42.41, disciplines: { 'Civil':    {plan:65.92,actual:56.47}, 'Electrical':{plan:25.55,actual:14.41}, 'T&C':{plan:0,actual:0} } },
+    'PEA-FEC (T/L)':    { plan: 82.33, actual: 79.53, disciplines: {} },
+    'PEA-ITL (Comm.)':  { plan: 76.11, actual: 80.80, disciplines: {} },
+  },
+  disciplines: { Engineering:{plan:100,actual:98.05}, Procurement:{plan:99.64,actual:90.09}, Construction:{plan:86.30,actual:44.71}, Commissioning:{plan:0,actual:0} },
+});
+
+// ── Solar GSPG-PTN (PRJ-003) Week 24 — GSO2026/GSPG-PTN Construction Progress Report_Week38
+seedIfEmpty('PRJ-003_W24_2026', {
+  plan: 80.48, actual: 56.90,
+  concerns: [
+    '[Pre-Civil] Site Incident - Security Issue, may impact project schedule; expedite Pre-Civil work handover to C&E',
+    '[PV Farm] Site Incident - Security Issue; expedite Electrical work & increase manpower; expedite civil for unit substation',
+    '[PV Farm] Manpower not on site as planned; rainy season waterlogging risk',
+    '[Substation] Site Incident - Security Issue; expedite Electrical work',
+    '[115kV T/L] Expedite delayed foundation, concrete pole and top pole installation',
+    '[115kV Add Bay] Expedite delayed Civil work',
+  ],
+  activities: [],
+  scopes: {
+    'GUE (C&E)':        { plan: 80.48, actual: 56.90, disciplines: { Engineering:{plan:99.51,actual:98.54}, Procurement:{plan:100,actual:85.91}, Construction:{plan:81.05,actual:42.55}, Commissioning:{plan:0,actual:0} } },
+    'Siemens (Sub.)':   { plan: 44.29, actual: 41.53, disciplines: { 'Civil':{plan:56.25,actual:56.87}, 'Electrical':{plan:24.59,actual:8.63}, 'T&C':{plan:0,actual:0} } },
+    'PEA-FEC (T/L)':    { plan: 54.59, actual: 58.54, disciplines: {} },
+    'PEA-FEC (Add Bay)':{ plan: 70.26, actual: 72.35, disciplines: {} },
+  },
+  disciplines: { Engineering:{plan:99.51,actual:98.54}, Procurement:{plan:100,actual:85.91}, Construction:{plan:81.05,actual:42.55}, Commissioning:{plan:0,actual:0} },
+});
+
+// ── Solar GSPG-STN (PRJ-004) Week 24 — GSO2026/GSPG-STN Construction Progress Report_Week38
+seedIfEmpty('PRJ-004_W24_2026', {
+  plan: 83.44, actual: 67.45,
+  concerns: [
+    '[Villagers] Residents reported cracks in houses; Chusin Co. requested urgent resolution of rainwater drainage issue',
+    '[GUE PV Farm] Expedite additional manpower for Unit Substation and Electrical works',
+    '[Siemens] Expedite additional manpower for Civil works and Electrical works',
+    '[PEA-FEC T/L] Expedite start of Electrical work',
+  ],
+  activities: [],
+  scopes: {
+    'GUE (C&E)':       { plan: 83.44, actual: 67.45, disciplines: { Engineering:{plan:99.51,actual:98.78}, Procurement:{plan:99.52,actual:93.11}, Construction:{plan:87.27,actual:59.27}, Commissioning:{plan:0,actual:0} } },
+    'Siemens (Sub.)':  { plan: 62.29, actual: 42.27, disciplines: { 'Civil':{plan:78.47,actual:57.34}, 'Electrical':{plan:25.35,actual:11.67}, 'T&C':{plan:0,actual:0} } },
+    'PEA-FEC (T/L)':   { plan: 75.81, actual: 69.19, disciplines: { Engineering:{plan:87.50,actual:86.00}, Procurement:{plan:85.00,actual:85.00}, Construction:{plan:72.00,actual:65.73} } },
+    'PEA-FCE (Comm.)': { plan: 76.64, actual: 76.58, disciplines: {} },
+  },
+  disciplines: { Engineering:{plan:99.51,actual:98.78}, Procurement:{plan:99.52,actual:93.11}, Construction:{plan:87.27,actual:59.27}, Commissioning:{plan:0,actual:0} },
+});
+
+// ── LNG (PRJ-001) Week 24 — Source: GMTP-PCC-PM-WR Section 3.1.1
+seedIfEmpty('PRJ-001_W24_2026', {
+  plan: 20.89, actual: 23.94,
+  concerns: [
+    '[Proc.] UAE Piping Supply — HDPE: CIF (Ocean) from Sohar port, ETA LCB early July 2026',
+    '[Proc.] UAE Piping Supply — FRP: Air freight on board, est. 4 batches ETA BKK July 2026',
+  ],
+  activities: [
+    '[Eng.] Submit Surge Analysis Report (Seawater System) & Two-phase Flow Analysis',
+    '[Eng.] Submit Instrument Location Plan, Jetty Control Room Layout, Hook-up Details',
+    '[Proc.] KOM: Pressure Vessels / Recondenser / BOG Recondenser / Liquid Nitrogen System (12-18 Jun)',
+    '[Proc.] Commercial process: Centrifugal Pump, Jib Crane, Truck Scale, Cryogenic Pipe Support',
+    '[Proc.] TBE submission: ICSS, Magnetic Flowmeter, Tank Gauging, Fire Fighting Equipment',
+    '[Civil] Tank 101: Outer wall 3rd rebar, DOKA form, pre-stressing, insert plate',
+    '[Civil] Tank 102: Outer wall 2nd rebar, DOKA form, pre-stressing, insert plate',
+    '[Mech.] LNG Tank inner: Rafter pre-assembly, temp support erection, mobilize 400T crane',
+    '[BOP] UG Piping excavation, Piperack B/C piling, Jetty Control Building ground beam & slab',
+    '[Marine] Silt Curtain & Buoy installation, Accropode relocation, seawall saw cutting method',
+  ],
+  disciplines: {
+    Engineering:    { plan: 64.01, actual: 72.60 },
+    Procurement:    { plan: 24.27, actual: 26.73 },
+    Construction:   { plan: 15.04, actual: 18.41 },
+    Commissioning:  { plan: 0.00,  actual: 0.00  },
+  }
+});
+
+// ── Wind GULF Alpha 1 (PRJ-009) Week 24 — Weekly Report No.49 as of 19 Jun 2026
+seedIfEmpty('PRJ-009_W24_2026', {
+  plan: 24.32, actual: 24.05,
+  concerns: [
+    '[CBOP] Tree cutting on villager land AL1 no.062 not yet completed — affects site clearing, road construction, and EoT duration',
+    '[CBOP] Soil disposal area insufficient — West Route impacted by concrete pump, East Route impacted mid June, Route to Substation first week July',
+    '[CBOP] Remaining trees obstructing road slope, hardstand, and foundation areas (multiple WTG locations)',
+  ],
+  activities: [
+    '[CBOP PCZ] Backfill & compaction west route; road excavation east route; rock breaking',
+    '[TSA Goldwind] Excavation for WTG01, 02, 03, 06, 07, 08 hardstand & foundation; rebar cutting/bending',
+    '[T/L SCT/ENCOM] Foundation excavation; precast concrete foundation installation; concrete pole installation',
+  ],
+  scopes: {
+    'BOP (PCZ/VAP)':   { plan: 23.05, actual: 16.62, disciplines: { Engineering:{plan:100,actual:84.12}, Procurement:{plan:57.20,actual:47.00}, Construction:{plan:20.07,actual:13.95} } },
+    'TSA (Goldwind)':  { plan: 24.32, actual: 24.05, disciplines: { Engineering:{plan:59.96,actual:52.41}, Procurement:{plan:35.40,actual:35.40}, Construction:{plan:6.16,actual:6.53}, Commissioning:{plan:0,actual:0} } },
+    'Substation (SIEMENS)': { plan: 0, actual: 0, disciplines: {} },
+    '115kV T/L (SCT)': { plan: 98.30, actual: 69.49, disciplines: { Engineering:{plan:100,actual:75.00}, Procurement:{plan:100,actual:76.21}, Construction:{plan:98.30,actual:65.21} } },
+  },
+});
+
+// ── Wind GULF Alpha 2 (PRJ-010) Week 24 — Weekly Report No.72 as of 19 Jun 2026
+seedIfEmpty('PRJ-010_W24_2026', {
+  plan: 24.32, actual: 24.05,
+  concerns: [],
+  activities: [],
+  scopes: {
+    'CBOP':            { plan: 33.11, actual: 25.98, disciplines: { Engineering:{plan:100,actual:81.98}, Procurement:{plan:42.26,actual:45.40}, Construction:{plan:31.57,actual:23.67} } },
+    'TSA (Goldwind)':  { plan: 24.32, actual: 24.05, disciplines: { Engineering:{plan:59.96,actual:52.41}, Procurement:{plan:35.40,actual:35.40}, Construction:{plan:6.16,actual:6.53}, Commissioning:{plan:0,actual:0} } },
+    'Substation':      { plan: 1.00,  actual: 0.91,  disciplines: {} },
+    '115kV T/L':       { plan: 94.40, actual: 18.91, disciplines: {} },
+  },
+});
+
+// ── Wind GULF ECE (PRJ-011) Week 24 — Weekly Report No.49 as of 19 Jun 2026
+seedIfEmpty('PRJ-011_W24_2026', {
+  plan: 26.73, actual: 25.70,
+  concerns: [],
+  activities: [],
+  scopes: {
+    'CBOP (Overall)':  { plan: 57.28, actual: 56.54, disciplines: {} },
+    'TSA':             { plan: 26.73, actual: 25.70, disciplines: { Engineering:{plan:57.35,actual:52.88}, Procurement:{plan:35.40,actual:35.40}, Construction:{plan:14.65,actual:11.95}, Commissioning:{plan:0,actual:0} } },
+    'Substation':      { plan: 0.83,  actual: 0.82,  disciplines: {} },
+    '115kV T/L (RSS)': { plan: 92.73, actual: 65.82, disciplines: { Engineering:{plan:100,actual:100}, Procurement:{plan:100,actual:97.00}, Construction:{plan:89.62,actual:52.03} } },
+  },
+});
+
+// ── Hydro Pak Beng (PRJ-026) Week 24 — POWERCHINA Weekly Progress S-curve Jun W3 2026
+seedIfEmpty('PRJ-026_W24_2026', {
+  plan: 5.41, actual: 4.86,
+  concerns: [],
+  activities: [],
+});
+
+// ── Hydro Pak Lay (PRJ-025) Week 24 — POWERCHINA PLHPP Construction Progress Curve Jun W1 2026
+seedIfEmpty('PRJ-025_W24_2026', {
+  plan: 3.33, actual: 5.35,
+  concerns: [],
+  activities: [],
+});
+
+// ── WTE iWTE projects Week 24 — Weekly Construction Progress (EPC)
+// GSE (PRJ-014) Cut-off: 21 Jun 2026
+seedIfEmpty('PRJ-014_W24_2026', {
+  plan: 40.47, actual: 36.41,
+  concerns: [
+    'Delay finish of bunker foundations up to ground level (target PMS 07 May 2026)',
+    'Delay finish of STG foundations up to ground level (target PMS 25 May 2026)',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 67.58, actual: 43.90 },
+    Procurement:   { plan: 71.12, actual: 69.35 },
+    Construction:  { plan: 13.16, actual: 10.70 },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// KKE (PRJ-015) Cut-off: 12 Jun 2026
+seedIfEmpty('PRJ-015_W24_2026', {
+  plan: 43.20, actual: 37.34,
+  concerns: [
+    'Unsuitable ground condition for 300T crawler crane assembly may affect upcoming steel structure erection activities',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 75.14, actual: 44.93 },
+    Procurement:   { plan: 75.73, actual: 69.68 },
+    Construction:  { plan: 13.49, actual: 12.43 },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// MKP (PRJ-016) Cut-off: 19 Jun 2026
+seedIfEmpty('PRJ-016_W24_2026', {
+  plan: 34.13, actual: 32.98,
+  concerns: [
+    'Late manufacturing for steel roof structure and cladding structure',
+    'Underground pipes long lead — fabrication & delivery from overseas manufacturer (Steel pipe 24" & 28")',
+    'Duct bank and cathodic protection drawing not yet finalized; material purchasing delayed',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 49.18, actual: 42.00 },
+    Procurement:   { plan: 65.88, actual: 63.65 },
+    Construction:  { plan: 7.14,  actual: 8.29  },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// MPE (PRJ-017) Cut-off: 19 Jun 2026
+seedIfEmpty('PRJ-017_W24_2026', {
+  plan: 25.51, actual: 28.32,
+  concerns: [
+    'Tasks started and not-yet-started are behind PMS plan schedule — expedite EPC & STECON to increase manpower',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 45.80, actual: 42.11 },
+    Procurement:   { plan: 47.48, actual: 54.24 },
+    Construction:  { plan: 4.85,  actual: 6.05  },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// PFP (PRJ-018) Cut-off: 19 Jun 2026
+seedIfEmpty('PRJ-018_W24_2026', {
+  plan: 34.13, actual: 32.33,
+  concerns: [
+    'Tasks started and not-yet-started are behind PMS plan schedule — expedite STECON to increase manpower and do parallel work',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 49.18, actual: 42.26 },
+    Procurement:   { plan: 65.88, actual: 63.65 },
+    Construction:  { plan: 7.14,  actual: 6.61  },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// PKP (PRJ-019) Cut-off: 12 Jun 2026
+seedIfEmpty('PRJ-019_W24_2026', {
+  plan: 32.31, actual: 28.97,
+  concerns: [
+    'Manpower increase required to 200 workers within June 2026',
+    'Limited site access roads may impact construction productivity and material logistics',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 44.31, actual: 40.56 },
+    Procurement:   { plan: 63.28, actual: 57.28 },
+    Construction:  { plan: 6.41,  actual: 5.01  },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// PSD (PRJ-020) Cut-off: 12 Jun 2026
+seedIfEmpty('PRJ-020_W24_2026', {
+  plan: 38.15, actual: 32.67,
+  concerns: [
+    'Manpower increase required to 200 workers within June 2026',
+    'Partial handover of Switchgear Room schedule under review by CEEC — handover schedule to be submitted next week',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 59.50, actual: 39.99 },
+    Procurement:   { plan: 68.99, actual: 65.43 },
+    Construction:  { plan: 11.51, actual: 6.25  },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// PWW1 (PRJ-021) Cut-off: 21 Jun 2026
+seedIfEmpty('PRJ-021_W24_2026', {
+  plan: 34.13, actual: 32.86,
+  concerns: [
+    'Follow up EPC to revise catch-up plan — expedite method statement and engineering drawings',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 49.18, actual: 42.60 },
+    Procurement:   { plan: 65.88, actual: 63.65 },
+    Construction:  { plan: 7.14,  actual: 7.86  },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// PWW2 (PRJ-022) Cut-off: 21 Jun 2026
+seedIfEmpty('PRJ-022_W24_2026', {
+  plan: 25.51, actual: 28.24,
+  concerns: [
+    'Expedite method statement and engineering drawings for bunker, boiler, and STG foundations',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 45.82, actual: 41.59 },
+    Procurement:   { plan: 47.48, actual: 54.24 },
+    Construction:  { plan: 4.85,  actual: 5.97  },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// TPP (PRJ-023) Cut-off: 19 Jun 2026
+seedIfEmpty('PRJ-023_W24_2026', {
+  plan: 40.47, actual: 36.70,
+  concerns: [
+    'Concrete pouring delayed from additional embedded plate installation',
+    'Late manufacturing for steel roof structure and cladding structure',
+    'Underground pipes long lead — fabrication & delivery from overseas manufacturer (Steel pipe 24" & 28")',
+    'Duct bank and cathodic protection drawing not yet finalized; material purchasing delayed',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 67.58, actual: 42.52 },
+    Procurement:   { plan: 71.12, actual: 69.35 },
+    Construction:  { plan: 13.16, actual: 11.76 },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// TSE (PRJ-024) Cut-off: 21 Jun 2026
+seedIfEmpty('PRJ-024_W24_2026', {
+  plan: 45.04, actual: 40.46,
+  concerns: [
+    'Delay finish of bunker foundations up to ground level (target PMS 08 May 2026)',
+    'Delay finish of STG foundations up to ground level (target PMS 08 Jun 2026)',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 81.62, actual: 48.01 },
+    Procurement:   { plan: 77.41, actual: 74.49 },
+    Construction:  { plan: 14.79, actual: 14.66 },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// ── WTE GCE (PRJ-013) Week 24 — iWTE Weekly Construction Progress (EPC) 21 Jun 2026
+seedIfEmpty('PRJ-013_W24_2026', {
+  plan: 40.47, actual: 36.41,
+  concerns: [
+    'Permanence fence drawing — drawing not yet designed; request EPC to expedite designer & engineering to finish drawing and resolve elevation issue',
+  ],
+  activities: [],
+  disciplines: {
+    Engineering:   { plan: 67.58, actual: 43.90 },
+    Procurement:   { plan: 71.12, actual: 69.35 },
+    Construction:  { plan: 13.16, actual: 10.70 },
+    Commissioning: { plan: 0.00,  actual: 0.00  },
+  },
+});
+
+// ── Solar LNE (PRJ-005) Week 24 — SOSB2026/SO-SPB1 Construction Progress Report Week No.38
+seedIfEmpty('PRJ-005_W24_2026', {
+  plan: 95.92, actual: 92.26,
+  concerns: [
+    '[GUE] Delay of modify internal wiring ACCB — impact to 1st sync (target 1 Jul 2026)',
+    '[GUE] Inverter Transformer: Found particle in buchholz — QTC plan for oil circulate completed within 30 Jun',
+  ],
+  activities: [
+    '[GUE] Back energization 10/10 stations completed',
+    '[GUE] Pre-commissioning cable test 97.90% (remaining: lighting system)',
+    '[GUE] Road 86.26%, Fencing 96.50%, Transformer station 96.39% (remaining chain-link fence)',
+    '[Siemens] End-to-End test with PEA ongoing — plan completed within 22 Jun',
+    '[T/L PEA-ENCOM] All work completed 100%',
+  ],
+  scopes: {
+    'GUE (C&E)':         { plan: 95.92, actual: 92.26, disciplines: { Engineering:{plan:100,actual:100}, Procurement:{plan:100,actual:100}, Construction:{plan:100,actual:93.52}, Commissioning:{plan:59.20,actual:55.00} } },
+    'Siemens (Sub.)':    { plan: 99.62, actual: 99.93, disciplines: { Civil:{plan:100,actual:99.91}, Electrical:{plan:100,actual:100}, 'T&C':{plan:89.00,actual:96.20} } },
+    'PEA-ENCOM (T/L)':   { plan: 100,   actual: 100,   disciplines: {} },
+  },
+  disciplines: { Engineering:{plan:100,actual:100}, Procurement:{plan:100,actual:100}, Construction:{plan:100,actual:93.52}, Commissioning:{plan:59.20,actual:55.00} },
+});
+
+// ── Solar SSE (PRJ-006) Week 24 — SOSB2026/SB-SPB8 Construction Progress Report Week No.38
+seedIfEmpty('PRJ-006_W24_2026', {
+  plan: 97.77, actual: 93.42,
+  concerns: [
+    '[GUE] Insufficient manpower for punch list rectification and testing — all remaining work planned before 1st sync (1 Sep 2026)',
+    '[GUE] Shortage of electrical technicians — requires immediate manpower increase to accelerate cable termination and testing',
+  ],
+  activities: [
+    '[GUE] SAT/Individual test 70.00% (93.96% plan)',
+    '[GUE] Cable test 82.38% (98.49% plan)',
+    '[GUE] I-V Curve test 82.91% (330/398 ea.)',
+    '[GUE] Plant control & loop test 87.10%',
+    '[Siemens] End-to-End test with PEA ongoing — close punch list MCC',
+    '[T/L PEA-ENCOM] All work completed 100%',
+  ],
+  scopes: {
+    'GUE (C&E)':         { plan: 97.77, actual: 93.42, disciplines: { Engineering:{plan:100,actual:100}, Procurement:{plan:100,actual:100}, Construction:{plan:99.91,actual:95.14}, Commissioning:{plan:78.13,actual:60.37} } },
+    'Siemens (Sub.)':    { plan: 100,   actual: 99.45, disciplines: { Civil:{plan:100,actual:99.93}, Electrical:{plan:100,actual:100}, 'T&C':{plan:100,actual:100} } },
+    'PEA-ENCOM (T/L)':   { plan: 100,   actual: 100,   disciplines: {} },
+  },
+  disciplines: { Engineering:{plan:100,actual:100}, Procurement:{plan:100,actual:100}, Construction:{plan:99.91,actual:95.14}, Commissioning:{plan:78.13,actual:60.37} },
+});
+
+saveData();
+
+// Init — always default to Week 24 / 2026 (seed data week)
+currentWeek = 24; currentYear = 2026; saveData();
+renderAll();
+</script>
+</body>
+</html>
