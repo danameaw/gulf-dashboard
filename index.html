@@ -770,38 +770,36 @@ function buildScopeSelector(p, prog) {
         <option value="">— เลือก Scope —</option>
         ${opts}
       </select>
-      <div class="scope-disc-preview" id="sdp-${uid}"></div>
     </div>`;
 }
 
+// Track selected scope per project
+const selectedScopes = {};
+
 function onScopeChange(projectId, scopeName) {
-  const prog = getProgress(projectId);
-  const uid  = projectId.replace('-','');
-  const el   = document.getElementById(`sdp-${uid}`);
-  if (!el) return;
-  if (!scopeName || !prog.scopes || !prog.scopes[scopeName]) { el.innerHTML = ''; return; }
-  const sc   = prog.scopes[scopeName];
+  selectedScopes[projectId] = scopeName;
+  // Open detail row and render with selected scope
+  const detailId = `detail-${projectId.replace('-', '')}`;
+  const detailEl = document.getElementById(detailId);
+  if (detailEl) {
+    detailEl.classList.add('open');
+    renderDetail(projectId);
+  }
+}
+
+function buildDiscTable(sc) {
   const discs = sc.disciplines || {};
   const discEntries = Object.entries(discs);
-  // If no disciplines, show Overall row only
-  if (!discEntries.length) {
-    if (sc.plan !== undefined && sc.actual !== undefined) {
-      const v = sc.actual - sc.plan;
-      const vc = v < 0 ? 'var-negative' : v > 0 ? 'var-positive' : 'var-zero';
-      const vs = `${v>0?'+':''}${v.toFixed(1)}%`;
-      el.innerHTML = `
-        <table class="disc-table">
-          <thead><tr><th>Discipline</th><th>Plan</th><th>Actual</th><th>Var</th></tr></thead>
-          <tbody><tr>
-            <td>Overall</td>
-            <td>${sc.plan.toFixed(1)}%</td>
-            <td>${sc.actual.toFixed(1)}%</td>
-            <td class="${vc}" style="font-weight:700">${vs}</td>
-          </tr></tbody>
-        </table>`;
-    }
-    return;
-  }
+  const ov = (sc.plan !== undefined && sc.actual !== undefined) ? (() => {
+    const v = sc.actual - sc.plan;
+    const vc = v < 0 ? 'var-negative' : v > 0 ? 'var-positive' : 'var-zero';
+    return `<tr style="font-weight:700;background:#f5f8ff">
+      <td>Overall</td>
+      <td>${sc.plan.toFixed(1)}%</td>
+      <td>${sc.actual.toFixed(1)}%</td>
+      <td class="${vc}">${v>0?'+':''}${v.toFixed(1)}%</td>
+    </tr>`;
+  })() : '';
   const rows = discEntries.map(([d, dd]) => {
     const v = (dd.plan !== undefined && dd.actual !== undefined) ? dd.actual - dd.plan : null;
     const vc = v === null ? '' : v < 0 ? 'var-negative' : v > 0 ? 'var-positive' : 'var-zero';
@@ -813,15 +811,10 @@ function onScopeChange(projectId, scopeName) {
       <td class="${vc}" style="font-weight:700">${vs}</td>
     </tr>`;
   }).join('');
-  const ov = (sc.plan !== undefined && sc.actual !== undefined)
-    ? `<div class="scope-overall">Overall: <b>${sc.plan.toFixed(1)}%</b> → <b>${sc.actual.toFixed(1)}%</b>
-       <span class="${(sc.actual-sc.plan)<0?'var-negative':'var-positive'}" style="font-weight:700">
-         ${(sc.actual-sc.plan)>0?'+':''}${(sc.actual-sc.plan).toFixed(1)}%</span></div>` : '';
-  el.innerHTML = `${ov}
-    <table class="disc-table">
-      <thead><tr><th>Discipline</th><th>Plan</th><th>Actual</th><th>Var</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+  return `<table class="disc-table">
+    <thead><tr><th>Discipline</th><th>Plan %</th><th>Actual %</th><th>Variance</th></tr></thead>
+    <tbody>${ov}${rows}</tbody>
+  </table>`;
 }
 
 function renderTable(filtered) {
@@ -916,26 +909,27 @@ function renderDetail(projectId) {
     ? prog.activities.map(a => `<div class="activity-item"><span class="activity-dot"></span><span>${a}</span></div>`).join('')
     : '<div style="color:var(--text-muted);font-size:12px">No activities recorded.</div>';
 
-  // Discipline table (EPCC breakdown if available)
-  const disc = prog.disciplines || {};
-  const discKeys = ['Engineering', 'Procurement', 'Construction', 'Commissioning'];
-  const discRows = discKeys.map(d => {
-    const dd = disc[d] || {};
-    const dPlan = dd.plan !== undefined ? dd.plan.toFixed(1) + '%' : '—';
-    const dActual = dd.actual !== undefined ? dd.actual.toFixed(1) + '%' : '—';
-    const dVar = dd.plan !== undefined && dd.actual !== undefined ? ((dd.actual - dd.plan).toFixed(1)) : null;
-    const dVarHtml = dVar === null ? '—' : `<span class="${parseFloat(dVar) < 0 ? 'var-negative' : parseFloat(dVar) > 0 ? 'var-positive' : 'var-zero'}">${parseFloat(dVar) > 0 ? '+' : ''}${dVar}%</span>`;
-    return `<tr><td>${d}</td><td>${dPlan}</td><td>${dActual}</td><td>${dVarHtml}</td></tr>`;
-  }).join('');
+  // Discipline table — use selected scope if available, else overall disciplines
+  const selScope = selectedScopes[projectId];
+  let discTitle = 'EPCC Discipline Breakdown';
+  let discTableHtml = '';
+  if (selScope && prog.scopes && prog.scopes[selScope]) {
+    discTitle = selScope;
+    discTableHtml = buildDiscTable(prog.scopes[selScope]);
+  } else if (prog.disciplines && Object.keys(prog.disciplines).length) {
+    discTableHtml = buildDiscTable({ plan: prog.plan, actual: prog.actual, disciplines: prog.disciplines });
+  } else if (prog.scopes) {
+    // No scope selected and no top-level disciplines — show hint
+    discTableHtml = '<div style="color:var(--text-muted);font-size:12px">เลือก Scope จาก dropdown เพื่อดู Discipline</div>';
+  } else {
+    discTableHtml = '<div style="color:var(--text-muted);font-size:12px">No discipline data recorded.</div>';
+  }
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">EPCC Discipline Breakdown</div>
-        <table class="disc-table">
-          <thead><tr><th>Discipline</th><th>Plan %</th><th>Actual %</th><th>Variance</th></tr></thead>
-          <tbody>${discRows}</tbody>
-        </table>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">${discTitle}</div>
+        ${discTableHtml}
         <div style="margin-top:8px">
           <button class="btn btn-outline" style="font-size:11px;height:28px" onclick="openDisciplineEdit('${projectId}')">✏ Edit Discipline Data</button>
         </div>
