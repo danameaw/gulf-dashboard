@@ -203,6 +203,7 @@
   .prog-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); }
   .prog-delay-tags { display: flex; flex-wrap: wrap; gap: 3px; min-height: 18px; align-items: center; }
   .disc-delay-tag { font-size: 10px; font-weight: 700; color: #fff; background: var(--red); border-radius: 3px; padding: 1px 5px; white-space: nowrap; }
+  .missing-badge { font-size: 10px; font-weight: 700; color: #fff; background: #f59e0b; border-radius: 3px; padding: 1px 6px; margin-left: 6px; white-space: nowrap; cursor: help; }
   .prog-track { height: 7px; background: #e9ecef; border-radius: 4px; overflow: hidden; position: relative; }
   .prog-plan { position: absolute; top: 0; left: 0; height: 100%; background: #aac4e0; border-radius: 4px; }
   .prog-actual { position: absolute; top: 0; left: 0; height: 100%; border-radius: 4px; }
@@ -578,6 +579,10 @@ const PROJECTS = [
 
 // Progress data store: key = "projectId_week"
 // Each entry: { plan, actual, concerns:[], activities:[], disciplineData:{} }
+// ── AUTO: MISSING REPORTS ──
+const MISSING_REPORTS = [];
+// ── END MISSING REPORTS ──
+
 let progressData = JSON.parse(localStorage.getItem('gulfDashData') || '{}');
 
 let currentWeek = parseInt(localStorage.getItem('gulfWeek') || '1');
@@ -849,7 +854,10 @@ function renderTable(filtered) {
     tr.innerHTML = `
       <td style="color:var(--text-muted);font-size:11px">${idx + 1}</td>
       <td><span class="prj-id">${p.id}</span></td>
-      <td><span class="prj-name">${p.name}</span></td>
+      <td>
+        <span class="prj-name">${p.name}</span>
+        ${MISSING_REPORTS.includes(p.id) ? '<span class="missing-badge" title="ไม่พบไฟล์ PDF ใน ShareDrive">⚠ No Report</span>' : ''}
+      </td>
       <td><span class="type-badge type-${p.type}">${p.type}</span></td>
       <td><span class="pill-contract">${p.contract}</span></td>
       <td>${scopeCell}</td>
