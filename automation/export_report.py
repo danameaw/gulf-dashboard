@@ -110,6 +110,118 @@ def split_multiline(value) -> list[str]:
     return [p.strip() for p in parts if p.strip()]
 
 
+def parse_html_progress(html_path: str, week: int, year: int) -> dict:
+    """Extract seeded progress data (plan/actual/scopes) from index.html for a given week/year.
+    Returns {pid: {plan, actual, scopes, contract}} dict."""
+    if not os.path.isfile(html_path):
+        return {}
+
+    with open(html_path, encoding="utf-8", errors="ignore") as f:
+        content = f.read()
+
+    result = {}
+
+    # Find all seedIfEmpty('PRJ-XXX_WYY_ZZZZ', {...}) blocks
+    seed_pattern = re.compile(
+        r"seedIfEmpty\(\s*['\"]([^'\"]+)['\"]\s*,\s*(\{)",
+        re.DOTALL,
+    )
+
+    for m in seed_pattern.finditer(content):
+        key = m.group(1)  # e.g. "PRJ-002_W24_2026"
+
+        # Parse key to extract project id, week, year
+        km = re.match(r"(PRJ-\d+)_W(\d+)_(\d+)", key)
+        if not km:
+            continue
+        pid   = km.group(1)
+        k_week = int(km.group(2))
+        k_year = int(km.group(3))
+        if k_week != week or k_year != year:
+            continue
+
+        # Extract the JS object by counting braces
+        start = m.start(2)
+        depth = 0
+        end = start
+        for i, ch in enumerate(content[start:], start):
+            if ch == '{':
+                depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+
+        obj_str = content[start:end]
+
+        # Top-level plan/actual are on the first content line: "plan: 83.04, actual: 59.19,"
+        top_m  = re.search(r"\bplan\s*:\s*([\d.]+)[^}]*?\bactual\s*:\s*([\d.]+)", obj_str)
+        plan   = float(top_m.group(1)) if top_m else None
+        actual = float(top_m.group(2)) if top_m else None
+
+        # Extract scopes block if present
+        scopes = {}
+        scopes_m = re.search(r"\bscopes\s*:\s*\{", obj_str)
+        if scopes_m:
+            s_start = obj_str.index('{', scopes_m.start())
+            depth2 = 0
+            s_end = s_start
+            for i, ch in enumerate(obj_str[s_start:], s_start):
+                if ch == '{':
+                    depth2 += 1
+                elif ch == '}':
+                    depth2 -= 1
+                    if depth2 == 0:
+                        s_end = i + 1
+                        break
+            scopes_str = obj_str[s_start:s_end]
+
+            # Match only TOP-LEVEL scope entries (depth-1 inside scopes block):
+            # 'Scope Name': { plan: X, actual: Y, ...}
+            # Walk character by character to find entries at depth 1 only.
+            pos = 1  # skip opening '{'
+            scope_depth = 0
+            while pos < len(scopes_str) - 1:
+                ch = scopes_str[pos]
+                if ch in ('"', "'") and scope_depth == 0:
+                    # Find closing quote
+                    q = ch
+                    end_q = scopes_str.index(q, pos + 1)
+                    scope_name = scopes_str[pos + 1:end_q]
+                    # Find the '{' that starts this scope's value
+                    brace_pos = scopes_str.index('{', end_q)
+                    # Extract that inner object by brace counting
+                    d = 0
+                    inner_end = brace_pos
+                    for j, c2 in enumerate(scopes_str[brace_pos:], brace_pos):
+                        if c2 == '{': d += 1
+                        elif c2 == '}':
+                            d -= 1
+                            if d == 0:
+                                inner_end = j + 1
+                                break
+                    inner = scopes_str[brace_pos:inner_end]
+                    # Extract plan/actual from this inner object (first occurrence)
+                    pa_m = re.search(r"\bplan\s*:\s*([\d.]+)[^}]*?\bactual\s*:\s*([\d.]+)", inner)
+                    if pa_m and scope_name:
+                        scopes[scope_name] = {
+                            "plan":   float(pa_m.group(1)),
+                            "actual": float(pa_m.group(2)),
+                        }
+                    pos = inner_end
+                    continue
+                if ch == '{':
+                    scope_depth += 1
+                elif ch == '}':
+                    scope_depth -= 1
+                pos += 1
+
+        result[pid] = {"plan": plan, "actual": actual, "scopes": scopes}
+
+    return result
+
+
 def parse_xlsx(xlsx_path: str, week: int | None, year: int | None) -> dict:
     """Parse the Excel workbook and return the JSON-compatible data dict."""
     wb = openpyxl.load_workbook(xlsx_path, read_only=True, data_only=True)
@@ -190,12 +302,30 @@ def parse_xlsx(xlsx_path: str, week: int | None, year: int | None) -> dict:
                 "pdf_found":  pdf_found,
                 "concerns":   concerns,
                 "activities": activities,
+                "plan":       None,
+                "actual":     None,
+                "scopes":     {},
             })
 
         if projects:
             break  # Use first sheet with data
 
     wb.close()
+
+    # Merge progress data from index.html (scopes, plan/actual)
+    html_path = os.path.join(os.path.dirname(os.path.dirname(xlsx_path)), "index.html")
+    html_data = parse_html_progress(html_path, week, year)
+    for p in projects:
+        hd = html_data.get(p["id"])
+        if hd:
+            if p["plan"]   is None: p["plan"]   = hd["plan"]
+            if p["actual"] is None: p["actual"] = hd["actual"]
+            if not p["scopes"]:    p["scopes"]  = hd["scopes"]
+            # Fill concerns/activities from HTML if Excel didn't have them
+            if not p["concerns"]   and hd.get("concerns"):
+                p["concerns"]   = hd["concerns"]
+            if not p["activities"] and hd.get("activities"):
+                p["activities"] = hd["activities"]
 
     return {
         "week":     week,
@@ -271,7 +401,7 @@ def main():
             print(f"ERROR: generate_report.js not found at {js_script}")
             sys.exit(1)
 
-        print(f"Generating Word document → {output_path}")
+        print(f"Generating Word document -> {output_path}")
         result = subprocess.run(
             ["node", js_script, tmp_json, output_path],
             capture_output=True,

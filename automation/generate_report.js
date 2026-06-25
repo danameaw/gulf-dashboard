@@ -30,6 +30,11 @@ const COL_CONCERNS = 1586;
 const COL_ACT      = 1586;
 // sum = 9072
 
+const BLUE_SCOPE = 'EBF2FA';
+const DELAY_RED  = 'C0392B';
+const AHEAD_GRN  = '27AE60';
+const NEUTRAL    = '444444';
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function navyShading() {
@@ -233,8 +238,8 @@ function buildSummaryTable(projects) {
       ],
     });
 
-  const dataCell = (text, width, fill, align = AlignmentType.LEFT) =>
-    new TableCell({
+  const dataCell = (text, width, fill, align = AlignmentType.LEFT, rowSpan) => {
+    const cell = {
       width: { size: width, type: WidthType.DXA },
       shading: clearShading(fill),
       borders: cellBorders('CCCCCC'),
@@ -248,7 +253,47 @@ function buildSummaryTable(projects) {
           ],
         }),
       ],
+    };
+    if (rowSpan) cell.rowSpan = rowSpan;
+    return new TableCell(cell);
+  };
+
+  // Build a scope sub-row for multi-contract projects
+  const scopeRow = (scopeName, scopeData, fill) => {
+    const plan   = scopeData.plan   != null ? scopeData.plan.toFixed(2)   : '–';
+    const actual = scopeData.actual != null ? scopeData.actual.toFixed(2) : '–';
+    const variance = (scopeData.plan != null && scopeData.actual != null)
+      ? (scopeData.actual - scopeData.plan).toFixed(2)
+      : null;
+    const varText  = variance != null
+      ? (parseFloat(variance) >= 0 ? `+${variance}%` : `${variance}%`)
+      : '';
+    const varColor = variance == null ? NEUTRAL
+      : parseFloat(variance) < -5 ? DELAY_RED
+      : parseFloat(variance) >  5 ? AHEAD_GRN
+      : NEUTRAL;
+
+    return new TableRow({
+      children: [
+        new TableCell({
+          width: { size: COL_NAME, type: WidthType.DXA },
+          shading: clearShading(BLUE_SCOPE),
+          borders: cellBorders('CCCCCC'),
+          margins: { top: 60, bottom: 60, left: 240, right: 120 },
+          verticalAlign: VerticalAlign.CENTER,
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({ text: scopeName, size: 18, font: 'Calibri', bold: true, color: '1F3864' }),
+                new TextRun({ text: `   Plan: ${plan}%  Actual: ${actual}%`, size: 18, font: 'Calibri', color: '555555' }),
+                ...(varText ? [new TextRun({ text: `  (${varText})`, size: 18, font: 'Calibri', bold: true, color: varColor })] : []),
+              ],
+            }),
+          ],
+        }),
+      ],
     });
+  };
 
   const headerRow = new TableRow({
     tableHeader: true,
@@ -261,17 +306,28 @@ function buildSummaryTable(projects) {
     ],
   });
 
-  const dataRows = projects.map(p => {
-    const fill = p.pdf_found ? GREEN_ROW : RED_ROW;
+  const dataRows = [];
+  projects.forEach(p => {
+    const fill    = p.pdf_found ? GREEN_ROW : RED_ROW;
     const pdfText = p.pdf_found ? '✓ Found' : '✗ Missing';
-    return new TableRow({
+    const isMulti = p.contract && p.contract.toLowerCase() === 'multi';
+    const scopeEntries = isMulti && p.scopes ? Object.entries(p.scopes) : [];
+    const rowSpan = scopeEntries.length > 0 ? 1 + scopeEntries.length : undefined;
+
+    // Main project row
+    dataRows.push(new TableRow({
       children: [
-        dataCell(p.id,                               COL_ID,       fill),
-        dataCell(p.name,                             COL_NAME,     fill),
-        dataCell(pdfText,                            COL_PDF,      fill, AlignmentType.CENTER),
-        dataCell(String(p.concerns.length),          COL_CONCERNS, fill, AlignmentType.CENTER),
-        dataCell(String(p.activities.length),        COL_ACT,      fill, AlignmentType.CENTER),
+        dataCell(p.id,                        COL_ID,       fill, AlignmentType.CENTER, rowSpan),
+        dataCell(isMulti ? `${p.name}  [Multi Contract]` : p.name, COL_NAME, fill),
+        dataCell(pdfText,                     COL_PDF,      fill, AlignmentType.CENTER, rowSpan),
+        dataCell(String(p.concerns.length),   COL_CONCERNS, fill, AlignmentType.CENTER, rowSpan),
+        dataCell(String(p.activities.length), COL_ACT,      fill, AlignmentType.CENTER, rowSpan),
       ],
+    }));
+
+    // Scope sub-rows (Multi only)
+    scopeEntries.forEach(([name, data]) => {
+      dataRows.push(scopeRow(name, data, fill));
     });
   });
 

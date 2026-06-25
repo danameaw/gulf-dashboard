@@ -1143,33 +1143,100 @@ function buildPrintContent() {
   }
 
   if (chkProgress) {
+    const fmtPct = v => v !== null && v !== undefined ? v.toFixed(1)+'%' : '—';
+    const fmtVar = (plan, actual) => {
+      if (plan === null || actual === null) return '—';
+      const v = (actual - plan).toFixed(1);
+      return (parseFloat(v) > 0 ? '+' : '') + v + '%';
+    };
+    const varColor = (plan, actual) => {
+      if (plan === null || actual === null) return '';
+      const v = actual - plan;
+      return v < -5 ? 'color:#c0392b;font-weight:600' : v > 5 ? 'color:#1e8449;font-weight:600' : '';
+    };
+    const statusBadge = s => {
+      const c = s==='Delay'?'#ffe0e0;color:#c0392b' : s==='Ahead'?'#e0f5e0;color:#1e8449' : s==='On Track'?'#e8f0ff;color:#1a3c5e' : '#f0f0f0;color:#888';
+      return `<span style="background:${c};padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600">${s}</span>`;
+    };
+    const discRow = (label, d) => {
+      if (!d) return '';
+      const s = calcStatus(d.plan, d.actual);
+      return `<tr style="background:#fff">
+        <td></td><td></td>
+        <td style="padding-left:36px;color:#666;font-size:10px">${label}</td>
+        <td></td><td></td>
+        <td style="text-align:right;font-size:10px">${fmtPct(d.plan)}</td>
+        <td style="text-align:right;font-size:10px">${fmtPct(d.actual)}</td>
+        <td style="text-align:right;font-size:10px;${varColor(d.plan,d.actual)}">${fmtVar(d.plan,d.actual)}</td>
+        <td style="font-size:10px">${statusBadge(s)}</td>
+      </tr>`;
+    };
+
+    let rows = '';
+    projects.forEach((p, i) => {
+      const prog = getProgress(p.id);
+      const isMulti = p.contract === 'Multi';
+      const scopes = prog.scopes || {};
+      const hasDisciplines = prog.disciplines && Object.keys(prog.disciplines).length > 0;
+
+      if (isMulti) {
+        // Project header row — no overall plan/actual for Multi
+        rows += `<tr style="background:#e8f0fb">
+          <td>${i+1}</td>
+          <td><strong>${p.id}</strong></td>
+          <td><strong>${p.name}</strong> <span style="background:#dbeafe;color:#1e40af;font-size:9px;padding:1px 5px;border-radius:3px">Multi</span></td>
+          <td>${p.type}</td>
+          <td>Multi</td>
+          <td colspan="4" style="color:#888;font-size:10px">see contracts below</td>
+        </tr>`;
+        // Each scope/contract
+        Object.entries(scopes).forEach(([scopeName, sd]) => {
+          const ss = calcStatus(sd.plan, sd.actual, sd);
+          rows += `<tr style="background:#f0f4fa">
+            <td></td><td></td>
+            <td style="padding-left:20px;font-weight:600;color:#1a3c5e;font-size:10px">${scopeName}</td>
+            <td></td><td></td>
+            <td style="text-align:right;font-size:10px">${fmtPct(sd.plan)}</td>
+            <td style="text-align:right;font-size:10px">${fmtPct(sd.actual)}</td>
+            <td style="text-align:right;font-size:10px;${varColor(sd.plan,sd.actual)}">${fmtVar(sd.plan,sd.actual)}</td>
+            <td style="font-size:10px">${statusBadge(ss)}</td>
+          </tr>`;
+          // Disciplines within this scope
+          const discs = sd.disciplines || {};
+          Object.entries(discs).forEach(([dname, d]) => { rows += discRow(dname, d); });
+        });
+      } else {
+        // EPC — overall row with plan/actual
+        const status = calcStatus(prog.plan, prog.actual, prog);
+        const rowBg = status==='Delay'?'#fff5f5' : status==='Ahead'?'#f5fff8' : '#f9fafb';
+        rows += `<tr style="background:${rowBg}">
+          <td>${i+1}</td>
+          <td><strong>${p.id}</strong></td>
+          <td><strong>${p.name}</strong> <span style="background:#fef3c7;color:#92400e;font-size:9px;padding:1px 5px;border-radius:3px">EPC</span></td>
+          <td>${p.type}</td>
+          <td>EPC</td>
+          <td style="text-align:right">${fmtPct(prog.plan)}</td>
+          <td style="text-align:right">${fmtPct(prog.actual)}</td>
+          <td style="text-align:right;${varColor(prog.plan,prog.actual)}">${fmtVar(prog.plan,prog.actual)}</td>
+          <td>${statusBadge(status)}</td>
+        </tr>`;
+        // Disciplines
+        if (hasDisciplines) {
+          Object.entries(prog.disciplines).forEach(([dname, d]) => { rows += discRow(dname, d); });
+        }
+      }
+    });
+
     html += `
       <h2 style="font-size:13px;margin-bottom:8px;color:#1a3c5e">Project Progress Summary</h2>
       <table class="print-table" style="margin-bottom:20px">
         <thead>
           <tr>
-            <th>#</th><th>Project ID</th><th>Project Name</th><th>Type</th><th>Contract</th>
-            <th>Plan %</th><th>Actual %</th><th>Variance</th><th>Status</th>
+            <th>#</th><th>Project ID</th><th>Project Name / Contract / Discipline</th><th>Type</th><th>Contract</th>
+            <th style="text-align:right">Plan %</th><th style="text-align:right">Actual %</th><th style="text-align:right">Variance</th><th>Status</th>
           </tr>
         </thead>
-        <tbody>
-          ${projects.map((p, i) => {
-            const prog = getProgress(p.id);
-            const status = calcStatus(prog.plan, prog.actual, prog);
-            const variance = prog.plan !== null && prog.actual !== null ? (prog.actual - prog.plan).toFixed(1) : '—';
-            return `<tr>
-              <td>${i+1}</td>
-              <td>${p.id}</td>
-              <td>${p.name}</td>
-              <td>${p.type}</td>
-              <td>${p.contract}</td>
-              <td>${prog.plan !== null ? prog.plan.toFixed(1)+'%' : '—'}</td>
-              <td>${prog.actual !== null ? prog.actual.toFixed(1)+'%' : '—'}</td>
-              <td>${variance !== '—' ? (parseFloat(variance)>0?'+':'')+variance+'%' : '—'}</td>
-              <td>${status}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
+        <tbody>${rows}</tbody>
       </table>
     `;
   }
