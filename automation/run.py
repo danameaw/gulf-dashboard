@@ -109,9 +109,11 @@ def build_seed(prj_id, week, year, data):
 
 
 # ── 4. Update index.html ───────────────────────────────────────────────────
-SEED_MARKER   = '// ── SEED DATA (pre-loaded from PDF reports) ──'
+SEED_MARKER          = '// ── SEED DATA (pre-loaded from PDF reports) ──'
 MISSING_MARKER_START = '// ── AUTO: MISSING REPORTS ──'
 MISSING_MARKER_END   = '// ── END MISSING REPORTS ──'
+WEEK_MARKER_START    = '// ── AUTO: CURRENT WEEK ──'
+WEEK_MARKER_END      = '// ── END CURRENT WEEK ──'
 
 def update_html(week, year, seeds_js, missing_ids):
     with open(DASHBOARD_HTML, encoding='utf-8') as f:
@@ -139,12 +141,28 @@ def update_html(week, year, seeds_js, missing_ids):
         end   = html.index(MISSING_MARKER_END) + len(MISSING_MARKER_END)
         html  = html[:start] + missing_js + html[end:]
     else:
-        # Insert before first <script> tag
         html = html.replace('<script>', missing_js + '\n<script>', 1)
+
+    # Update current week displayed in dashboard
+    week_js = (
+        f"{WEEK_MARKER_START}\n"
+        f"currentWeek = {week}; currentYear = {year}; saveData();\n"
+        f"{WEEK_MARKER_END}"
+    )
+    if WEEK_MARKER_START in html:
+        start = html.index(WEEK_MARKER_START)
+        end   = html.index(WEEK_MARKER_END) + len(WEEK_MARKER_END)
+        html  = html[:start] + week_js + html[end:]
+    else:
+        # Replace any existing hardcoded currentWeek line
+        import re as _re
+        html = _re.sub(
+            r'currentWeek\s*=\s*\d+;\s*currentYear\s*=\s*\d+;\s*saveData\(\);',
+            week_js, html)
 
     with open(DASHBOARD_HTML, 'w', encoding='utf-8') as f:
         f.write(html)
-    print(f"  ✓ index.html updated")
+    print(f"  ✓ index.html updated (Week {week}/{year})")
 
 
 # ── 5. Update / create Excel ───────────────────────────────────────────────
