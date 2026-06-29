@@ -30,8 +30,12 @@ IWTE_DISC_ORDER = ['Engineering', 'Procurement', 'Construction', 'Commissioning'
 IWTE_DISC_WEIGHTS = {'Engineering': 0.10, 'Procurement': 0.40,
                      'Construction': 0.40, 'Commissioning': 0.10}
 
-IWTE_PAGE_INCLUDE = re.compile(r'weekly|week\s+\d', re.I)
-IWTE_PAGE_EXCLUDE = re.compile(r'monthly|cumulative\s+monthly', re.I)
+IWTE_PAGE_INCLUDE = re.compile(r'weekly construction progress|weekly.*progress.*epc|week\s+\d', re.I)
+IWTE_PAGE_EXCLUDE = re.compile(r'monthly progress status|cumulative\s+monthly', re.I)
+# Table format: columns 0=discipline, 1=weight, 2=prev_plan, 3=prev_actual, 4=prev_diff,
+#               5=curr_plan, 6=curr_actual, 7=curr_diff, 8=next_plan
+IWTE_CURR_PLAN_COL   = 5
+IWTE_CURR_ACTUAL_COL = 6
 
 # Matches a % value like 40.47 or 100.00 or 0.00
 PCT = r'(\d{1,3}(?:\.\d{1,2})?)'
@@ -122,10 +126,141 @@ GMTP_ROWS = {
 # ── TTT (PRJ-027) ─────────────────────────────────────────────────────────
 # No data yet → MANUAL when reports available
 
+# ── Solar (GSO2026: PRJ-002,003,004 / SOSB2026: PRJ-005,006,007) ─────────
+# Source: "This week activities" pages per contractor section
+# Page identification:
+#   GUE scope:       page title contains "Construction Status : GUE"
+#   Siemens scope:   page title contains "Siemens" (substation)
+#   115kV T/L scope: page title contains "115kV" or "Transmission Line"
+#   Comm/Fiber:      page title contains "Fiber" or "ITL" or "Communication"
+#
+# Pattern in text (on "This week activities" page, NOT "Previous week"):
+#   "Overall progress stands at A.AA% against the planned progress of B.BB%"
+#   "Engineering progress stands at A.AA% against the planned progress of B.BB%"
+#   "Procurement progress stands at A.AA% against the planned progress of B.BB%"
+#   "Construction progress stands at A.AA% against the planned progress of B.BB%"
+#
+# Scope mapping (same across all Solar projects):
+#   GUE       → disciplines: Engineering, Procurement, Construction
+#   Siemens   → single overall (Construction only usually)
+#   115kV T/L → single overall
+#   Comm/Fiber→ single overall (optional, may not always have report)
+
+SOLAR_THIS_WEEK = re.compile(r'this week activities', re.I)
+SOLAR_PREV_WEEK = re.compile(r'previous week activities', re.I)
+# NWT3-style: "Overall progress stands at A.AA% against the planned progress of B.BB%"
+# group(1)=discipline, group(2)=actual, group(3)=plan
+SOLAR_PROGRESS  = re.compile(
+    r'(overall|engineering|procurement|construction)\s+(?:project\s+)?progress\s+stands\s+at\s+'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s+against\s+the\s+planned\s+progress\s+of\s+'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%',
+    re.I)
+
+# PTN/STN-style: "Overall project progress 58.26% compared to plan at 82.19%"
+# group(1)=discipline, group(2)=actual, group(3)=plan
+SOLAR_PROGRESS_ALT = re.compile(
+    r'(overall|engineering|procurement|construction|civil|electrical)\s+'
+    r'(?:project\s+|pre-civil\s+|construction\s+|work\s+)?progress\s+'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s+compared\s+to\s+plan\s+at\s+'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%',
+    re.I)
+
+# SSE/LNE/SDCE-style (executive summary Site Progress cell).
+# Handles all 3 sub-variants:
+#   "/Plan at"  (SSE):  "Construction progress 97.49% /Plan at 99.91%"
+#   "vs plan"   (LNE):  "Overall progress is 93.97% vs plan 96.66%"
+#   "against plan" (SDCE): "Overall progress 81.39% against plan 83.02%"
+# group(1)=discipline, group(2)=actual, group(3)=plan
+SOLAR_PROGRESS_SUMMARY = re.compile(
+    r'(overall|construction|commissioning|civil|electrical)\s*'
+    r'progress\s*(?:is\s+)?'           # "progress" then optional "is"
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s*'
+    r'(?:/\s*Plan\s*at|vs\s+plan|against\s+plan)\s*'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%',
+    re.I)
+
+# Scope detection from page text (title line)
+SOLAR_SCOPE_GUE   = re.compile(r'construction status\s*[:\-]\s*gue|status.*\bgue\b', re.I)
+SOLAR_SCOPE_SIE   = re.compile(r'siemens|substation.*siemens|siemens.*substation', re.I)
+SOLAR_SCOPE_TL    = re.compile(r'115\s*kv|transmission line|t/l', re.I)
+SOLAR_SCOPE_COMM  = re.compile(r'fiber|communication|itl|กบศ', re.I)
+
+# ── Wind (PRJ-009 AL1, PRJ-010 AL2, PRJ-011 ECE) ──────────────────────────
+# Source: "Overall Progress S-Curve (SCOPE)" pages — text table
+# Page title format: "Overall Progress S-Curve (PCZ)" or "(GW)" or "(SCT)" etc.
+# Table format (same for all scopes):
+#   Description  Plan     Actual   Ahead/Delay
+#   Engineering  100%     84.12%   15.88%
+#   Procurement  57.20%   47.00%   10.20%
+#   Construction 20.07%   13.95%   6.13%
+#   Overall      23.05%   16.62%   6.43%
+#
+# Scope mapping:
+#   AL1: CBOP=PCZ, TSA=GW, Substation=SIEMENS, T/L=SCT
+#   AL2: CBOP=PCZ, TSA=GW, Substation=SIEMENS, T/L=ENCOM
+#   ECE: CBOP=PCZ, TSA=GW, Substation=SIEMENS, T/L=RSS
+#
+# IMPORTANT: Use "Overall Progress S-Curve" page, NOT "Construction Progress S-Curve"
+# The "Construction Progress" page has only the Construction row → skip it
+
+WIND_SCURVE_PAGE = re.compile(r'overall progress s-?curve\s*\(([^)]+)\)', re.I)
+WIND_DISC_ROW    = re.compile(
+    r'^(engineering|procurement|construction|commissioning|overall)\s+'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s+'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%',
+    re.I | re.M)
+
+# Scope name normalization for Wind
+WIND_SCOPE_MAP = {
+    'pcz':    'CBOP',
+    'gw':     'TSA',
+    'goldwind': 'TSA',
+    'siemens': 'Substation',
+    'sct':    '115kV T/L',
+    'encom':  '115kV T/L',
+    'rss':    '115kV T/L',
+}
+
+# ── Hydro Pak Beng (PRJ-026) ───────────────────────────────────────────────
+# Source: Monthly progress report, page with S-Curve summary
+# Pattern 1 (text line): "Plan/Actual：5.65%/5.24%（0.41%）"
+# Pattern 2 (table row): "Cum. Progress -Planned ... 5.65%"
+#                         "Cum. Progress -Actual  ... 5.24%"
+# → Use the LAST value in each row (current month's cumulative)
+
+PAKBENG_PLAN_ACTUAL = re.compile(
+    r'plan/actual\s*[：:]\s*(\d{1,3}(?:\.\d{1,2})?)%\s*/\s*(\d{1,3}(?:\.\d{1,2})?)%',
+    re.I)
+PAKBENG_CUM_PLANNED = re.compile(
+    r'cum\.?\s*progress\s*[-–]\s*planned[^\n]*?(\d{1,3}\.\d{2})%\s*$', re.I | re.M)
+PAKBENG_CUM_ACTUAL  = re.compile(
+    r'cum\.?\s*progress\s*[-–]\s*actual[^\n]*?(\d{1,3}\.\d{2})%\s*$', re.I | re.M)
+
+# ── Hydro Pak Lay (PRJ-025) ────────────────────────────────────────────────
+# Source: EPC Weekly Report
+# Note: Report focuses on issue tracking / design submissions, NOT a clear
+# overall progress % page in text form. S-curve may be image-based.
+# If a "Physical Progress" or "Overall Progress" text line appears, capture it.
+# Pattern: "Physical Progress: Plan X.XX% / Actual Y.YY%"
+#          or "overall progress ... X.XX% ... Y.YY%"
+
+PAKLAY_PROGRESS = re.compile(
+    r'physical\s+progress.*?(\d{1,3}(?:\.\d{1,2})?)%.*?(\d{1,3}(?:\.\d{1,2})?)%',
+    re.I)
+
 # ── Summary: which projects CAN be auto-extracted ──────────────────────────
 AUTO_EXTRACT_PROJECTS = {
     # project_id: extraction_type
-    'PRJ-001': 'gmtp',    # GMTP/LNG — text table
+    'PRJ-001': 'gmtp',    # GMTP/LNG — text discipline table
+    'PRJ-002': 'solar',   # GOE2-NWT3
+    'PRJ-003': 'solar',   # GSPG-PTN
+    'PRJ-004': 'solar',   # GSPG-STN
+    'PRJ-005': 'solar',   # LNE
+    'PRJ-006': 'solar',   # SSE
+    'PRJ-007': 'solar',   # SDCE
+    'PRJ-009': 'wind',    # AL1
+    'PRJ-010': 'wind',    # AL2
+    'PRJ-011': 'wind',    # ECE
     'PRJ-013': 'iwte',    # GCE
     'PRJ-014': 'iwte',    # GSE
     'PRJ-015': 'iwte',    # KKE
@@ -138,5 +273,6 @@ AUTO_EXTRACT_PROJECTS = {
     'PRJ-022': 'iwte',    # PWW2
     'PRJ-023': 'iwte',    # TPP
     'PRJ-024': 'iwte',    # TSE
-    # All Solar, Wind, Hydro → S-CURVE IMAGE → cannot auto-extract
+    'PRJ-025': 'hydro_paklay',   # Pak Lay
+    'PRJ-026': 'hydro_pakbeng',  # Pak Beng
 }

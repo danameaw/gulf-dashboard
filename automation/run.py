@@ -46,7 +46,7 @@ def _js_num(v):
     """Format a number (or null) for JS."""
     return 'null' if v is None else str(round(v, 2))
 
-def _build_disciplines_js(discs):
+def _build_disciplines_js(discs, indent='    '):
     """Render disciplines dict as JS object literal."""
     if not discs:
         return '{}'
@@ -54,7 +54,30 @@ def _build_disciplines_js(discs):
     for disc, vals in discs.items():
         p = _js_num(vals.get('plan'))
         a = _js_num(vals.get('actual'))
-        parts.append(f"    '{disc}': {{ plan: {p}, actual: {a} }}")
+        parts.append(f"{indent}  '{disc}': {{ plan: {p}, actual: {a} }}")
+    return '{\n' + ',\n'.join(parts) + f'\n{indent}}}'
+
+def _build_scopes_js(scopes):
+    """Render multi-scope dict as JS object literal."""
+    if not scopes:
+        return '{}'
+    parts = []
+    for scope_name, sc in scopes.items():
+        p = _js_num(sc.get('plan'))
+        a = _js_num(sc.get('actual'))
+        discs = sc.get('disciplines', {})
+        if discs:
+            disc_js = _build_disciplines_js(discs, indent='      ')
+            parts.append(
+                f"    '{js_escape(scope_name)}': {{\n"
+                f"      plan: {p}, actual: {a},\n"
+                f"      disciplines: {disc_js}\n"
+                f"    }}"
+            )
+        else:
+            parts.append(
+                f"    '{js_escape(scope_name)}': {{ plan: {p}, actual: {a} }}"
+            )
     return '{\n' + ',\n'.join(parts) + '\n  }'
 
 def build_seed(prj_id, week, year, data):
@@ -62,19 +85,23 @@ def build_seed(prj_id, week, year, data):
     activities  = ',\n    '.join(f"'{js_escape(a)}'" for a in data['activities'])
     plan        = _js_num(data.get('plan'))
     actual      = _js_num(data.get('actual'))
-    discs       = data.get('disciplines', {})
-    disc_js     = _build_disciplines_js(discs)
 
-    if discs:
-        disc_line = f"  disciplines: {disc_js},\n"
+    # Scopes (Solar/Wind) take priority over flat disciplines (iWTE/GMTP)
+    scopes = data.get('scopes', {})
+    discs  = data.get('disciplines', {})
+
+    if scopes:
+        structure_line = f"  scopes: {_build_scopes_js(scopes)},\n"
+    elif discs:
+        structure_line = f"  disciplines: {_build_disciplines_js(discs)},\n"
     else:
-        disc_line = ''
+        structure_line = ''
 
     return (
         f"// ── {PROJECT_NAMES.get(prj_id, prj_id)} ({prj_id}) Week {week} — auto-extracted\n"
         f"seedIfEmpty('{prj_id}_W{week}_{year}', {{\n"
         f"  plan: {plan}, actual: {actual},\n"
-        f"{disc_line}"
+        f"{structure_line}"
         f"  concerns: [{concerns}],\n"
         f"  activities: [{activities}],\n"
         f"}});\n"
@@ -388,7 +415,10 @@ def main():
             data = extract_from_pdf(pdf, prj_id)
             plan_s   = f"{data['plan']}%" if data['plan'] is not None else 'null'
             actual_s = f"{data['actual']}%" if data['actual'] is not None else 'null'
-            print(f"       concerns={len(data['concerns'])}, activities={len(data['activities'])}, plan={plan_s}, actual={actual_s}, discs={len(data.get('disciplines', {}))}")
+            scopes_n = len(data.get('scopes', {}))
+            discs_n  = len(data.get('disciplines', {}))
+            struct   = f"scopes={scopes_n}" if scopes_n else f"discs={discs_n}"
+            print(f"       concerns={len(data['concerns'])}, activities={len(data['activities'])}, plan={plan_s}, actual={actual_s}, {struct}")
             results[prj_id] = {'found': True, 'data': data}
             seeds_js.append(build_seed(prj_id, week, year, data))
 
