@@ -42,13 +42,39 @@ def find_pdf(folder_path, prj_id):
 def js_escape(s):
     return s.replace('\\', '\\\\').replace("'", "\\'").replace('\n', ' ')
 
+def _js_num(v):
+    """Format a number (or null) for JS."""
+    return 'null' if v is None else str(round(v, 2))
+
+def _build_disciplines_js(discs):
+    """Render disciplines dict as JS object literal."""
+    if not discs:
+        return '{}'
+    parts = []
+    for disc, vals in discs.items():
+        p = _js_num(vals.get('plan'))
+        a = _js_num(vals.get('actual'))
+        parts.append(f"    '{disc}': {{ plan: {p}, actual: {a} }}")
+    return '{\n' + ',\n'.join(parts) + '\n  }'
+
 def build_seed(prj_id, week, year, data):
-    concerns   = ',\n    '.join(f"'{js_escape(c)}'" for c in data['concerns'])
-    activities = ',\n    '.join(f"'{js_escape(a)}'" for a in data['activities'])
+    concerns    = ',\n    '.join(f"'{js_escape(c)}'" for c in data['concerns'])
+    activities  = ',\n    '.join(f"'{js_escape(a)}'" for a in data['activities'])
+    plan        = _js_num(data.get('plan'))
+    actual      = _js_num(data.get('actual'))
+    discs       = data.get('disciplines', {})
+    disc_js     = _build_disciplines_js(discs)
+
+    if discs:
+        disc_line = f"  disciplines: {disc_js},\n"
+    else:
+        disc_line = ''
+
     return (
         f"// ── {PROJECT_NAMES.get(prj_id, prj_id)} ({prj_id}) Week {week} — auto-extracted\n"
         f"seedIfEmpty('{prj_id}_W{week}_{year}', {{\n"
-        f"  plan: null, actual: null,\n"
+        f"  plan: {plan}, actual: {actual},\n"
+        f"{disc_line}"
         f"  concerns: [{concerns}],\n"
         f"  activities: [{activities}],\n"
         f"}});\n"
@@ -162,7 +188,112 @@ def git_push(week, year):
         print(f"  [git error] {e.stderr.decode(errors='replace') if e.stderr else e}")
 
 
-# ── 7. Windows Notification ────────────────────────────────────────────────
+# ── 7. Send Email via Outlook ─────────────────────────────────────────────
+EMAIL_FROM      = "danaya.th@gulf.co.th"
+EMAIL_TO        = ["purachet.am@gulf.co.th"]
+
+def send_email(week, year, results, missing_ids, xl_path):
+    try:
+        import win32com.client
+    except ImportError:
+        print("  [skip] pywin32 not installed — skipping email")
+        return
+
+    found    = {k: v for k, v in results.items() if v['found']}
+    missing  = missing_ids
+
+    # Build found rows
+    found_rows = ''.join(
+        f"<tr style='border-bottom:1px solid #e5e7eb'>"
+        f"<td style='padding:6px 12px;color:#374151'>{pid}</td>"
+        f"<td style='padding:6px 12px;color:#374151'>{PROJECT_NAMES.get(pid, pid)}</td></tr>"
+        for pid in sorted(found)
+    )
+    # Build missing rows
+    missing_rows = ''.join(
+        f"<tr style='background:#fffbeb;border-bottom:1px solid #e5e7eb'>"
+        f"<td style='padding:6px 12px;color:#374151'>{pid}</td>"
+        f"<td style='padding:6px 12px;color:#374151'>{PROJECT_NAMES.get(pid, pid)}</td></tr>"
+        for pid in missing
+    ) if missing else (
+        "<tr><td colspan='2' style='padding:6px 12px;color:#059669'>All projects reported — none missing.</td></tr>"
+    )
+
+    missing_note = (
+        f"<p style='margin:0 0 6px'>Please be advised that the following <b>{len(missing)} project(s)</b> "
+        f"have not yet submitted their weekly progress reports. "
+        f"Kindly ensure the relevant PDF files are uploaded to the ShareDrive at the earliest convenience.</p>"
+    ) if missing else ""
+
+    html_body = f"""
+<html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#111827;line-height:1.7;max-width:640px;margin:0 auto;padding:24px">
+
+<p style="margin:0 0 4px">Dear P'Tee and P'Hall,</p>
+
+<p style="margin:0 0 20px">
+  Please be informed that the <b>Gulf Engineering Dashboard — Week {week}/{year}</b>
+  has been successfully updated and is now available for review.
+</p>
+
+<table cellspacing="0" cellpadding="0" style="background:#f3f4f6;border-radius:8px;padding:16px 20px;margin-bottom:24px;width:100%">
+  <tr><td colspan="2" style="font-size:12px;font-weight:600;letter-spacing:0.06em;color:#6b7280;padding-bottom:10px">SUMMARY</td></tr>
+  <tr>
+    <td style="padding:2px 0;color:#374151">Projects Updated</td>
+    <td style="padding:2px 0;color:#059669;font-weight:600;text-align:right">{len(found)} projects</td>
+  </tr>
+  <tr>
+    <td style="padding:2px 0;color:#374151">Reports Not Yet Received</td>
+    <td style="padding:2px 0;color:#d97706;font-weight:600;text-align:right">{len(missing)} projects</td>
+  </tr>
+</table>
+
+<p style="font-size:12px;font-weight:600;letter-spacing:0.06em;color:#6b7280;margin:0 0 8px">UPDATED PROJECTS</p>
+<table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:24px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">
+  <tr style="background:#1f3864">
+    <th style="padding:8px 12px;text-align:left;color:#fff;font-weight:500;font-size:12px;width:100px">Project ID</th>
+    <th style="padding:8px 12px;text-align:left;color:#fff;font-weight:500;font-size:12px">Project Name</th>
+  </tr>
+  {found_rows}
+</table>
+
+<p style="font-size:12px;font-weight:600;letter-spacing:0.06em;color:#6b7280;margin:0 0 8px">REPORTS NOT YET RECEIVED</p>
+{missing_note}
+<table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:24px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">
+  <tr style="background:#92400e">
+    <th style="padding:8px 12px;text-align:left;color:#fef3c7;font-weight:500;font-size:12px;width:100px">Project ID</th>
+    <th style="padding:8px 12px;text-align:left;color:#fef3c7;font-weight:500;font-size:12px">Project Name</th>
+  </tr>
+  {missing_rows}
+</table>
+
+<p style="margin:0 0 20px">
+  The full dashboard is accessible via the link below:<br>
+  <a href="{DASHBOARD_URL}" style="color:#1d4ed8">{DASHBOARD_URL}</a>
+</p>
+
+<p style="margin:0 0 4px">Best Regards,</p>
+<p style="margin:0 0 2px;font-weight:500">Mameaw</p>
+<p style="margin:0;font-size:11px;color:#9ca3af">Gulf Engineering — Project Management &amp; Control</p>
+
+</body></html>
+"""
+
+    try:
+        outlook = win32com.client.Dispatch("Outlook.Application")
+        mail    = outlook.CreateItem(0)
+        mail.SentOnBehalfOfName = EMAIL_FROM
+        mail.To      = "; ".join(EMAIL_TO)
+        mail.Subject = f"[Gulf Dashboard] W{week}/{year} Update — {len(found)} Projects Updated, {len(missing)} Reports Pending"
+        mail.HTMLBody = html_body
+        if os.path.exists(xl_path):
+            mail.Attachments.Add(xl_path)
+        mail.Send()
+        print(f"  ✓ Email sent to: {', '.join(EMAIL_TO)}")
+    except Exception as e:
+        print(f"  [email error] {e}")
+
+
+# ── 8. Windows Notification ────────────────────────────────────────────────
 def notify(week, year, found_count, missing_count):
     msg = (f"Week {week}/{year} — {found_count} projects updated"
            + (f", {missing_count} missing reports" if missing_count else ""))
@@ -254,8 +385,10 @@ def main():
                 continue
 
             print(f"OK → {os.path.basename(pdf)}")
-            data = extract_from_pdf(pdf)
-            print(f"       concerns={len(data['concerns'])}, activities={len(data['activities'])}")
+            data = extract_from_pdf(pdf, prj_id)
+            plan_s   = f"{data['plan']}%" if data['plan'] is not None else 'null'
+            actual_s = f"{data['actual']}%" if data['actual'] is not None else 'null'
+            print(f"       concerns={len(data['concerns'])}, activities={len(data['activities'])}, plan={plan_s}, actual={actual_s}, discs={len(data.get('disciplines', {}))}")
             results[prj_id] = {'found': True, 'data': data}
             seeds_js.append(build_seed(prj_id, week, year, data))
 
@@ -272,6 +405,8 @@ def main():
     update_html(week, year, seeds_js, missing)
     update_excel(week, year, results)
     git_push(week, year)
+    xl_path = os.path.join(EXCEL_DIR, f'Gulf_Dashboard_W{week}_{year}.xlsx')
+    send_email(week, year, results, missing, xl_path)
     notify(week, year,
            sum(1 for r in results.values() if r['found']),
            len(missing))
