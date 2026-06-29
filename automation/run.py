@@ -362,6 +362,8 @@ def main():
     parser.add_argument('--year', type=int, default=None)
     parser.add_argument('--dry-run', action='store_true',
                         help='Extract only, do not update files')
+    parser.add_argument('--no-email', action='store_true',
+                        help='Skip sending email notification')
     args = parser.parse_args()
 
     print("=" * 60)
@@ -436,7 +438,8 @@ def main():
     update_excel(week, year, results)
     git_push(week, year)
     xl_path = os.path.join(EXCEL_DIR, f'Gulf_Dashboard_W{week}_{year}.xlsx')
-    send_email(week, year, results, missing, xl_path)
+    if not args.no_email:
+        send_email(week, year, results, missing, xl_path)
     notify(week, year,
            sum(1 for r in results.values() if r['found']),
            len(missing))
