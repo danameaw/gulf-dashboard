@@ -594,6 +594,21 @@ function saveData() {
   localStorage.setItem('gulfYear', currentYear);
 }
 
+// ── FORCE REFRESH ──
+// seedIfEmpty() never overwrites a key that already has real plan/actual
+// numbers cached in the visitor's browser — so once a bug in the extracted
+// data has been viewed once, pushing a fix to this file is not enough; every
+// visitor's stale localStorage copy keeps winning forever. Bump SEED_VERSION
+// (e.g. to today's date) whenever a manual data correction ships; on the
+// next load this drops the visitor's entire cached progressData so every
+// seedIfEmpty() call below re-applies fresh from this file.
+const SEED_VERSION = '2026-07-02.1';
+if (localStorage.getItem('gulfSeedVersion') !== SEED_VERSION) {
+  progressData = {};
+  localStorage.setItem('gulfSeedVersion', SEED_VERSION);
+}
+// ── END FORCE REFRESH ──
+
 function dataKey(projectId, week, year) {
   return `${projectId}_W${week}_${year}`;
 }
@@ -13281,6 +13296,9 @@ seedIfEmpty('PRJ-011_W24_2026', {
     '➢ Continue foundation excavation work.'],
 });
 
+// Persist whatever seedIfEmpty() produced above (including a FORCE REFRESH
+// reset) immediately, instead of waiting for the visitor to interact first.
+saveData();
 </script>
 </body>
 </html>

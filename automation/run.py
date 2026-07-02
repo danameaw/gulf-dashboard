@@ -2,11 +2,6 @@
 # Schedule: every Wednesday via Windows Task Scheduler
 # Usage: python run.py  (or python run.py --week 25 --year 2026)
 import sys, os, re, json, glob, shutil, subprocess, argparse
-import smtplib, ssl
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
 from datetime import datetime
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
@@ -255,35 +250,9 @@ def git_push(week, year):
         print(f"  [git error] {e.stderr.decode(errors='replace') if e.stderr else e}")
 
 
-# ── 7. Send Email via SMTP (Office 365) ──────────────────────────────────
+# ── 7. Send Email via Outlook (local desktop app) ─────────────────────────
 EMAIL_FROM   = "danaya.th@gulf.co.th"
 EMAIL_TO     = ["purachet.am@gulf.co.th", "chalong@gulf.co.th"]
-SMTP_HOST    = "smtp.office365.com"
-SMTP_PORT    = 587
-
-def _get_password():
-    """Get email password from Windows Credential Manager, or prompt and save it."""
-    try:
-        import keyring
-        pwd = keyring.get_password("GulfDashboard", EMAIL_FROM)
-        if pwd:
-            return pwd
-        # First run: prompt and save
-        import getpass
-        pwd = getpass.getpass(f"Enter password for {EMAIL_FROM}: ")
-        keyring.set_password("GulfDashboard", EMAIL_FROM, pwd)
-        return pwd
-    except ImportError:
-        # keyring not installed — fall back to password file
-        pass_file = os.path.join(os.path.dirname(__file__), '.email_pass')
-        if os.path.exists(pass_file):
-            return open(pass_file).read().strip()
-        import getpass
-        pwd = getpass.getpass(f"Enter password for {EMAIL_FROM}: ")
-        with open(pass_file, 'w') as f:
-            f.write(pwd)
-        print(f"  Password saved to {pass_file} (keep this file private)")
-        return pwd
 
 def _build_html_body(week, year, found, missing):
     found_rows = ''.join(
@@ -354,39 +323,21 @@ def send_email(week, year, results, missing_ids, xl_path):
     found   = {k: v for k, v in results.items() if v['found']}
     missing = missing_ids
 
-    try:
-        password = _get_password()
-    except Exception as e:
-        print(f"  [email] Could not get password: {e}")
-        return
-
-    subject  = (f"[Gulf Dashboard] W{week}/{year} Update — "
-                f"{len(found)} Projects Updated, {len(missing)} Reports Pending")
+    subject   = (f"[Gulf Dashboard] W{week}/{year} Update — "
+                 f"{len(found)} Projects Updated, {len(missing)} Reports Pending")
     html_body = _build_html_body(week, year, found, missing)
 
-    msg = MIMEMultipart()
-    msg['From']    = EMAIL_FROM
-    msg['To']      = ", ".join(EMAIL_TO)
-    msg['Subject'] = subject
-    msg.attach(MIMEText(html_body, 'html', 'utf-8'))
-
-    # Attach Excel
-    if xl_path and os.path.exists(xl_path):
-        with open(xl_path, 'rb') as f:
-            part = MIMEBase('application', 'octet-stream')
-            part.set_payload(f.read())
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', f'attachment; filename="{os.path.basename(xl_path)}"')
-        msg.attach(part)
-
     try:
-        ctx = ssl.create_default_context()
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.ehlo()
-            server.starttls(context=ctx)
-            server.login(EMAIL_FROM, password)
-            server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
-        print(f"  ✓ Email sent to: {', '.join(EMAIL_TO)}")
+        import win32com.client
+        outlook = win32com.client.Dispatch('Outlook.Application')
+        mail = outlook.CreateItem(0)  # olMailItem
+        mail.To = "; ".join(EMAIL_TO)
+        mail.Subject = subject
+        mail.HTMLBody = html_body
+        if xl_path and os.path.exists(xl_path):
+            mail.Attachments.Add(os.path.abspath(xl_path))
+        mail.Send()
+        print(f"  ✓ Email sent via Outlook to: {', '.join(EMAIL_TO)}")
     except Exception as e:
         print(f"  [email error] {e}")
 
