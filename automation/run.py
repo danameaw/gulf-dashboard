@@ -2,6 +2,11 @@
 # Schedule: every Wednesday via Windows Task Scheduler
 # Usage: python run.py  (or python run.py --week 25 --year 2026)
 import sys, os, re, json, glob, shutil, subprocess, argparse
+import smtplib, ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 from datetime import datetime
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
@@ -233,28 +238,43 @@ def git_push(week, year):
         print(f"  [git error] {e.stderr.decode(errors='replace') if e.stderr else e}")
 
 
-# ── 7. Send Email via Outlook ─────────────────────────────────────────────
-EMAIL_FROM      = "danaya.th@gulf.co.th"
-EMAIL_TO        = ["purachet.am@gulf.co.th"]
+# ── 7. Send Email via SMTP (Office 365) ──────────────────────────────────
+EMAIL_FROM   = "danaya.th@gulf.co.th"
+EMAIL_TO     = ["purachet.am@gulf.co.th", "chalong@gulf.co.th"]
+SMTP_HOST    = "smtp.office365.com"
+SMTP_PORT    = 587
 
-def send_email(week, year, results, missing_ids, xl_path):
+def _get_password():
+    """Get email password from Windows Credential Manager, or prompt and save it."""
     try:
-        import win32com.client
+        import keyring
+        pwd = keyring.get_password("GulfDashboard", EMAIL_FROM)
+        if pwd:
+            return pwd
+        # First run: prompt and save
+        import getpass
+        pwd = getpass.getpass(f"Enter password for {EMAIL_FROM}: ")
+        keyring.set_password("GulfDashboard", EMAIL_FROM, pwd)
+        return pwd
     except ImportError:
-        print("  [skip] pywin32 not installed — skipping email")
-        return
+        # keyring not installed — fall back to password file
+        pass_file = os.path.join(os.path.dirname(__file__), '.email_pass')
+        if os.path.exists(pass_file):
+            return open(pass_file).read().strip()
+        import getpass
+        pwd = getpass.getpass(f"Enter password for {EMAIL_FROM}: ")
+        with open(pass_file, 'w') as f:
+            f.write(pwd)
+        print(f"  Password saved to {pass_file} (keep this file private)")
+        return pwd
 
-    found    = {k: v for k, v in results.items() if v['found']}
-    missing  = missing_ids
-
-    # Build found rows
+def _build_html_body(week, year, found, missing):
     found_rows = ''.join(
         f"<tr style='border-bottom:1px solid #e5e7eb'>"
         f"<td style='padding:6px 12px;color:#374151'>{pid}</td>"
         f"<td style='padding:6px 12px;color:#374151'>{PROJECT_NAMES.get(pid, pid)}</td></tr>"
         for pid in sorted(found)
     )
-    # Build missing rows
     missing_rows = ''.join(
         f"<tr style='background:#fffbeb;border-bottom:1px solid #e5e7eb'>"
         f"<td style='padding:6px 12px;color:#374151'>{pid}</td>"
@@ -263,23 +283,19 @@ def send_email(week, year, results, missing_ids, xl_path):
     ) if missing else (
         "<tr><td colspan='2' style='padding:6px 12px;color:#059669'>All projects reported — none missing.</td></tr>"
     )
-
     missing_note = (
         f"<p style='margin:0 0 6px'>Please be advised that the following <b>{len(missing)} project(s)</b> "
         f"have not yet submitted their weekly progress reports. "
         f"Kindly ensure the relevant PDF files are uploaded to the ShareDrive at the earliest convenience.</p>"
     ) if missing else ""
 
-    html_body = f"""
+    return f"""
 <html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#111827;line-height:1.7;max-width:640px;margin:0 auto;padding:24px">
-
 <p style="margin:0 0 4px">Dear P'Tee and P'Hall,</p>
-
 <p style="margin:0 0 20px">
   Please be informed that the <b>Gulf Engineering Dashboard — Week {week}/{year}</b>
   has been successfully updated and is now available for review.
 </p>
-
 <table cellspacing="0" cellpadding="0" style="background:#f3f4f6;border-radius:8px;padding:16px 20px;margin-bottom:24px;width:100%">
   <tr><td colspan="2" style="font-size:12px;font-weight:600;letter-spacing:0.06em;color:#6b7280;padding-bottom:10px">SUMMARY</td></tr>
   <tr>
@@ -291,7 +307,6 @@ def send_email(week, year, results, missing_ids, xl_path):
     <td style="padding:2px 0;color:#d97706;font-weight:600;text-align:right">{len(missing)} projects</td>
   </tr>
 </table>
-
 <p style="font-size:12px;font-weight:600;letter-spacing:0.06em;color:#6b7280;margin:0 0 8px">UPDATED PROJECTS</p>
 <table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:24px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">
   <tr style="background:#1f3864">
@@ -300,7 +315,6 @@ def send_email(week, year, results, missing_ids, xl_path):
   </tr>
   {found_rows}
 </table>
-
 <p style="font-size:12px;font-weight:600;letter-spacing:0.06em;color:#6b7280;margin:0 0 8px">REPORTS NOT YET RECEIVED</p>
 {missing_note}
 <table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:24px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">
@@ -310,29 +324,51 @@ def send_email(week, year, results, missing_ids, xl_path):
   </tr>
   {missing_rows}
 </table>
-
 <p style="margin:0 0 20px">
   The full dashboard is accessible via the link below:<br>
   <a href="{DASHBOARD_URL}" style="color:#1d4ed8">{DASHBOARD_URL}</a>
 </p>
-
 <p style="margin:0 0 4px">Best Regards,</p>
 <p style="margin:0 0 2px;font-weight:500">Mameaw</p>
 <p style="margin:0;font-size:11px;color:#9ca3af">Gulf Engineering — Project Management &amp; Control</p>
+</body></html>"""
 
-</body></html>
-"""
+def send_email(week, year, results, missing_ids, xl_path):
+    found   = {k: v for k, v in results.items() if v['found']}
+    missing = missing_ids
 
     try:
-        outlook = win32com.client.Dispatch("Outlook.Application")
-        mail    = outlook.CreateItem(0)
-        mail.SentOnBehalfOfName = EMAIL_FROM
-        mail.To      = "; ".join(EMAIL_TO)
-        mail.Subject = f"[Gulf Dashboard] W{week}/{year} Update — {len(found)} Projects Updated, {len(missing)} Reports Pending"
-        mail.HTMLBody = html_body
-        if os.path.exists(xl_path):
-            mail.Attachments.Add(xl_path)
-        mail.Send()
+        password = _get_password()
+    except Exception as e:
+        print(f"  [email] Could not get password: {e}")
+        return
+
+    subject  = (f"[Gulf Dashboard] W{week}/{year} Update — "
+                f"{len(found)} Projects Updated, {len(missing)} Reports Pending")
+    html_body = _build_html_body(week, year, found, missing)
+
+    msg = MIMEMultipart()
+    msg['From']    = EMAIL_FROM
+    msg['To']      = ", ".join(EMAIL_TO)
+    msg['Subject'] = subject
+    msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+
+    # Attach Excel
+    if xl_path and os.path.exists(xl_path):
+        with open(xl_path, 'rb') as f:
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(f.read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename="{os.path.basename(xl_path)}"')
+        msg.attach(part)
+
+    try:
+        ctx = ssl.create_default_context()
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.ehlo()
+            server.starttls(context=ctx)
+            server.login(EMAIL_FROM, password)
+            server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
         print(f"  ✓ Email sent to: {', '.join(EMAIL_TO)}")
     except Exception as e:
         print(f"  [email error] {e}")
