@@ -150,9 +150,12 @@ SOLAR_THIS_WEEK = re.compile(r'this week activities', re.I)
 SOLAR_PREV_WEEK = re.compile(r'previous week activities', re.I)
 # NWT3-style: "Overall progress stands at A.AA% against the planned progress of B.BB%"
 # group(1)=discipline, group(2)=actual, group(3)=plan
+# NOTE: use \s* (not \s+) around "at"/"of" — some pages (e.g. NWT3 Siemens
+# scope) lose the space before the number during PDF text extraction
+# ("stands at42.99%"), which would otherwise silently fail to match.
 SOLAR_PROGRESS  = re.compile(
-    r'(overall|engineering|procurement|construction)\s+(?:project\s+)?progress\s+stands\s+at\s+'
-    r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s+against\s+the\s+planned\s+progress\s+of\s+'
+    r'(overall|engineering|procurement|construction)\s+(?:project\s+)?progress\s+stands\s+at\s*'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s+against\s+the\s+planned\s+progress\s+of\s*'
     r'(\d{1,3}(?:\.\d{1,2})?)\s*%',
     re.I)
 
@@ -171,8 +174,11 @@ SOLAR_PROGRESS_ALT = re.compile(
 #   "vs plan"   (LNE):  "Overall progress is 93.97% vs plan 96.66%"
 #   "against plan" (SDCE): "Overall progress 81.39% against plan 83.02%"
 # group(1)=discipline, group(2)=actual, group(3)=plan
+# NOTE: engineering/procurement added — SDCE's GUE cell breaks progress down
+# into Overall/Construction/Engineering/Procurement lines; without these two
+# labels the Engineering/Procurement figures were silently dropped.
 SOLAR_PROGRESS_SUMMARY = re.compile(
-    r'(overall|construction|commissioning|civil|electrical)\s*'
+    r'(overall|construction|commissioning|civil|electrical|engineering|procurement)\s*'
     r'progress\s*(?:is\s+)?'           # "progress" then optional "is"
     r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s*'
     r'(?:/\s*Plan\s*at|vs\s+plan|against\s+plan)\s*'

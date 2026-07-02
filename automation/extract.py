@@ -294,13 +294,17 @@ def extract_progress_gmtp(pdf):
 # ── Solar extractor ───────────────────────────────────────────────────────────
 
 def _detect_solar_scope(text):
-    """Return scope name based on page title/content, or None."""
+    """Return scope name based on page title/content, or None.
+    Siemens/Substation must be checked before 115kV T/L: substation page
+    titles often contain "115kV" too (e.g. "115kV Substation (Siemens)"),
+    which would otherwise be misclassified as the T/L scope.
+    """
     if SOLAR_SCOPE_GUE.search(text):
         return 'GUE'
-    if SOLAR_SCOPE_TL.search(text):
-        return '115kV T/L'
     if SOLAR_SCOPE_SIE.search(text):
         return 'Siemens'
+    if SOLAR_SCOPE_TL.search(text):
+        return '115kV T/L'
     if SOLAR_SCOPE_COMM.search(text):
         return 'Comm/Fiber'
     return None
@@ -311,6 +315,14 @@ def _parse_solar_progress_from_text(text):
     Tries both NWT3-style ("stands at X% against planned Y%") and
     PTN-style ("X% compared to plan at Y%") patterns.
     Returns (plan, actual, disciplines_dict).
+
+    NOTE: some reports (e.g. STN) lay Previous-week and This-week out as two
+    columns that pdfplumber linearizes onto the SAME text line, so each label
+    (Overall/Engineering/...) appears twice per line — previous week first,
+    this week second. We deliberately let each new match overwrite the
+    previous one (no "already set" guard) so the LAST occurrence — this
+    week's column — wins. Single-column reports only ever produce one match
+    per label, so this is a no-op for them.
     """
     overall_plan = overall_actual = None
     discs = {}
@@ -324,14 +336,13 @@ def _parse_solar_progress_from_text(text):
             plan_v   = _parse_pct(m.group(3))
             if actual_v is None or plan_v is None:
                 continue
-            if label == 'overall' and overall_plan is None:
+            if label == 'overall':
                 overall_plan, overall_actual = plan_v, actual_v
-            elif label == 'construction' and construction_plan is None:
+            elif label == 'construction':
                 construction_plan, construction_actual = plan_v, actual_v
+                discs['Construction'] = {'plan': plan_v, 'actual': actual_v}
             elif label in ('engineering', 'procurement', 'commissioning'):
-                key = label.capitalize()
-                if key not in discs:
-                    discs[key] = {'plan': plan_v, 'actual': actual_v}
+                discs[label.capitalize()] = {'plan': plan_v, 'actual': actual_v}
 
     # Use construction as proxy for overall if no explicit overall line
     if overall_plan is None and construction_plan is not None:
@@ -395,11 +406,17 @@ def _extract_solar_from_exec_summary(pdf):
     Each cell has lines like 'Construction progress Y% /Plan at Z%'.
     """
     scopes = {}
+    # NOTE: no bare 'substation' → 'Siemens' mapping. Some reports (e.g. SDCE)
+    # have a SEPARATE "GIS Substation (PEA&TCCL)" column in addition to the
+    # real "Substation (SIEMENS)" column; a generic 'substation' keyword
+    # matches both headers and the later column silently overwrote the real
+    # Siemens data. 'siemens' alone is specific enough for the real column.
     SCOPE_COL_NAMES = {
         'gue': 'GUE', 'pvfarm': 'GUE', 'pv farm': 'GUE',
-        'siemens': 'Siemens', 'substation': 'Siemens',
+        'siemens': 'Siemens',
         '115kv': '115kV T/L', 'transmission': '115kV T/L',
         'fiber': 'Comm/Fiber', 'communication': 'Comm/Fiber',
+        'gis substation': 'GIS Substation',
     }
 
     with pdfplumber.open(pdf) as doc:
@@ -445,17 +462,29 @@ def _extract_solar_from_exec_summary(pdf):
                         continue
                     cell_text = str(cell)
                     plan_v = actual_v = None
+                    construction_v = None
+                    discs = {}
                     for m in SOLAR_PROGRESS_SUMMARY.finditer(cell_text):
                         label = m.group(1).lower()
                         a = _parse_pct(m.group(2))
                         p = _parse_pct(m.group(3))
-                        if a is not None and p is not None:
-                            if label == 'overall' and actual_v is None:
-                                actual_v, plan_v = a, p
-                            elif label == 'construction' and actual_v is None:
-                                actual_v, plan_v = a, p
+                        if a is None or p is None:
+                            continue
+                        if label == 'overall':
+                            actual_v, plan_v = a, p
+                        elif label == 'construction':
+                            construction_v = (p, a)
+                            discs['Construction'] = {'plan': p, 'actual': a}
+                        elif label in ('engineering', 'procurement'):
+                            discs[label.capitalize()] = {'plan': p, 'actual': a}
+                    # Use construction as proxy for overall if no explicit overall line
+                    if plan_v is None and construction_v is not None:
+                        plan_v, actual_v = construction_v
                     if plan_v is not None:
-                        scopes[scope] = {'plan': plan_v, 'actual': actual_v}
+                        entry = {'plan': plan_v, 'actual': actual_v}
+                        if scope == 'GUE' and discs:
+                            entry['disciplines'] = discs
+                        scopes[scope] = entry
 
     return scopes
 
@@ -633,8 +662,18 @@ def extract_from_pdf(pdf_path, prj_id=None):
                 if 'table of content' in tl:
                     continue
 
+                # iWTE "Concern to Achieve Milestone" pages open with a
+                # "Next Milestone :" list BEFORE the real "Concern (delay)"
+                # section. _CONCERN_HEADERS matches broadly on the word
+                # "concern" anywhere, so on these pages it was matching the
+                # page title ("Concern to Achieve Milestone") and collecting
+                # the Milestone list as if it were the concerns — the actual
+                # delay concerns just below were skipped. Skip the generic
+                # pass here entirely and let the precise pass below handle it.
+                is_iwte_concern_page = 'concern (delay)' in tl or 'concern(delay)' in tl
+
                 # Concerns
-                if _CONCERN_HEADERS.search(tl) and '%' not in text:
+                if not is_iwte_concern_page and _CONCERN_HEADERS.search(tl) and '%' not in text:
                     items = _extract_section(
                         text, _CONCERN_HEADERS,
                         stop_re=_ACTIVITY_HEADERS)
@@ -644,7 +683,7 @@ def extract_from_pdf(pdf_path, prj_id=None):
                             concerns.append(it)
 
                 # iWTE-style "Concern (Delay)" section
-                if 'concern (delay)' in tl or 'concern(delay)' in tl:
+                if is_iwte_concern_page:
                     items = _extract_section(
                         text,
                         re.compile(r'concern.*delay', re.I),
