@@ -329,7 +329,7 @@ def _build_html_body(week, year, found, missing):
   <a href="{DASHBOARD_URL}" style="color:#1d4ed8">{DASHBOARD_URL}</a>
 </p>
 <p style="margin:0 0 4px">Best Regards,</p>
-<p style="margin:0 0 2px;font-weight:500">Mameaw</p>
+<p style="margin:0 0 2px;font-weight:500">Danaya</p>
 <p style="margin:0;font-size:11px;color:#9ca3af">Gulf Engineering — Project Management &amp; Control</p>
 </body></html>"""
 
