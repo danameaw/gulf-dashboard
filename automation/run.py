@@ -135,18 +135,35 @@ def update_html(week, year, seeds_js, missing_ids):
         print("  [warn] SEED_MARKER not found, appending seeds before </script>")
         html = html.replace('</script>', '\n'.join(seeds_js) + '\n</script>', 1)
 
-    # Update missing reports variable
-    missing_js = (
-        f"{MISSING_MARKER_START}\n"
-        f"const MISSING_REPORTS = {json.dumps(missing_ids)};\n"
-        f"{MISSING_MARKER_END}"
-    )
-    if MISSING_MARKER_START in html:
-        start = html.index(MISSING_MARKER_START)
-        end   = html.index(MISSING_MARKER_END) + len(MISSING_MARKER_END)
-        html  = html[:start] + missing_js + html[end:]
+    # Update missing reports — merge into MISSING_REPORTS_BY_WEEK dict
+    week_key = f"W{week}_{year}"
+    by_week_re = re.compile(
+        r'(// ── AUTO: MISSING REPORTS ──\n)'
+        r'const MISSING_REPORTS_BY_WEEK = (\{.*?\});'
+        r'(\n// ── END MISSING REPORTS ──)',
+        re.DOTALL)
+    m = by_week_re.search(html)
+    if m:
+        existing = json.loads(m.group(2))
+        existing[week_key] = missing_ids
+        new_block = (
+            f"{MISSING_MARKER_START}\n"
+            f"const MISSING_REPORTS_BY_WEEK = {json.dumps(existing, separators=(',', ':'))};\n"
+            f"{MISSING_MARKER_END}"
+        )
+        html = html[:m.start()] + new_block + html[m.end():]
     else:
-        html = html.replace('<script>', missing_js + '\n<script>', 1)
+        new_block = (
+            f"{MISSING_MARKER_START}\n"
+            f"const MISSING_REPORTS_BY_WEEK = {json.dumps({week_key: missing_ids}, separators=(',', ':'))};\n"
+            f"{MISSING_MARKER_END}"
+        )
+        if MISSING_MARKER_START in html:
+            start = html.index(MISSING_MARKER_START)
+            end   = html.index(MISSING_MARKER_END) + len(MISSING_MARKER_END)
+            html  = html[:start] + new_block + html[end:]
+        else:
+            html = html.replace('<script>', new_block + '\n<script>', 1)
 
     # Update current week displayed in dashboard
     week_js = (
