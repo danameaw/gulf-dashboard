@@ -580,7 +580,7 @@ const PROJECTS = [
 // Progress data store: key = "projectId_week"
 // Each entry: { plan, actual, concerns:[], activities:[], disciplineData:{} }
 // ── AUTO: MISSING REPORTS ──
-const MISSING_REPORTS = ["PRJ-001", "PRJ-027", "PRJ-009", "PRJ-010", "PRJ-011"];
+const MISSING_REPORTS_BY_WEEK = {"W24_2026": ["PRJ-027"], "W25_2026": ["PRJ-001", "PRJ-013", "PRJ-014", "PRJ-015", "PRJ-016", "PRJ-017", "PRJ-018", "PRJ-019", "PRJ-020", "PRJ-021", "PRJ-022", "PRJ-023", "PRJ-024", "PRJ-027", "PRJ-009", "PRJ-010", "PRJ-011"]};
 // ── END MISSING REPORTS ──
 
 let progressData = JSON.parse(localStorage.getItem('gulfDashData') || '{}');
@@ -838,7 +838,8 @@ function renderTable(filtered) {
 
   filtered.forEach((p, idx) => {
     const prog = getProgress(p.id);
-    const noReport = MISSING_REPORTS.includes(p.id);
+    const _missing = MISSING_REPORTS_BY_WEEK[`W${currentWeek}_${currentYear}`] || [];
+    const noReport = _missing.includes(p.id);
     const status = noReport ? 'TBD' : calcStatus(prog.plan, prog.actual, prog);
 
     const statusClass = status === 'On Track' ? 'status-On.Track' : status === 'Delay' ? 'status-Delay' : status === 'Ahead' ? 'status-Ahead' : 'status-TBD';
@@ -862,7 +863,7 @@ function renderTable(filtered) {
       <td><span class="prj-id">${p.id}</span></td>
       <td>
         <span class="prj-name">${p.name}</span>
-        ${MISSING_REPORTS.includes(p.id) ? '<span class="missing-badge" title="ไม่พบไฟล์ PDF ใน ShareDrive">⚠ No Report</span>' : ''}
+        ${_missing.includes(p.id) ? '<span class="missing-badge" title="ไม่พบไฟล์ PDF ใน ShareDrive">⚠ No Report</span>' : ''}
       </td>
       <td><span class="type-badge type-${p.type}">${p.type}</span></td>
       <td><span class="pill-contract">${p.contract}</span></td>
