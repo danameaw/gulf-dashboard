@@ -753,8 +753,13 @@ function buildDelayTags(prog) {
         if (v < THRESHOLD) tags.push({ label: getScopeAbbr(sName), v });
       }
     });
-  } else if (prog.disciplines) {
+  } else if (prog.disciplines && Object.keys(prog.disciplines).length) {
     addFromDisc(prog.disciplines, '');
+  } else if (prog.plan !== null && prog.actual !== null &&
+             prog.plan !== undefined && prog.actual !== undefined) {
+    // No scopes/disciplines — use overall plan/actual directly
+    const v = prog.actual - prog.plan;
+    if (v < THRESHOLD) tags.push({ label: 'Overall', v });
   }
   return tags.sort((a,b) => a.v - b.v); // most delayed first
 }
