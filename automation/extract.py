@@ -406,7 +406,13 @@ def extract_progress_solar(pdf):
             tw_match = SOLAR_THIS_WEEK.search(text)
             this_week_text = text[tw_match.start():]
 
-            scope = _detect_solar_scope(text)  # scope from full page title
+            # Detect scope from the page TITLE (first line) only — not the full
+            # page text. Some Comm/Fiber pages also mention "Transmission Line"
+            # further down (e.g. a cable-length tracking table), which used to
+            # make the full-text search misclassify them as '115kV T/L' and
+            # silently overwrite/skip the real T/L scope's data.
+            title = text.split('\n', 1)[0]
+            scope = _detect_solar_scope(title)
             if not scope:
                 continue
 

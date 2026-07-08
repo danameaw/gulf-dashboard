@@ -119,10 +119,23 @@ def update_html(week, year, seeds_js, missing_ids):
     with open(DASHBOARD_HTML, encoding='utf-8') as f:
         html = f.read()
 
-    # Inject seed data after SEED_MARKER
-    insert_after = SEED_MARKER + '\nfunction seedIfEmpty(key, data) {\n  if (!progressData[key]) { progressData[key] = data; }\n}'
-    if insert_after in html:
-        inject_point = html.index(insert_after) + len(insert_after)
+    # Inject seed data right after the seedIfEmpty() function that follows
+    # SEED_MARKER — anchored on the function's closing brace, not its body.
+    # (A previous version matched a hardcoded copy of the function body; once
+    # seedIfEmpty's internals were edited in index.html the match silently
+    # stopped working and every run fell back to appending a duplicate block
+    # at the end of the file. Because seedIfEmpty only overwrites a key that
+    # is still null, those appended duplicates could permanently shadow any
+    # later correction for a key that already had a non-null value.)
+    inject_point = -1
+    marker_pos = html.find(SEED_MARKER)
+    if marker_pos != -1:
+        fn_pos = html.find('function seedIfEmpty(key, data) {', marker_pos)
+        if fn_pos != -1:
+            close_pos = html.find('\n}\n', fn_pos)
+            if close_pos != -1:
+                inject_point = close_pos + len('\n}\n')
+    if inject_point != -1:
         new_seeds = '\n\n// ── Week ' + str(week) + '/' + str(year) + ' — AUTO-GENERATED ──\n'
         new_seeds += '\n'.join(seeds_js)
         html = html[:inject_point] + new_seeds + html[inject_point:]
