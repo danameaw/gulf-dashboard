@@ -242,6 +242,37 @@ def extract_progress_iwte(pdf):
 
 # ── GMTP extractor ─────────────────────────────────────────────────────────────
 
+_GMTP_OVERALL_ROW = re.compile(r'^overall\s+progress\b', re.I)
+
+
+def _parse_gmtp_overall_row(text):
+    """
+    GMTP Section 3.1.1 'Overall Progress' table: a per-package breakdown
+    (LNG Tank / BOP / Marine / Commissioning / Overall Progress) where the
+    'Overall Progress' row has columns:
+      [Eng P,A][Proc P,A][Constr P,A][Comm P,A][Subtotal-prev P,A]
+      [Subtotal-curr P,A][Variance][Weight]
+    Packages missing a scope (e.g. no Commissioning work) render that cell as
+    '-', which just drops out of the number list — so we index from the END
+    (stable regardless of missing cells): the last 4 numbers before
+    Variance/Weight are [PrevPlan, PrevActual, CurrPlan, CurrActual].
+    """
+    for line in text.split('\n'):
+        if _GMTP_OVERALL_ROW.match(line.strip()) and '%' in line:
+            nums = [_parse_pct(n) for n in re.findall(r'\d{1,3}(?:\.\d{1,2})?', line)]
+            nums = [n for n in nums if n is not None]
+            if len(nums) >= 6:
+                plan, actual = nums[-4], nums[-3]
+                discs = {}
+                for i, label in enumerate(
+                        ['Engineering', 'Procurement', 'Construction', 'Commissioning']):
+                    lead = nums[:-6]
+                    if len(lead) >= (i + 1) * 2:
+                        discs[label] = {'plan': lead[i * 2], 'actual': lead[i * 2 + 1]}
+                return plan, actual, discs
+    return None, None, {}
+
+
 def extract_progress_gmtp(pdf):
     """
     GMTP/LNG report: find the Overall Progress table (text-based).
@@ -258,6 +289,11 @@ def extract_progress_gmtp(pdf):
             if not any(d.lower() in tl for d in
                        ['engineering', 'procurement', 'construction']):
                 continue
+
+            # ── Try 'Overall Progress' per-package breakdown row first ───────
+            plan, actual, discs = _parse_gmtp_overall_row(text)
+            if plan is not None and actual is not None:
+                return {'plan': plan, 'actual': actual, 'disciplines': discs}
 
             # ── Try table extraction ─────────────────────────────────────────
             tables = page.extract_tables()

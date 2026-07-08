@@ -264,9 +264,11 @@ AUTO_EXTRACT_PROJECTS = {
     'PRJ-005': 'solar',   # LNE
     'PRJ-006': 'solar',   # SSE
     'PRJ-007': 'solar',   # SDCE
+    'PRJ-008': 'wind',    # GULF AC8
     'PRJ-009': 'wind',    # AL1
     'PRJ-010': 'wind',    # AL2
     'PRJ-011': 'wind',    # ECE
+    'PRJ-012': 'wind',    # GULF_Wayu
     'PRJ-013': 'iwte',    # GCE
     'PRJ-014': 'iwte',    # GSE
     'PRJ-015': 'iwte',    # KKE

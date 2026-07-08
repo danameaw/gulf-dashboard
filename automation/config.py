@@ -17,7 +17,7 @@ FOLDER_PROJECTS = {
     "Pak Lay":  ["PRJ-025"],
     "SOSB2026": ["PRJ-005","PRJ-006","PRJ-007"],
     "TTT":      ["PRJ-027"],
-    "Wind2027": ["PRJ-009","PRJ-010","PRJ-011"],
+    "Wind2027": ["PRJ-008","PRJ-009","PRJ-010","PRJ-011","PRJ-012"],
 }
 
 # Keywords to match PDF filename → project ID
@@ -29,9 +29,11 @@ PROJECT_KEYWORDS = {
     "PRJ-005": ["LNE",  "Lopburi"],
     "PRJ-006": ["SSE",  "Sara"],
     "PRJ-007": ["SDCE", "PBR8", "Chai Nat"],
+    "PRJ-008": ["AC8", "GULF AC8"],
     "PRJ-009": ["ALPHA 1", "AL1", "Alpha1", "Alpha 1"],
     "PRJ-010": ["ALPHA 2", "AL2", "Alpha2", "Alpha 2"],
     "PRJ-011": ["ECE"],
+    "PRJ-012": ["WAYU", "Wayu", "GULF_Wayu", "GULF Wayu"],
     "PRJ-013": ["GCE"],
     "PRJ-014": ["GSE"],
     "PRJ-015": ["KKE",  "Khon Kaen"],
@@ -57,9 +59,11 @@ PROJECT_NAMES = {
     "PRJ-005": "LNE",
     "PRJ-006": "SSE",
     "PRJ-007": "SDCE",
+    "PRJ-008": "GULF AC8",
     "PRJ-009": "AL1 (Alpha 1)",
     "PRJ-010": "AL2 (Alpha 2)",
     "PRJ-011": "ECE",
+    "PRJ-012": "GULF_Wayu",
     "PRJ-013": "GCE",
     "PRJ-014": "GSE",
     "PRJ-015": "KKE",
