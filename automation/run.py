@@ -1,7 +1,7 @@
 # ── run.py ── Gulf Dashboard Weekly Automation ────────────────────────────
 # Schedule: every Wednesday via Windows Task Scheduler
 # Usage: python run.py  (or python run.py --week 25 --year 2026)
-import sys, os, re, json, glob, shutil, subprocess, argparse
+import sys, os, re, json, glob, shutil, subprocess, argparse, time
 from datetime import datetime
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
@@ -319,7 +319,23 @@ def _build_html_body(week, year, found, missing):
 <p style="margin:0;font-size:11px;color:#9ca3af">Gulf Engineering — Project Management &amp; Control</p>
 </body></html>"""
 
-def send_email(week, year, results, missing_ids, xl_path):
+def _ensure_outlook_running(wait_seconds=20):
+    """Launch Outlook if it's not already running, and give it time to finish
+    starting up. A cold Dispatch() launch from inside the COM call is what
+    causes the automation to hang, so we start the process separately first."""
+    try:
+        running = subprocess.run(
+            ['tasklist', '/FI', 'IMAGENAME eq OUTLOOK.EXE'],
+            capture_output=True, text=True
+        )
+        if 'OUTLOOK.EXE' not in running.stdout.upper():
+            subprocess.Popen(['outlook.exe'], shell=True)
+            time.sleep(wait_seconds)
+    except Exception as e:
+        print(f"  [email] Could not check/launch Outlook: {e}")
+
+
+def send_email(week, year, results, missing_ids, xl_path, timeout=90):
     found   = {k: v for k, v in results.items() if v['found']}
     missing = missing_ids
 
@@ -327,19 +343,37 @@ def send_email(week, year, results, missing_ids, xl_path):
                  f"{len(found)} Projects Updated, {len(missing)} Reports Pending")
     html_body = _build_html_body(week, year, found, missing)
 
+    _ensure_outlook_running()
+
+    payload = {
+        'to': EMAIL_TO,
+        'subject': subject,
+        'html_body': html_body,
+        'attachment': os.path.abspath(xl_path) if xl_path and os.path.exists(xl_path) else None,
+    }
+    payload_path = os.path.join(os.path.dirname(__file__), '_email_payload.json')
+    sender_script = os.path.join(os.path.dirname(__file__), '_send_outlook_mail.py')
+    with open(payload_path, 'w', encoding='utf-8') as f:
+        json.dump(payload, f)
+
     try:
-        import win32com.client
-        outlook = win32com.client.Dispatch('Outlook.Application')
-        mail = outlook.CreateItem(0)  # olMailItem
-        mail.To = "; ".join(EMAIL_TO)
-        mail.Subject = subject
-        mail.HTMLBody = html_body
-        if xl_path and os.path.exists(xl_path):
-            mail.Attachments.Add(os.path.abspath(xl_path))
-        mail.Send()
-        print(f"  ✓ Email sent via Outlook to: {', '.join(EMAIL_TO)}")
+        # Runs in its own process so a stuck Outlook COM call (e.g. waiting on
+        # a dialog) can be killed by the timeout instead of hanging run.py.
+        subprocess.run(
+            [sys.executable, sender_script, payload_path],
+            timeout=timeout, check=True, capture_output=True, text=True,
+        )
+        print(f"  [OK] Email sent via Outlook to: {', '.join(EMAIL_TO)}")
+    except subprocess.TimeoutExpired:
+        print(f"  [email error] Outlook did not respond within {timeout}s "
+              f"(may be showing a dialog or still starting up) — email not sent")
+    except subprocess.CalledProcessError as e:
+        print(f"  [email error] {e.stderr.strip() if e.stderr else e}")
     except Exception as e:
         print(f"  [email error] {e}")
+    finally:
+        if os.path.exists(payload_path):
+            os.remove(payload_path)
 
 
 # ── 8. Windows Notification ────────────────────────────────────────────────
