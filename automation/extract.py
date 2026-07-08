@@ -1,5 +1,5 @@
 # ── extract.py ── Extract concerns, activities & progress % from PDF ───────
-import sys, re
+import sys, os, re, glob
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 import pdfplumber
@@ -459,6 +459,7 @@ def _extract_solar_from_exec_summary(pdf):
         '115kv': '115kV T/L', 'transmission': '115kV T/L',
         'fiber': 'Comm/Fiber', 'communication': 'Comm/Fiber',
         'gis substation': 'GIS Substation',
+        'add bay': 'Add Bay',
     }
 
     with pdfplumber.open(pdf) as doc:
@@ -506,6 +507,13 @@ def _extract_solar_from_exec_summary(pdf):
                     plan_v = actual_v = None
                     construction_v = None
                     discs = {}
+                    # First match per label wins. Cells often follow the
+                    # headline "Overall progress X% against plan Y%" line with
+                    # bullet sub-items that reuse the same phrasing for a
+                    # single piece of equipment (e.g. "Transformer station
+                    # overall progress 98.50% vs plan 100.00%") — overwriting
+                    # on every match let that sub-item clobber the true
+                    # headline Overall value.
                     for m in SOLAR_PROGRESS_SUMMARY.finditer(cell_text):
                         label = m.group(1).lower()
                         a = _parse_pct(m.group(2))
@@ -513,15 +521,28 @@ def _extract_solar_from_exec_summary(pdf):
                         if a is None or p is None:
                             continue
                         if label == 'overall':
-                            actual_v, plan_v = a, p
+                            if actual_v is None:
+                                actual_v, plan_v = a, p
                         elif label == 'construction':
-                            construction_v = (p, a)
-                            discs['Construction'] = {'plan': p, 'actual': a}
+                            if construction_v is None:
+                                construction_v = (p, a)
+                                discs['Construction'] = {'plan': p, 'actual': a}
                         elif label in ('engineering', 'procurement'):
-                            discs[label.capitalize()] = {'plan': p, 'actual': a}
+                            if label.capitalize() not in discs:
+                                discs[label.capitalize()] = {'plan': p, 'actual': a}
                     # Use construction as proxy for overall if no explicit overall line
                     if plan_v is None and construction_v is not None:
                         plan_v, actual_v = construction_v
+                    # Some columns state Overall with no plan comparison at all
+                    # (e.g. "Transmission line Overall progress is 100.00%")
+                    # — treat the single figure as both plan and actual rather
+                    # than losing the scope entirely.
+                    if plan_v is None:
+                        m = re.search(
+                            r'overall\s*progress\s*(?:is\s+)?(\d{1,3}(?:\.\d{1,2})?)\s*%',
+                            cell_text, re.I)
+                        if m:
+                            plan_v = actual_v = _parse_pct(m.group(1))
                     if plan_v is not None:
                         entry = {'plan': plan_v, 'actual': actual_v}
                         if scope == 'GUE' and discs:
@@ -529,6 +550,70 @@ def _extract_solar_from_exec_summary(pdf):
                         scopes[scope] = entry
 
     return scopes
+
+
+def extract_solar_concerns_from_exec_summary(pdf):
+    """
+    Read the 'Concern need management attention' row of the same Executive
+    Summary table used by _extract_solar_from_exec_summary, instead of the
+    generic keyword-based bullet scan used elsewhere in extract_from_pdf.
+    Each non-N/A cell is prefixed with its column header for context.
+    Returns a list of concern strings (possibly empty).
+    """
+    concerns = []
+    with pdfplumber.open(pdf) as doc:
+        for page in doc.pages[:10]:
+            text = page.extract_text() or ''
+            if 'executive summary' not in text.lower() and 'site progress' not in text.lower():
+                continue
+            for tbl in page.extract_tables():
+                if not tbl:
+                    continue
+                header_row = None
+                concern_row = None
+                for row in tbl:
+                    if not row:
+                        continue
+                    joined = ' '.join(str(c or '') for c in row).lower()
+                    if any(k in joined for k in ['gue', 'pvfarm', 'pv farm', 'siemens']):
+                        if header_row is None:
+                            header_row = row
+                    if 'concern' in joined.replace(' ', ''):
+                        concern_row = row
+
+                if header_row is None or concern_row is None:
+                    continue
+
+                bullet_re = re.compile(r'^[•▪❑\-]\s*')
+                for ci, cell in enumerate(concern_row):
+                    header = str(header_row[ci]) if ci < len(header_row) and header_row[ci] else None
+                    if not header or not cell or header.strip().lower() == 'topic':
+                        continue
+                    header_label = ' '.join(header.split())
+                    # A single bullet's text wraps across multiple lines in
+                    # the PDF (narrow column) — only lines starting with a
+                    # bullet marker begin a new item; other lines continue
+                    # the previous one.
+                    items, current = [], None
+                    for line in str(cell).split('\n'):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        if bullet_re.match(line):
+                            if current:
+                                items.append(current)
+                            current = bullet_re.sub('', line)
+                        elif current is not None:
+                            current += ' ' + line
+                        else:
+                            current = line
+                    if current:
+                        items.append(current)
+                    for it in items:
+                        if not it or it.upper() in ('N/A', 'NA'):
+                            continue
+                        concerns.append(f'[{header_label}] {it}')
+    return concerns
 
 
 # ── Wind extractor ─────────────────────────────────────────────────────────────
@@ -632,11 +717,13 @@ def extract_progress_hydro_pakbeng(pdf):
     return {'plan': None, 'actual': None, 'disciplines': {}}
 
 
-def extract_progress_hydro_paklay(pdf):
+def extract_progress_hydro_paklay(pdf, search_dir=None):
     """
-    Pak Lay EPC weekly report.
-    Report is primarily issue/design tracking; overall progress % may not exist in text.
-    Tries: 'Physical Progress: Plan X% / Actual Y%' pattern.
+    Pak Lay: EPC weekly report is primarily issue/design tracking and rarely
+    states an overall %. Tries 'Physical Progress: Plan X% / Actual Y%' in
+    the EPC report first; if that's absent and search_dir is given, falls
+    back to OCR-reading the Owner deck's 'Progress S-Curve from EPC' slide
+    (see _ocr_paklay_scurve — that data exists only as a screenshot image).
     Returns { plan, actual, disciplines: {} }.
     """
     try:
@@ -652,12 +739,89 @@ def extract_progress_hydro_paklay(pdf):
     except Exception as e:
         print(f"  [paklay error] {e}")
 
+    if search_dir:
+        ocr_result = _ocr_paklay_scurve(search_dir)
+        if ocr_result['plan'] is not None or ocr_result['actual'] is not None:
+            return {'plan': ocr_result['plan'], 'actual': ocr_result['actual'],
+                    'disciplines': {}}
+
     return {'plan': None, 'actual': None, 'disciplines': {}}
+
+
+def _ocr_pct_from_band(page_img, arr, target_rgb, y_limit, tol=10, pad=8):
+    """
+    Locate a solid-color highlight band (by RGB) in a rendered page image,
+    restricted to the top y_limit px (the bands sit above the actual chart),
+    crop it with padding, upscale, and OCR the single line of text inside
+    for a '= X.XX%' value. Returns float or None — never raises.
+    """
+    import numpy as np
+    import pytesseract
+    from PIL import Image
+
+    search = arr[:y_limit]
+    diff = np.abs(search.astype(int) - np.array(target_rgb)).sum(axis=2)
+    ys, xs = np.where(diff < tol)
+    if len(xs) == 0:
+        return None
+    x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
+    crop = page_img.crop((max(x0 - pad, 0), max(y0 - pad, 0), x1 + pad, y1 + pad))
+    crop = crop.resize((crop.width * 3, crop.height * 3), Image.LANCZOS)
+    text = pytesseract.image_to_string(crop, config='--psm 7')
+    m = re.search(r'=\s*(\d{1,3}(?:\.\d{1,2})?)\s*%', text)
+    return _parse_pct(m.group(1)) if m else None
+
+
+def _ocr_paklay_scurve(search_dir):
+    """
+    Pak Lay's Owner 'Progress of works' deck has a slide titled 'Progress
+    S-Curve from EPC' where the Cumulative Plan/Achieved % are baked into a
+    pasted screenshot image — not real PDF text — inside two highlighted
+    bands: a light-blue 'Accumulative Planned Progress ... =X%' line and a
+    light-orange 'Accumulative Achived Progress ... =Y%' line. OCR is the
+    only way to read them. Searches every PDF under search_dir (the file
+    isn't always named the same week to week) for that slide.
+    Returns {'plan': float|None, 'actual': float|None} — never raises;
+    any failure (Tesseract missing, slide not found, OCR miss) yields Nones
+    so a bad OCR read can never break the weekly run.
+    """
+    try:
+        import numpy as np
+        import pytesseract
+        tess_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+        if os.path.exists(tess_path):
+            pytesseract.pytesseract.tesseract_cmd = tess_path
+
+        for pdf_path in glob.glob(os.path.join(search_dir, '**', '*.pdf'), recursive=True):
+            try:
+                with pdfplumber.open(pdf_path) as doc:
+                    target_page = None
+                    for page in doc.pages:
+                        t = (page.extract_text() or '').lower()
+                        if 's-curve from epc' in t or 's curve from epc' in t:
+                            target_page = page
+                            break
+                    if target_page is None:
+                        continue
+
+                    page_img = target_page.to_image(resolution=300).original.convert('RGB')
+                    arr = np.array(page_img)
+                    y_limit = int(arr.shape[0] * 0.4)
+
+                    plan_v   = _ocr_pct_from_band(page_img, arr, (167, 204, 242), y_limit)
+                    actual_v = _ocr_pct_from_band(page_img, arr, (247, 182, 150), y_limit)
+                    return {'plan': plan_v, 'actual': actual_v}
+            except Exception as e:
+                print(f"  [paklay OCR error] {os.path.basename(pdf_path)}: {e}")
+    except Exception as e:
+        print(f"  [paklay OCR error] {e}")
+
+    return {'plan': None, 'actual': None}
 
 
 # ── Progress dispatcher ───────────────────────────────────────────────────────
 
-def extract_progress(pdf_path, prj_id):
+def extract_progress(pdf_path, prj_id, search_dir=None):
     """
     Dispatch to the correct extractor based on project type.
     Returns dict with: plan, actual, and either disciplines or scopes.
@@ -675,7 +839,7 @@ def extract_progress(pdf_path, prj_id):
         elif extract_type == 'hydro_pakbeng':
             return extract_progress_hydro_pakbeng(pdf_path)
         elif extract_type == 'hydro_paklay':
-            return extract_progress_hydro_paklay(pdf_path)
+            return extract_progress_hydro_paklay(pdf_path, search_dir=search_dir)
     except Exception as e:
         print(f"  [progress extract error] {e}")
     return {'plan': None, 'actual': None, 'disciplines': {}}
@@ -683,12 +847,15 @@ def extract_progress(pdf_path, prj_id):
 
 # ── Main entry point ──────────────────────────────────────────────────────────
 
-def extract_from_pdf(pdf_path, prj_id=None):
+def extract_from_pdf(pdf_path, prj_id=None, search_dir=None):
     """
     Returns dict:
       { concerns: [...], activities: [...],
         plan: float|None, actual: float|None,
         disciplines: {disc: {plan, actual}} }
+    search_dir (optional): the project's report folder, used by extractors
+    that must look at a second PDF beyond the one already matched for this
+    project (e.g. Pak Lay's OCR fallback lives in a sibling 'Owner' file).
     """
     concerns   = []
     activities = []
@@ -746,8 +913,19 @@ def extract_from_pdf(pdf_path, prj_id=None):
     except Exception as e:
         print(f"  [extract error] {e}")
 
+    # SDCE: the generic bullet scan above picks up noisy/incorrect text
+    # elsewhere in the report; the Executive Summary's own 'Concern need
+    # management attention' row is the authoritative source for this project.
+    if prj_id == 'PRJ-007':
+        try:
+            exec_concerns = extract_solar_concerns_from_exec_summary(pdf_path)
+            if exec_concerns:
+                concerns = exec_concerns
+        except Exception as e:
+            print(f"  [sdce concerns error] {e}")
+
     # Extract progress %
-    progress = extract_progress(pdf_path, prj_id) if prj_id else \
+    progress = extract_progress(pdf_path, prj_id, search_dir=search_dir) if prj_id else \
                {'plan': None, 'actual': None, 'disciplines': {}}
 
     result = {

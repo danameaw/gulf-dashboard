@@ -483,7 +483,7 @@ def main():
                 continue
 
             print(f"OK → {os.path.basename(pdf)}")
-            data = extract_from_pdf(pdf, prj_id)
+            data = extract_from_pdf(pdf, prj_id, search_dir=group_path)
             plan_s   = f"{data['plan']}%" if data['plan'] is not None else 'null'
             actual_s = f"{data['actual']}%" if data['actual'] is not None else 'null'
             scopes_n = len(data.get('scopes', {}))
