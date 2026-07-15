@@ -227,6 +227,53 @@ WIND_SCOPE_MAP = {
     'rss':    '115kV T/L',
 }
 
+# ── Wind Executive Summary (PRJ-008 to PRJ-012) ───────────────────────────
+# Source: single-page Executive Summary table, one column per scope. The
+# "S-Curve" page-scan above misses scopes entirely for some projects (e.g.
+# AL2/Wayu returned nothing at all) — the Executive Summary's "Site
+# Progress" row is the authoritative source going forward. Phrasing varies
+# significantly by project, so _parse_wind_exec_cell tries each pattern below
+# in turn:
+#   Alpha 2 (clean):    "Overall Project Progress\n- Plan = X%\n- Actual = Y%"
+#                       "Construction Progress\n- Plan = X%\n- Actual = Y%"
+#   AL1 (delta-only):   "Construction Progress =X% Delayed Y%"
+#                       "Overall Progress =X% Ahead Y%"   (plan = actual ± delta)
+#   ECE (actual-first): "Overall Progress actual = X%,\n- Overall Progress Plan = Y%"
+#   Wayu (inline, partial — only CBOP/Substation cells use this cleanly):
+#                       "Progress X%(Plan Y%, ...)"
+
+WIND_EXEC_PLAN_THEN_ACTUAL = re.compile(
+    r'(overall\s+project|construction)\s+progress\s*[\r\n]+\s*-\s*plan\s*=\s*'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s*[\r\n]+\s*-\s*actual\s*=\s*'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)  # groups: label, plan, actual
+
+WIND_EXEC_ACTUAL_THEN_PLAN = re.compile(
+    r'overall\s+progress\s+actual\s*=\s*(\d{1,3}(?:\.\d{1,2})?)\s*%,?\s*'
+    r'[\r\n]+\s*-?\s*overall\s+progress\s+plan\s*=\s*(\d{1,3}(?:\.\d{1,2})?)\s*%',
+    re.I)  # groups: actual, plan
+
+WIND_EXEC_DELTA = re.compile(
+    r'(construction|overall)\s+progress\s*=\s*(\d{1,3}(?:\.\d{1,2})?)\s*%\s*'
+    r'(delayed|ahead)\s*(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)  # label, actual, direction, delta
+
+WIND_EXEC_INLINE = re.compile(
+    r'progress\s*(\d{1,3}(?:\.\d{1,2})?)\s*%\s*\(\s*plan\s*(\d{1,3}(?:\.\d{1,2})?)\s*%',
+    re.I)  # groups: actual, plan
+
+# Scope-column header keywords for the Wind Executive Summary table. 'pcz'
+# and 'siemens' are used (not the ambiguous 'bop'/'substation') since they
+# appear consistently across every project's header naming and don't collide
+# with the 5th, project-specific "Terminal Substation" column some reports add.
+WIND_EXEC_SCOPE_COL_NAMES = {
+    'pcz': 'CBOP',
+    'tsa': 'TSA',
+    'siemens': 'Substation',
+    'terminal substation': 'Terminal Substation',
+    'pre-ntp': 'Pre-NTP',
+    'encom': '115kV T/L', 'sct': '115kV T/L', 'rss': '115kV T/L',
+    'transmission line': '115kV T/L',
+}
+
 # ── Hydro Pak Beng (PRJ-026) ───────────────────────────────────────────────
 # Source: Monthly progress report, page with S-Curve summary
 # Pattern 1 (text line): "Plan/Actual：5.65%/5.24%（0.41%）"

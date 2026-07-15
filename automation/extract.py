@@ -12,6 +12,8 @@ from patterns import (
     SOLAR_SCOPE_GUE, SOLAR_SCOPE_SIE, SOLAR_SCOPE_TL, SOLAR_SCOPE_COMM,
     SOLAR_PROGRESS_ALT, SOLAR_PROGRESS_SUMMARY, SOLAR_EXEC_SUMMARY_PROJECTS,
     WIND_SCURVE_PAGE, WIND_DISC_ROW, WIND_SCOPE_MAP,
+    WIND_EXEC_PLAN_THEN_ACTUAL, WIND_EXEC_ACTUAL_THEN_PLAN,
+    WIND_EXEC_DELTA, WIND_EXEC_INLINE, WIND_EXEC_SCOPE_COL_NAMES,
     PAKBENG_PLAN_ACTUAL, PAKBENG_CUM_PLANNED, PAKBENG_CUM_ACTUAL,
     PAKLAY_PROGRESS,
 )
@@ -747,14 +749,197 @@ def extract_solar_concerns_from_exec_summary(pdf):
     return concerns
 
 
+# ── Wind Executive Summary ────────────────────────────────────────────────────
+
+def _parse_wind_exec_cell(cell_text):
+    """
+    Try each known Wind Executive Summary cell phrasing in turn (see
+    WIND_EXEC_* patterns in patterns.py for what each project's report
+    actually looks like) and return (plan, actual), preferring an explicit
+    Overall line over a Construction line as scope-level proxy — same
+    convention as the Solar Exec Summary parser. Returns (None, None) if no
+    pattern matched (e.g. a plain "N/A" cell, or Wayu's ambiguous TSA column
+    with two different "plan" figures, which is deliberately left unparsed).
+    """
+    overall = construction = None
+
+    for m in WIND_EXEC_PLAN_THEN_ACTUAL.finditer(cell_text):
+        label = m.group(1).lower()
+        p, a = _parse_pct(m.group(2)), _parse_pct(m.group(3))
+        if p is None or a is None:
+            continue
+        if 'construction' in label:
+            construction = (p, a)
+        else:
+            overall = (p, a)
+
+    if overall is None:
+        m = WIND_EXEC_ACTUAL_THEN_PLAN.search(cell_text)
+        if m:
+            a, p = _parse_pct(m.group(1)), _parse_pct(m.group(2))
+            if a is not None and p is not None:
+                overall = (p, a)
+
+    if overall is None:
+        for m in WIND_EXEC_DELTA.finditer(cell_text):
+            label = m.group(1).lower()
+            a = _parse_pct(m.group(2))
+            direction = m.group(3).lower()
+            delta = _parse_pct(m.group(4))
+            if a is None or delta is None:
+                continue
+            p = round(a + delta, 2) if direction == 'delayed' else round(a - delta, 2)
+            if 'construction' in label:
+                if construction is None:
+                    construction = (p, a)
+            elif overall is None:
+                overall = (p, a)
+
+    if overall is None and construction is None:
+        m = WIND_EXEC_INLINE.search(cell_text)
+        if m:
+            a, p = _parse_pct(m.group(1)), _parse_pct(m.group(2))
+            if a is not None and p is not None:
+                overall = (p, a)
+
+    if overall is not None:
+        return overall
+    if construction is not None:
+        return construction
+    return None, None
+
+
+def _extract_wind_from_exec_summary(pdf):
+    """
+    Wind Executive Summary page: one column per scope (CBOP, TSA, Substation,
+    115kV T/L, and sometimes a project-specific extra column like AL1's
+    "Pre-NTP" or Alpha 2's "Terminal Substation"). This is the authoritative
+    source going forward — the "Overall Progress S-Curve" page-scan below
+    misses scopes entirely for some projects.
+    Returns { scope_name: {plan, actual} }.
+    """
+    scopes = {}
+    with pdfplumber.open(pdf) as doc:
+        for page in doc.pages[:8]:
+            text = page.extract_text() or ''
+            if 'executive summary' not in text.lower() or 'site progress' not in text.lower():
+                continue
+            for tbl in page.extract_tables():
+                if not tbl:
+                    continue
+                header_row = None
+                site_progress_row = None
+                for row in tbl:
+                    if not _is_multicol_row(row):
+                        continue
+                    joined = ' '.join(str(c or '') for c in row).lower()
+                    if header_row is None and any(
+                            k in joined for k in ['pcz', 'siemens', 'goldwind', 'gold wind', 'tsa']):
+                        header_row = row
+                    if 'site progress' in joined:
+                        site_progress_row = row
+
+                if header_row is None or site_progress_row is None:
+                    continue
+
+                col_scope = {}
+                for ci, cell in enumerate(header_row):
+                    if not cell:
+                        continue
+                    cl = str(cell).lower()
+                    for key, scope_name in WIND_EXEC_SCOPE_COL_NAMES.items():
+                        if key in cl:
+                            col_scope[ci] = scope_name
+                            break
+
+                for ci, cell in enumerate(site_progress_row):
+                    scope_name = col_scope.get(ci)
+                    if not scope_name or not cell:
+                        continue
+                    plan_v, actual_v = _parse_wind_exec_cell(str(cell))
+                    if plan_v is not None and actual_v is not None:
+                        scopes[scope_name] = {'plan': plan_v, 'actual': actual_v}
+            if scopes:
+                break
+    return scopes
+
+
+def extract_wind_concerns_from_exec_summary(pdf):
+    """
+    Read the 'Concern need management attention' row of the Wind Executive
+    Summary table — same approach as extract_solar_concerns_from_exec_summary,
+    just with Wind's scope-column keywords. Some reports (e.g. ECE) use a
+    bare '-' for an empty cell instead of 'N/A'.
+    Returns a list of concern strings (possibly empty).
+    """
+    concerns = []
+    with pdfplumber.open(pdf) as doc:
+        for page in doc.pages[:8]:
+            text = page.extract_text() or ''
+            if 'executive summary' not in text.lower() or 'site progress' not in text.lower():
+                continue
+            for tbl in page.extract_tables():
+                if not tbl:
+                    continue
+                header_row = None
+                concern_row = None
+                for row in tbl:
+                    if not _is_multicol_row(row):
+                        continue
+                    joined = ' '.join(str(c or '') for c in row).lower()
+                    if header_row is None and any(
+                            k in joined for k in ['pcz', 'siemens', 'goldwind', 'gold wind', 'tsa']):
+                        header_row = row
+                    if 'concern' in joined.replace(' ', ''):
+                        concern_row = row
+
+                if header_row is None or concern_row is None:
+                    continue
+
+                bullet_re = re.compile(r'^[•▪❑\-]\s*')
+                for ci, cell in enumerate(concern_row):
+                    header = str(header_row[ci]) if ci < len(header_row) and header_row[ci] else None
+                    if not header or not cell or header.strip().lower() == 'topic':
+                        continue
+                    header_label = ' '.join(header.split())
+                    items, current = [], None
+                    for line in str(cell).split('\n'):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        if bullet_re.match(line):
+                            if current:
+                                items.append(current)
+                            current = bullet_re.sub('', line)
+                        elif current is not None:
+                            current += ' ' + line
+                        else:
+                            current = line
+                    if current:
+                        items.append(current)
+                    for it in items:
+                        it_check = re.sub(r'\s*\d+\s*$', '', it).strip()
+                        if not it_check or it_check.upper() in ('N/A', 'NA', '-'):
+                            continue
+                        concerns.append(f'[{header_label}] {it}')
+    return concerns
+
+
 # ── Wind extractor ─────────────────────────────────────────────────────────────
 
-def extract_progress_wind(pdf):
+def extract_progress_wind(pdf, prj_id=None):
     """
     Wind report: find 'Overall Progress S-Curve (SCOPE)' pages.
     Each page has a table: Description | Plan% | Actual% | Ahead/Delay
     Rows: Engineering, Procurement, Construction, Overall
     Returns { plan, actual, scopes }.
+
+    The Executive Summary's 'Site Progress' row (_extract_wind_from_exec_summary)
+    is merged in afterward as the authoritative scope-level plan/actual —
+    same convention as Solar: it fills scopes this scan missed entirely, and
+    overrides plan/actual where both agree on the scope, while any
+    discipline breakdown this scan found (Engineering/Procurement/...) is
+    kept since the Exec Summary table doesn't have that level of detail.
     """
     scopes = {}
 
@@ -804,6 +989,13 @@ def extract_progress_wind(pdf):
                 if discs:
                     entry['disciplines'] = discs
                 scopes[scope] = entry
+
+    exec_scopes = _extract_wind_from_exec_summary(pdf)
+    for scope_name, exec_entry in exec_scopes.items():
+        tw_entry = scopes.get(scope_name)
+        if tw_entry and tw_entry.get('disciplines'):
+            exec_entry['disciplines'] = tw_entry['disciplines']
+        scopes[scope_name] = exec_entry
 
     if not scopes:
         return {'plan': None, 'actual': None, 'scopes': {}}
@@ -879,45 +1071,36 @@ def extract_progress_hydro_paklay(pdf, search_dir=None):
     return {'plan': None, 'actual': None, 'disciplines': {}}
 
 
-def _ocr_pct_from_band(page_img, arr, target_rgb, y_limit, tol=10, pad=8):
-    """
-    Locate a solid-color highlight band (by RGB) in a rendered page image,
-    restricted to the top y_limit px (the bands sit above the actual chart),
-    crop it with padding, upscale, and OCR the single line of text inside
-    for a '= X.XX%' value. Returns float or None — never raises.
-    """
-    import numpy as np
-    import pytesseract
-    from PIL import Image
-
-    search = arr[:y_limit]
-    diff = np.abs(search.astype(int) - np.array(target_rgb)).sum(axis=2)
-    ys, xs = np.where(diff < tol)
-    if len(xs) == 0:
-        return None
-    x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
-    crop = page_img.crop((max(x0 - pad, 0), max(y0 - pad, 0), x1 + pad, y1 + pad))
-    crop = crop.resize((crop.width * 3, crop.height * 3), Image.LANCZOS)
-    text = pytesseract.image_to_string(crop, config='--psm 7')
-    m = re.search(r'=\s*(\d{1,3}(?:\.\d{1,2})?)\s*%', text)
-    return _parse_pct(m.group(1)) if m else None
+# The chart page's only real (non-image) text is its title; the callout
+# boxes ("Accumulative Planned/Achived Progress up to <week> =X.XX%") are
+# baked into the page's image content, so OCR misreads "Achieved" as
+# "Achived" fairly consistently — match both spellings.
+_PAKLAY_CHART_PAGE_TITLE = re.compile(r'construction\s+progress\s+curve', re.I)
+_PAKLAY_OCR_PLANNED  = re.compile(
+    r'accumulative\s+planned\s+progress\s+up\s*to\s*[\w\s]{0,20}?=\s*'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)
+_PAKLAY_OCR_ACHIEVED = re.compile(
+    r'accumulative\s+achi(?:e)?ved\s+progress\s+up\s*to\s*[\w\s]{0,20}?=\s*'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)
 
 
 def _ocr_paklay_scurve(search_dir):
     """
-    Pak Lay's Owner 'Progress of works' deck has a slide titled 'Progress
-    S-Curve from EPC' where the Cumulative Plan/Achieved % are baked into a
-    pasted screenshot image — not real PDF text — inside two highlighted
-    bands: a light-blue 'Accumulative Planned Progress ... =X%' line and a
-    light-orange 'Accumulative Achived Progress ... =Y%' line. OCR is the
-    only way to read them. Searches every PDF under search_dir (the file
-    isn't always named the same week to week) for that slide.
+    Pak Lay's EPC weekly report has a '2.4 Construction progress curve' page
+    that is entirely image content (a pasted chart) apart from its title —
+    the Cumulative Plan/Achieved % callout boxes are baked into that image,
+    not real PDF text, so OCR is the only way to read them. Searches every
+    PDF under search_dir (the file isn't always named the same week to
+    week) for a page whose real (non-OCR) text matches the title, since
+    that's the only reliable, non-OCR way to locate the right page.
+    When more than one 'Achieved' callout is present (a stale prior-week box
+    alongside the current one), the LAST match wins — PowerPoint lists them
+    in chronological order, so the last one is the most recent.
     Returns {'plan': float|None, 'actual': float|None} — never raises;
-    any failure (Tesseract missing, slide not found, OCR miss) yields Nones
+    any failure (Tesseract missing, page not found, OCR miss) yields Nones
     so a bad OCR read can never break the weekly run.
     """
     try:
-        import numpy as np
         import pytesseract
         tess_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
         if os.path.exists(tess_path):
@@ -928,20 +1111,22 @@ def _ocr_paklay_scurve(search_dir):
                 with pdfplumber.open(pdf_path) as doc:
                     target_page = None
                     for page in doc.pages:
-                        t = (page.extract_text() or '').lower()
-                        if 's-curve from epc' in t or 's curve from epc' in t:
+                        t = page.extract_text() or ''
+                        if _PAKLAY_CHART_PAGE_TITLE.search(t):
                             target_page = page
                             break
                     if target_page is None:
                         continue
 
                     page_img = target_page.to_image(resolution=300).original.convert('RGB')
-                    arr = np.array(page_img)
-                    y_limit = int(arr.shape[0] * 0.4)
+                    ocr_text = pytesseract.image_to_string(page_img)
 
-                    plan_v   = _ocr_pct_from_band(page_img, arr, (167, 204, 242), y_limit)
-                    actual_v = _ocr_pct_from_band(page_img, arr, (247, 182, 150), y_limit)
-                    return {'plan': plan_v, 'actual': actual_v}
+                    plan_matches = _PAKLAY_OCR_PLANNED.findall(ocr_text)
+                    achieved_matches = _PAKLAY_OCR_ACHIEVED.findall(ocr_text)
+                    plan_v   = _parse_pct(plan_matches[-1]) if plan_matches else None
+                    actual_v = _parse_pct(achieved_matches[-1]) if achieved_matches else None
+                    if plan_v is not None or actual_v is not None:
+                        return {'plan': plan_v, 'actual': actual_v}
             except Exception as e:
                 print(f"  [paklay OCR error] {os.path.basename(pdf_path)}: {e}")
     except Exception as e:
@@ -966,7 +1151,7 @@ def extract_progress(pdf_path, prj_id, search_dir=None):
         elif extract_type == 'solar':
             return extract_progress_solar(pdf_path, prj_id=prj_id)
         elif extract_type == 'wind':
-            return extract_progress_wind(pdf_path)
+            return extract_progress_wind(pdf_path, prj_id=prj_id)
         elif extract_type == 'hydro_pakbeng':
             return extract_progress_hydro_pakbeng(pdf_path)
         elif extract_type == 'hydro_paklay':
@@ -1069,6 +1254,16 @@ def extract_from_pdf(pdf_path, prj_id=None, search_dir=None):
                 concerns = exec_concerns
         except Exception as e:
             print(f"  [iwte concerns error] {e}")
+
+    # Wind: Executive Summary's 'Concern need management attention' row is
+    # the authoritative source going forward.
+    if AUTO_EXTRACT_PROJECTS.get(prj_id) == 'wind':
+        try:
+            exec_concerns = extract_wind_concerns_from_exec_summary(pdf_path)
+            if exec_concerns:
+                concerns = exec_concerns
+        except Exception as e:
+            print(f"  [wind concerns error] {e}")
 
     # Extract progress %
     progress = extract_progress(pdf_path, prj_id, search_dir=search_dir) if prj_id else \
