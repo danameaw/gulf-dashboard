@@ -153,6 +153,91 @@ def _table_rows_to_disc(table):
     return discs, overall
 
 
+# ── iWTE Executive Summary concerns ───────────────────────────────────────────
+# The iWTE Executive Summary page is a two-column layout: a Plan/Actual
+# progress table on the left, free-text sections (Key Achievement, Key Delay
+# & Impact, Area of Concern, ...) on the right. pdfplumber's default
+# extract_text() linearizes both columns onto the same lines, which
+# corrupts wrapped bullets across the column boundary (a bullet's 2nd line
+# gets merged with the unrelated left-column text on that same output line).
+# _extract_right_column_text reconstructs just the right column from word
+# positions so the "Area of Concern" section can be read cleanly.
+
+_IWTE_AREA_OF_CONCERN = re.compile(r'area\s+of\s+concern\s*:?', re.I)
+_IWTE_CONCERN_STOP    = re.compile(r'issue\s+to\s+request|ho\s+support', re.I)
+_IWTE_NUM_BULLET      = re.compile(r'^\d+[\.\)]\s*')
+
+
+def _extract_right_column_text(page, split_frac=0.45):
+    """Reconstruct the right-hand column of a two-column page from word
+    x-positions: words with x0 past split_frac*page width are grouped into
+    lines by y-position (clustered within a few px), then lines are sorted
+    top-to-bottom and words within each line left-to-right."""
+    width = page.width
+    right_words = [w for w in page.extract_words() if w['x0'] >= width * split_frac]
+    right_words.sort(key=lambda w: w['top'])
+    lines = []
+    for w in right_words:
+        for line in lines:
+            if abs(line['top'] - w['top']) <= 3:
+                line['words'].append(w)
+                break
+        else:
+            lines.append({'top': w['top'], 'words': [w]})
+    lines.sort(key=lambda l: l['top'])
+    return '\n'.join(
+        ' '.join(w['text'] for w in sorted(l['words'], key=lambda w: w['x0']))
+        for l in lines)
+
+
+def extract_iwte_concerns_from_exec_summary(pdf_path):
+    """
+    Read the 'Area of Concern' field of the iWTE Executive Summary page —
+    the authoritative source for iWTE concerns going forward. Numbered
+    items ("1. ...", "2. ...") are joined back together across their
+    wrapped continuation lines; a project with no numbered list just has
+    the whole field on one line, which is used as-is.
+    Returns a list of concern strings (possibly empty).
+    """
+    concerns = []
+    try:
+        with pdfplumber.open(pdf_path) as doc:
+            for page in doc.pages[:6]:
+                text = page.extract_text() or ''
+                if 'executive summary' not in text.lower():
+                    continue
+                right_text = _extract_right_column_text(page)
+                m = _IWTE_AREA_OF_CONCERN.search(right_text)
+                if not m:
+                    continue
+                section = right_text[m.end():]
+                stop_m = _IWTE_CONCERN_STOP.search(section)
+                if stop_m:
+                    section = section[:stop_m.start()]
+                items, current = [], None
+                for line in section.split('\n'):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    if _IWTE_NUM_BULLET.match(line):
+                        if current:
+                            items.append(current)
+                        current = _IWTE_NUM_BULLET.sub('', line).strip()
+                    elif current is not None:
+                        current += ' ' + line
+                    else:
+                        current = line
+                if current:
+                    items.append(current)
+                for it in items:
+                    if it and it.upper() not in ('N/A', 'NA', 'NONE'):
+                        concerns.append(it)
+                break
+    except Exception as e:
+        print(f"  [iwte concerns error] {e}")
+    return concerns
+
+
 # ── iWTE extractor ────────────────────────────────────────────────────────────
 
 def extract_progress_iwte(pdf):
@@ -970,6 +1055,20 @@ def extract_from_pdf(pdf_path, prj_id=None, search_dir=None):
                 concerns = exec_concerns
         except Exception as e:
             print(f"  [sdce concerns error] {e}")
+
+    # iWTE: Executive Summary's 'Area of Concern' field is the authoritative
+    # source going forward. Not every iWTE report lays this field out on the
+    # Executive Summary page (some instead have a separate, differently
+    # structured 'Areas of Concern' section later in the document) — when
+    # this comes back empty, keep whatever the generic scan above found
+    # rather than discarding it.
+    if AUTO_EXTRACT_PROJECTS.get(prj_id) == 'iwte':
+        try:
+            exec_concerns = extract_iwte_concerns_from_exec_summary(pdf_path)
+            if exec_concerns:
+                concerns = exec_concerns
+        except Exception as e:
+            print(f"  [iwte concerns error] {e}")
 
     # Extract progress %
     progress = extract_progress(pdf_path, prj_id, search_dir=search_dir) if prj_id else \

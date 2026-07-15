@@ -31,11 +31,18 @@ def find_pdf(folder_path, prj_id):
     keywords = PROJECT_KEYWORDS.get(prj_id, [])
     pdfs = glob.glob(os.path.join(folder_path, '*.pdf'))
     pdfs += glob.glob(os.path.join(folder_path, '**', '*.pdf'), recursive=True)
-    for pdf in pdfs:
-        fname = os.path.basename(pdf).upper()
-        if any(kw.upper() in fname for kw in keywords):
-            return pdf
-    return None
+    matches = [pdf for pdf in pdfs
+               if any(kw.upper() in os.path.basename(pdf).upper() for kw in keywords)]
+    if not matches:
+        return None
+    # iWTE's regular weekly construction report is always named
+    # "Project_<ID>_Construction_weekly_report_...". A one-off report (e.g.
+    # a special "Back energize" report covering multiple projects) can
+    # legitimately contain a project's keyword too and was winning just by
+    # sorting first — prefer the canonically-named file when one exists.
+    canonical = [pdf for pdf in matches
+                 if os.path.basename(pdf).upper().startswith('PROJECT_')]
+    return canonical[0] if canonical else matches[0]
 
 
 # ── 3. Build JS seed snippet ───────────────────────────────────────────────
