@@ -10,7 +10,7 @@ from patterns import (
     GMTP_PAGE_INCLUDE, GMTP_ROWS,
     SOLAR_THIS_WEEK, SOLAR_PREV_WEEK, SOLAR_PROGRESS,
     SOLAR_SCOPE_GUE, SOLAR_SCOPE_SIE, SOLAR_SCOPE_TL, SOLAR_SCOPE_COMM,
-    SOLAR_PROGRESS_ALT, SOLAR_PROGRESS_SUMMARY,
+    SOLAR_PROGRESS_ALT, SOLAR_PROGRESS_SUMMARY, SOLAR_EXEC_SUMMARY_PROJECTS,
     WIND_SCURVE_PAGE, WIND_DISC_ROW, WIND_SCOPE_MAP,
     PAKBENG_PLAN_ACTUAL, PAKBENG_CUM_PLANNED, PAKBENG_CUM_ACTUAL,
     PAKLAY_PROGRESS,
@@ -87,6 +87,21 @@ def _find_two_pcts_in_line(line):
     if len(nums) >= 2:
         return nums[0], nums[1]
     return None, None
+
+
+def _is_multicol_row(row, min_cells=3):
+    """
+    True if a pdfplumber table row looks like a real multi-column row.
+    Some pages make pdfplumber emit a spurious extra "row" that dumps the
+    entire page's text into a single cell with every other cell None (an
+    artifact of its table-grid detection) — that blob can accidentally
+    contain header/section keywords as substrings and get mistaken for the
+    real header/data row. Real rows in these Exec Summary tables always have
+    several distinct populated cells (Topic + one per scope column).
+    """
+    if not row:
+        return False
+    return sum(1 for c in row if c not in (None, '')) >= min_cells
 
 
 def _table_rows_to_disc(table):
@@ -386,11 +401,16 @@ def _parse_solar_progress_from_text(text):
 
     return overall_plan, overall_actual, discs
 
-def extract_progress_solar(pdf):
+def extract_progress_solar(pdf, prj_id=None):
     """
     Solar report: find 'This week activities' pages per contractor section.
     Builds scopes dict: { scope_name: { plan, actual, disciplines? } }
     Returns { plan, actual, scopes }.
+
+    For prj_id in SOLAR_EXEC_SUMMARY_PROJECTS, the Executive Summary 'Site
+    Progress' row is authoritative (see patterns.py) and is merged in after
+    the scan below: its plan/actual wins per scope, but a scope's
+    discipline breakdown from this scan is kept if Exec Summary has none.
     """
     scopes = {}
 
@@ -424,8 +444,24 @@ def extract_progress_solar(pdf):
                     entry['disciplines'] = discs
                 scopes[scope] = entry
 
-    # Fallback: scan Executive Summary table "Site Progress" row
-    if not scopes:
+    if prj_id in SOLAR_EXEC_SUMMARY_PROJECTS:
+        # Exec Summary is authoritative: merge its plan/actual per scope over
+        # this scan's (fills scopes this scan missed entirely, e.g. NWT3's
+        # Comm/Fiber), but keep this scan's discipline breakdown when Exec
+        # Summary's cell has none (it only ever shows Overall + Construction).
+        exec_scopes = _extract_solar_from_exec_summary(pdf)
+        for scope_name, exec_entry in exec_scopes.items():
+            tw_entry = scopes.get(scope_name)
+            if tw_entry and tw_entry.get('disciplines'):
+                # Union, exec's per-discipline values win on key collision
+                # (e.g. Construction) — tw-only disciplines (e.g. GUE's
+                # Engineering/Procurement, absent from Exec Summary) survive.
+                merged_disc = dict(tw_entry['disciplines'])
+                merged_disc.update(exec_entry.get('disciplines') or {})
+                exec_entry['disciplines'] = merged_disc
+            scopes[scope_name] = exec_entry
+    elif not scopes:
+        # Fallback: scan Executive Summary table "Site Progress" row
         scopes = _extract_solar_from_exec_summary(pdf)
 
     if not scopes:
@@ -475,7 +511,7 @@ def _extract_solar_from_exec_summary(pdf):
                 header_row = None
                 site_progress_row = None
                 for row in tbl:
-                    if not row:
+                    if not _is_multicol_row(row):
                         continue
                     joined = ' '.join(str(c or '') for c in row).lower()
                     if any(k in joined for k in ['gue', 'pvfarm', 'pv farm', 'siemens']):
@@ -514,22 +550,27 @@ def _extract_solar_from_exec_summary(pdf):
                     # overall progress 98.50% vs plan 100.00%") — overwriting
                     # on every match let that sub-item clobber the true
                     # headline Overall value.
-                    for m in SOLAR_PROGRESS_SUMMARY.finditer(cell_text):
-                        label = m.group(1).lower()
-                        a = _parse_pct(m.group(2))
-                        p = _parse_pct(m.group(3))
-                        if a is None or p is None:
-                            continue
-                        if label == 'overall':
-                            if actual_v is None:
-                                actual_v, plan_v = a, p
-                        elif label == 'construction':
-                            if construction_v is None:
-                                construction_v = (p, a)
-                                discs['Construction'] = {'plan': p, 'actual': a}
-                        elif label in ('engineering', 'procurement'):
-                            if label.capitalize() not in discs:
-                                discs[label.capitalize()] = {'plan': p, 'actual': a}
+                    # Try all cell phrasings seen across reports: SSE/LNE/SDCE
+                    # ("/Plan at" / "vs plan" / "against plan"), NWT3-style
+                    # ("stands at X% against the planned progress of Y%"), and
+                    # PTN/STN-style ("progress X% compared to plan at Y%").
+                    for pattern in (SOLAR_PROGRESS_SUMMARY, SOLAR_PROGRESS, SOLAR_PROGRESS_ALT):
+                        for m in pattern.finditer(cell_text):
+                            label = m.group(1).lower()
+                            a = _parse_pct(m.group(2))
+                            p = _parse_pct(m.group(3))
+                            if a is None or p is None:
+                                continue
+                            if label == 'overall':
+                                if actual_v is None:
+                                    actual_v, plan_v = a, p
+                            elif label == 'construction':
+                                if construction_v is None:
+                                    construction_v = (p, a)
+                                    discs['Construction'] = {'plan': p, 'actual': a}
+                            elif label in ('engineering', 'procurement'):
+                                if label.capitalize() not in discs:
+                                    discs[label.capitalize()] = {'plan': p, 'actual': a}
                     # Use construction as proxy for overall if no explicit overall line
                     if plan_v is None and construction_v is not None:
                         plan_v, actual_v = construction_v
@@ -572,7 +613,7 @@ def extract_solar_concerns_from_exec_summary(pdf):
                 header_row = None
                 concern_row = None
                 for row in tbl:
-                    if not row:
+                    if not _is_multicol_row(row):
                         continue
                     joined = ' '.join(str(c or '') for c in row).lower()
                     if any(k in joined for k in ['gue', 'pvfarm', 'pv farm', 'siemens']):
@@ -610,7 +651,12 @@ def extract_solar_concerns_from_exec_summary(pdf):
                     if current:
                         items.append(current)
                     for it in items:
-                        if not it or it.upper() in ('N/A', 'NA'):
+                        # The last column's cell often has the page number
+                        # bleed into its text (e.g. "N/A 4") since it sits at
+                        # the page's bottom-right corner — strip a trailing
+                        # bare number before the N/A check.
+                        it_check = re.sub(r'\s*\d+\s*$', '', it).strip()
+                        if not it_check or it_check.upper() in ('N/A', 'NA'):
                             continue
                         concerns.append(f'[{header_label}] {it}')
     return concerns
@@ -833,7 +879,7 @@ def extract_progress(pdf_path, prj_id, search_dir=None):
         elif extract_type == 'gmtp':
             return extract_progress_gmtp(pdf_path)
         elif extract_type == 'solar':
-            return extract_progress_solar(pdf_path)
+            return extract_progress_solar(pdf_path, prj_id=prj_id)
         elif extract_type == 'wind':
             return extract_progress_wind(pdf_path)
         elif extract_type == 'hydro_pakbeng':
@@ -913,10 +959,11 @@ def extract_from_pdf(pdf_path, prj_id=None, search_dir=None):
     except Exception as e:
         print(f"  [extract error] {e}")
 
-    # SDCE: the generic bullet scan above picks up noisy/incorrect text
-    # elsewhere in the report; the Executive Summary's own 'Concern need
-    # management attention' row is the authoritative source for this project.
-    if prj_id == 'PRJ-007':
+    # SOLAR_EXEC_SUMMARY_PROJECTS (SDCE, and NWT3/PTN/STN as of W27): the
+    # generic bullet scan above picks up noisy/incorrect text elsewhere in
+    # the report; the Executive Summary's own 'Concern need management
+    # attention' row is the authoritative source for these projects.
+    if prj_id in SOLAR_EXEC_SUMMARY_PROJECTS:
         try:
             exec_concerns = extract_solar_concerns_from_exec_summary(pdf_path)
             if exec_concerns:

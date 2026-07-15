@@ -254,6 +254,16 @@ PAKLAY_PROGRESS = re.compile(
     r'physical\s+progress.*?(\d{1,3}(?:\.\d{1,2})?)%.*?(\d{1,3}(?:\.\d{1,2})?)%',
     re.I)
 
+# ── Solar projects whose Executive Summary "Site Progress" row is the
+# authoritative source (per-scope "This week activities" pages are either
+# missing a scope entirely — e.g. NWT3's Comm/Fiber page — or absent from
+# the report layout altogether, e.g. SDCE). For these, extract_progress_solar
+# merges: Exec Summary's plan/actual wins per scope (fills gaps like the
+# missing Comm/Fiber scope), but a scope's discipline sub-breakdown from the
+# "This week activities" scan (e.g. GUE's Engineering/Procurement) is kept
+# since the Exec Summary table only ever shows Overall + Construction.
+SOLAR_EXEC_SUMMARY_PROJECTS = {'PRJ-002', 'PRJ-003', 'PRJ-004', 'PRJ-007'}
+
 # ── Summary: which projects CAN be auto-extracted ──────────────────────────
 AUTO_EXTRACT_PROJECTS = {
     # project_id: extraction_type
