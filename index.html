@@ -853,6 +853,26 @@ function buildDiscTable(sc) {
   </table>`;
 }
 
+function buildScopesSummaryTable(scopes) {
+  const rows = Object.entries(scopes).map(([name, sc]) => {
+    if (sc.plan == null || sc.actual == null) {
+      return `<tr><td>${name}</td><td>—</td><td>—</td><td>—</td></tr>`;
+    }
+    const v = sc.actual - sc.plan;
+    const vc = v < 0 ? 'var-negative' : v > 0 ? 'var-positive' : 'var-zero';
+    return `<tr>
+      <td>${name}</td>
+      <td>${sc.plan.toFixed(1)}%</td>
+      <td>${sc.actual.toFixed(1)}%</td>
+      <td class="${vc}" style="font-weight:700">${v>0?'+':''}${v.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+  return `<table class="disc-table">
+    <thead><tr><th>Scope</th><th>Plan %</th><th>Actual %</th><th>Variance</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
 function renderTable(filtered) {
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '';
@@ -960,11 +980,14 @@ function renderDetail(projectId) {
   if (selScope && prog.scopes && prog.scopes[selScope]) {
     discTitle = selScope;
     discTableHtml = buildDiscTable(prog.scopes[selScope]);
+  } else if (prog.scopes && Object.keys(prog.scopes).length) {
+    // No scope selected — show every scope's Plan/Actual/Variance at once
+    // instead of requiring a dropdown pick per scope; select one from the
+    // dropdown to drill into its discipline breakdown instead.
+    discTitle = 'All Scopes';
+    discTableHtml = buildScopesSummaryTable(prog.scopes);
   } else if (prog.disciplines && Object.keys(prog.disciplines).length) {
     discTableHtml = buildDiscTable({ plan: prog.plan, actual: prog.actual, disciplines: prog.disciplines });
-  } else if (prog.scopes) {
-    // No scope selected and no top-level disciplines — show hint
-    discTableHtml = '<div style="color:var(--text-muted);font-size:12px">เลือก Scope จาก dropdown เพื่อดู Discipline</div>';
   } else {
     discTableHtml = '<div style="color:var(--text-muted);font-size:12px">No discipline data recorded.</div>';
   }
