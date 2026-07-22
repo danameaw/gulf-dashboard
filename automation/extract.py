@@ -13,7 +13,8 @@ from patterns import (
     SOLAR_PROGRESS_ALT, SOLAR_PROGRESS_SUMMARY, SOLAR_EXEC_SUMMARY_PROJECTS,
     WIND_SCURVE_PAGE, WIND_DISC_ROW, WIND_SCOPE_MAP,
     WIND_EXEC_PLAN_THEN_ACTUAL, WIND_EXEC_ACTUAL_THEN_PLAN,
-    WIND_EXEC_DELTA, WIND_EXEC_INLINE, WIND_EXEC_SCOPE_COL_NAMES,
+    WIND_EXEC_DELTA, WIND_EXEC_INLINE, WIND_EXEC_ACTUAL_NEWLINE_PLAN,
+    WIND_EXEC_PROGRESS_DELTA, WIND_EXEC_SCOPE_COL_NAMES,
     PAKBENG_PLAN_ACTUAL, PAKBENG_CUM_PLANNED, PAKBENG_CUM_ACTUAL,
     PAKLAY_PROGRESS,
 )
@@ -375,12 +376,48 @@ def _parse_gmtp_overall_row(text):
     return None, None, {}
 
 
+_GMTP_PLAN_ACTUAL_CALLOUT = re.compile(
+    r'plan\s*/\s*actual\s*:?\s*\n?\s*'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s*/\s*(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)
+
+
+def _gmtp_overall_scurve(pdf):
+    """
+    The '3.2 S-Curve' / '3.2.1 Overall Progress' page prints a clean
+    'Plan / Actual : XX.XX% / YY.YY%' callout for the whole project. Prefer
+    reading that directly over the '3.1.1 Overall Progress' per-package
+    table (_parse_gmtp_overall_row): some report exports scramble that
+    table's text layer to one character per line, which no regex can
+    recover. The per-area S-curve pages (3.2.2, 3.2.3, ...) use the same
+    callout format but also list a discipline breakdown
+    (Engineering/Procurement/...) — skip those so this only matches the
+    project-wide page.
+    """
+    try:
+        with pdfplumber.open(pdf) as doc:
+            for page in doc.pages:
+                text = page.extract_text() or ''
+                tl = text.lower()
+                if 's-curve' not in tl or 'overall progress' not in tl:
+                    continue
+                if 'engineering' in tl:
+                    continue
+                m = _GMTP_PLAN_ACTUAL_CALLOUT.search(text)
+                if m:
+                    return _parse_pct(m.group(1)), _parse_pct(m.group(2))
+    except Exception as e:
+        print(f"  [gmtp overall error] {e}")
+    return None, None
+
+
 def extract_progress_gmtp(pdf):
     """
     GMTP/LNG report: find the Overall Progress table (text-based).
     Looks for page with discipline breakdown and plan/actual headers.
     Returns { plan, actual, disciplines: {disc: {plan, actual}} }.
     """
+    scurve_plan, scurve_actual = _gmtp_overall_scurve(pdf)
+
     with pdfplumber.open(pdf) as doc:
         for page in doc.pages:
             text = page.extract_text() or ''
@@ -395,7 +432,8 @@ def extract_progress_gmtp(pdf):
             # ── Try 'Overall Progress' per-package breakdown row first ───────
             plan, actual, discs = _parse_gmtp_overall_row(text)
             if plan is not None and actual is not None:
-                return {'plan': plan, 'actual': actual, 'disciplines': discs}
+                p, a = (scurve_plan, scurve_actual) if scurve_plan is not None else (plan, actual)
+                return {'plan': p, 'actual': a, 'disciplines': discs}
 
             # ── Try table extraction ─────────────────────────────────────────
             tables = page.extract_tables()
@@ -405,9 +443,10 @@ def extract_progress_gmtp(pdf):
                 discs, overall = _table_rows_to_disc(tbl)
                 if len(discs) >= 2:
                     plan, actual = overall
-                    disciplines = {d: {'plan': p, 'actual': a}
-                                   for d, (p, a) in discs.items()}
-                    return {'plan': plan, 'actual': actual,
+                    p, a = (scurve_plan, scurve_actual) if scurve_plan is not None else (plan, actual)
+                    disciplines = {d: {'plan': p2, 'actual': a2}
+                                   for d, (p2, a2) in discs.items()}
+                    return {'plan': p, 'actual': a,
                             'disciplines': disciplines}
 
             # ── Fallback: text regex ─────────────────────────────────────────
@@ -423,9 +462,11 @@ def extract_progress_gmtp(pdf):
                         discs[disc] = {'plan': p, 'actual': a}
 
             if len(discs) >= 2:
-                return {'plan': overall_plan, 'actual': overall_actual,
-                        'disciplines': discs}
+                p, a = (scurve_plan, scurve_actual) if scurve_plan is not None else (overall_plan, overall_actual)
+                return {'plan': p, 'actual': a, 'disciplines': discs}
 
+    if scurve_plan is not None:
+        return {'plan': scurve_plan, 'actual': scurve_actual, 'disciplines': {}}
     return {'plan': None, 'actual': None, 'disciplines': {}}
 
 
@@ -781,6 +822,17 @@ def _parse_wind_exec_cell(cell_text):
                 overall = (p, a)
 
     if overall is None:
+        for m in WIND_EXEC_ACTUAL_NEWLINE_PLAN.finditer(cell_text):
+            label = m.group(1).lower()
+            a, p = _parse_pct(m.group(2)), _parse_pct(m.group(3))
+            if a is None or p is None:
+                continue
+            if 'construction' in label:
+                construction = (p, a)
+            else:
+                overall = (p, a)
+
+    if overall is None:
         for m in WIND_EXEC_DELTA.finditer(cell_text):
             label = m.group(1).lower()
             a = _parse_pct(m.group(2))
@@ -801,6 +853,17 @@ def _parse_wind_exec_cell(cell_text):
             a, p = _parse_pct(m.group(1)), _parse_pct(m.group(2))
             if a is not None and p is not None:
                 overall = (p, a)
+
+    if overall is None and construction is None:
+        m = WIND_EXEC_PROGRESS_DELTA.search(cell_text)
+        if m:
+            a = _parse_pct(m.group(1))
+            try:
+                delta = float(m.group(2))  # signed — may be negative, _parse_pct rejects those
+            except ValueError:
+                delta = None
+            if a is not None and delta is not None:
+                overall = (round(a - delta, 2), a)
 
     if overall is not None:
         return overall
@@ -870,9 +933,14 @@ def extract_wind_concerns_from_exec_summary(pdf):
     Summary table — same approach as extract_solar_concerns_from_exec_summary,
     just with Wind's scope-column keywords. Some reports (e.g. ECE) use a
     bare '-' for an empty cell instead of 'N/A'.
-    Returns a list of concern strings (possibly empty).
+    Returns a list of concern strings, or None if the Concern row itself
+    couldn't be located at all — the caller treats None as "fall back to the
+    generic whole-PDF scan" and [] as "found the row, it's genuinely empty
+    this week" (a week with a real 'no concerns' should not keep stale
+    concern text the generic scan picked up from elsewhere in the report).
     """
     concerns = []
+    found_row = False
     with pdfplumber.open(pdf) as doc:
         for page in doc.pages[:8]:
             text = page.extract_text() or ''
@@ -895,6 +963,7 @@ def extract_wind_concerns_from_exec_summary(pdf):
 
                 if header_row is None or concern_row is None:
                     continue
+                found_row = True
 
                 bullet_re = re.compile(r'^[•▪❑\-]\s*')
                 for ci, cell in enumerate(concern_row):
@@ -922,7 +991,7 @@ def extract_wind_concerns_from_exec_summary(pdf):
                         if not it_check or it_check.upper() in ('N/A', 'NA', '-'):
                             continue
                         concerns.append(f'[{header_label}] {it}')
-    return concerns
+    return concerns if found_row else None
 
 
 # ── Wind extractor ─────────────────────────────────────────────────────────────
@@ -1118,7 +1187,10 @@ def _ocr_paklay_scurve(search_dir):
                     if target_page is None:
                         continue
 
-                    page_img = target_page.to_image(resolution=300).original.convert('RGB')
+                    # 300 DPI regularly loses the "Achieved" callout box entirely
+                    # (Tesseract returns zero matches for it while still reading
+                    # the "Planned" box fine) — 450 DPI reads both reliably.
+                    page_img = target_page.to_image(resolution=450).original.convert('RGB')
                     ocr_text = pytesseract.image_to_string(page_img)
 
                     plan_matches = _PAKLAY_OCR_PLANNED.findall(ocr_text)
@@ -1256,11 +1328,16 @@ def extract_from_pdf(pdf_path, prj_id=None, search_dir=None):
             print(f"  [iwte concerns error] {e}")
 
     # Wind: Executive Summary's 'Concern need management attention' row is
-    # the authoritative source going forward.
+    # the authoritative source going forward. Unlike iWTE, the row is always
+    # laid out on the same page in every Wind report, so when it's found and
+    # genuinely empty ([], as opposed to None = "row not found at all") that
+    # means no concerns this week — use it as-is rather than falling back to
+    # whatever the generic whole-PDF scan picked up (which isn't scoped to
+    # the Executive Summary and can surface stale/unrelated text).
     if AUTO_EXTRACT_PROJECTS.get(prj_id) == 'wind':
         try:
             exec_concerns = extract_wind_concerns_from_exec_summary(pdf_path)
-            if exec_concerns:
+            if exec_concerns is not None:
                 concerns = exec_concerns
         except Exception as e:
             print(f"  [wind concerns error] {e}")

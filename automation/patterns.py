@@ -260,12 +260,35 @@ WIND_EXEC_INLINE = re.compile(
     r'progress\s*(\d{1,3}(?:\.\d{1,2})?)\s*%\s*\(\s*plan\s*(\d{1,3}(?:\.\d{1,2})?)\s*%',
     re.I)  # groups: actual, plan
 
+# AC8: "Overall progress\nActual 33.51 %\nPlan 66.02%\n(Delay 32.51%)" — Actual
+# line is sometimes omitted when the value sits right after "progress"
+# ("Construction progress 74.99%\nPlan 11.00%\n(Ahead 63.99%)").
+WIND_EXEC_ACTUAL_NEWLINE_PLAN = re.compile(
+    r'(overall|construction)\s+progress\s*\n?\s*(?:actual\s*)?'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s*\n\s*plan\s*'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)  # groups: label, actual, plan
+
+# Wayu CBOP: "Progress54.65%(Plan 54.83.69%, -0.18%)" — the explicit Plan
+# figure is sometimes corrupted in the source report itself (a stray extra
+# ".69" here — looks like a leftover edit artifact upstream), which breaks
+# every percentage regex since none of them expect two decimal points in one
+# number. Skip over whatever sits between the parens and the comma entirely
+# and derive Plan from Actual and the trailing signed delta instead
+# (delta = actual - plan, confirmed against Substation's clean equivalent
+# cell where both the explicit Plan and the derived one already agree).
+WIND_EXEC_PROGRESS_DELTA = re.compile(
+    r'progress\s*(\d{1,3}(?:\.\d{1,2})?)\s*%\s*\([^,]*,\s*'
+    r'(-?\d{1,3}(?:\.\d{1,2})?)\s*%\)', re.I)  # groups: actual, delta (actual - plan)
+
 # Scope-column header keywords for the Wind Executive Summary table. 'pcz'
 # and 'siemens' are used (not the ambiguous 'bop'/'substation') since they
 # appear consistently across every project's header naming and don't collide
 # with the 5th, project-specific "Terminal Substation" column some reports add.
+# AC8 names its main package column "BOP(STECON)" instead of "PCZ" — 'bop' is
+# checked after 'pcz' so it never overrides that match for other projects.
 WIND_EXEC_SCOPE_COL_NAMES = {
     'pcz': 'CBOP',
+    'bop': 'CBOP',
     'tsa': 'TSA',
     'siemens': 'Substation',
     'terminal substation': 'Terminal Substation',
