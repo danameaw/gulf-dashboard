@@ -428,6 +428,17 @@ def extract_progress_gmtp(pdf):
             if not any(d.lower() in tl for d in
                        ['engineering', 'procurement', 'construction']):
                 continue
+            # Section 3.2's per-area S-curve pages (BOP & Utility Area, Marine
+            # Area, ...) also mention every discipline, but their breakdown is
+            # scoped to that one area, not the whole project — mistaking it
+            # for the 3.1.1 Overall Progress table's project-wide breakdown
+            # silently substitutes one area's numbers for the project's (see
+            # _table_rows_to_disc, which additionally misreads that page's
+            # noisy weekly time-series cells on top of that scope mismatch).
+            # Only the non-S-curve 3.1.1 page is the right shape for the
+            # methods below.
+            if 's-curve' in tl:
+                continue
 
             # ── Try 'Overall Progress' per-package breakdown row first ───────
             plan, actual, discs = _parse_gmtp_overall_row(text)
