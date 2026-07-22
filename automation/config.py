@@ -48,7 +48,13 @@ PROJECT_KEYWORDS = {
     "PRJ-024": ["TSE",  "Thung Song"],
     "PRJ-025": ["Pak Lay",  "PakLay",  "PLHPP"],
     "PRJ-026": ["Pak Beng", "PakBeng", "POWERCHINA"],
-    "PRJ-027": ["TTT"],
+    "PRJ-027": ["TTT", "CHANG"],
+}
+
+# Projects with no extraction pattern yet — report has arrived (so not
+# "missing") but data is filled in by hand instead of parsed from the PDF.
+MANUAL_OVERRIDES = {
+    "PRJ-027": {"concerns": [], "activities": ["To be later"], "plan": None, "actual": None},
 }
 
 PROJECT_NAMES = {

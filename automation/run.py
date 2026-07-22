@@ -8,7 +8,8 @@ sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 sys.path.insert(0, os.path.dirname(__file__))
 from config import (BASE_REPORT_PATH, DASHBOARD_HTML, EXCEL_DIR,
                     GIT_REPO, DASHBOARD_URL,
-                    FOLDER_PROJECTS, PROJECT_KEYWORDS, PROJECT_NAMES)
+                    FOLDER_PROJECTS, PROJECT_KEYWORDS, PROJECT_NAMES,
+                    MANUAL_OVERRIDES)
 from extract import extract_from_pdf
 
 
@@ -487,6 +488,13 @@ def main():
                 print("PDF NOT FOUND")
                 results[prj_id] = {'found': False, 'data': {'concerns': [], 'activities': []}}
                 missing.append(prj_id)
+                continue
+
+            if prj_id in MANUAL_OVERRIDES:
+                print(f"OK → {os.path.basename(pdf)} (manual override)")
+                data = MANUAL_OVERRIDES[prj_id]
+                results[prj_id] = {'found': True, 'data': data}
+                seeds_js.append(build_seed(prj_id, week, year, data))
                 continue
 
             print(f"OK → {os.path.basename(pdf)}")

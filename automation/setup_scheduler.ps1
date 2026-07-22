@@ -22,7 +22,7 @@ Register-ScheduledTask `
     -Action     $action `
     -Trigger    $trigger `
     -Settings   $settings `
-    -Description "Gulf Energy Dashboard — weekly PDF extraction and GitHub push" `
+    -Description "Gulf Energy Dashboard - weekly PDF extraction and GitHub push" `
     -Force
 
 Write-Host "Task Scheduler registered: GulfDashboard_WeeklyUpdate"
