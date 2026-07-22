@@ -583,6 +583,14 @@ const PROJECTS = [
 const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","PRJ-027","PRJ-009","PRJ-010","PRJ-011"],"W26_2026":["PRJ-008","PRJ-009","PRJ-010","PRJ-011","PRJ-012"],"W27_2026":["PRJ-008"],"W28_2026":["PRJ-026"]};
 // ── END MISSING REPORTS ──
 
+// ── AUTO: REPORT DATES ──
+// Real report-folder date per week (e.g. "2026-07-15" from folder "28_260715"),
+// written by run.py. updateWeekLabel() below prefers this over the Jan-1 +
+// (week-1)*7-days approximation, which drifts from the actual report period
+// since this dashboard's week numbering isn't the ISO week number.
+const REPORT_DATES_BY_WEEK = {"W28_2026":"2026-07-15"};
+// ── END REPORT DATES ──
+
 let progressData = JSON.parse(localStorage.getItem('gulfDashData') || '{}');
 
 let currentWeek = parseInt(localStorage.getItem('gulfWeek') || '1');
@@ -682,10 +690,14 @@ function changeWeek(dir) {
 
 function updateWeekLabel() {
   document.getElementById('weekLabel').textContent = `Week ${currentWeek} / ${currentYear}`;
-  // Approximate date
-  const jan1 = new Date(currentYear, 0, 1);
-  const weekDate = new Date(jan1.getTime() + (currentWeek - 1) * 7 * 86400000);
   const opts = { day:'2-digit', month:'short', year:'numeric' };
+  // Prefer the real report-folder date (set by run.py); fall back to the
+  // Jan-1 + (week-1)*7-days approximation for weeks recorded before this
+  // existed, or weeks with no report folder at all.
+  const realDate = REPORT_DATES_BY_WEEK[`W${currentWeek}_${currentYear}`];
+  const weekDate = realDate
+    ? new Date(realDate + 'T00:00:00')
+    : new Date(new Date(currentYear, 0, 1).getTime() + (currentWeek - 1) * 7 * 86400000);
   document.getElementById('reportWeekLabel').textContent =
     `Report Week ${currentWeek}: ${weekDate.toLocaleDateString('en-GB', opts)}`;
   document.getElementById('exportPeriod') && (document.getElementById('exportPeriod').value =
@@ -1376,6 +1388,879 @@ function seedIfEmpty(key, data) {
     progressData[key] = data;
   }
 }
+
+
+// ── Week 28/2026 — AUTO-GENERATED ──
+// ── LNG Terminal (GMTP) (PRJ-001) Week 28 — auto-extracted
+seedIfEmpty('PRJ-001_W28_2026', {
+  plan: 23.4, actual: 27.73,
+  concerns: ['community. It was found that, to date, the construction activities have not',
+    'caused any adverse impacts on the community on 13 July 2026.',
+    'Conducted field visits to inform local fishing groups and communities about the',
+    'LNG storage tank wall concrete pouring work on 11-12 July 2026. Conducted a field visit to meet with the Kao Yod Small-Scale Fishermen Group',
+    'to discuss and coordinate the mangrove reforestation activity scheduled for',
+    'August on 14 July 2026.',
+    'Conducted a field inspection of the concrete batching plant and truck routes for',
+    'the LNG tank concrete pouring work on 15 July 2026.',
+    'Participated in the blackchin tilapia eradication activity with the Department of',
+    'Fisheries, Rayong Province, and the Krok Yai cha Fisherman Group at',
+    'Rayong Floating Pagoda on 16 July 2026. 6',
+    'Noncompliance with EHIA',
+    'The wastewater from the grease trap was being directly discharged into',
+    'according to discharge',
+    'GMTP-PCC-CAR-037 8 Jul 2026 the drainage system on the east side of the temporary site office without In process',
+    'wastewater directly to drainage',
+    'undergoing proper treatment through the wastewater treatment system.',
+    '8.4 SHE NCR Status',
+    'Doc No. Description Issue date Root cause Status',
+    'Discipline Plan & Actual Approval & Review / Information Construction'],
+  activities: ['- GMTP/PMC/PCC Mass TBT and safety share on 15 Jul 2026 - GMTP/PMC/PCC management TBT and safety award on 22 July 2026.',
+    '- SHE/EIA weekly audit on 15 Jul 2026. - SHE/EIA weekly audit on 22 Jul 2026.',
+    '- Wall lift-1 Concrete pouring at LNG Tank-102 on 15 July 2026. - Big cleaning day every Saturday.',
+    '- Emergency exercisedrill on 13 Jul 2026',
+    '- Big cleaning day on 11 Jul 2026.',
+    'Security Security',
+    '- Strictly control personnel and vehicle gate pass, check the entrance and exit of materials and - Provided temporary security guard for control personal, vehicle and material at site main gate 24 hours.',
+    'equipment into and out of the projectarea 24/7.(Night shift patrols every 1 hour)',
+    'EIA/EHIA EIA/EHIA',
+    '- Concrete plant inspection during Service water tank concrete pouring on 10 Jul 2026. - Sewage management from barge audit on 16 Jul 2026.',
+    '- Emergency drill for oil spill from piling barge on 17 Jul 2026.',
+    '- Concrete plant inspection during T-102 Wall ( Lift 3 ) concrete pouring on 15 Jul 2026. 4',
+    'Issue for Issue for Document Class',
+    'Approval Construction Z X Y',
+    'General 0 0 0 0 0',
+    'Process 0 0 0 0 0',
+    'Mechanical 0 0 0 0 0',
+    'Mechanical (Tank) 0 0 0 0 0',
+    'Piping 0 0 0 0 0',
+    'Electrical 0 0 0 0 0'],
+});
+
+// ── GOE2-NWT3 (PRJ-002) Week 28 — auto-extracted
+seedIfEmpty('PRJ-002_W28_2026', {
+  plan: 88.23, actual: 64.88,
+  scopes: {
+    'GUE': {
+      plan: 88.23, actual: 64.88,
+      disciplines: {
+        'Engineering': { plan: 100.0, actual: 99.51 },
+        'Procurement': { plan: 100.0, actual: 93.9 },
+        'Construction': { plan: 96.45, actual: 53.52 }
+      }
+    },
+    'Siemens': { plan: 69.98, actual: 53.07 },
+    '115kV T/L': { plan: 77.31, actual: 73.24 },
+    'Comm/Fiber': { plan: 91.25, actual: 81.66 }
+  },
+  concerns: ['[PV Farm (GUE)] Expedite skilled worker, scaffolding & tools for install mounting.',
+    '[115kV Transmission Line (PEA, FEC)] Follow up status permit from Department of Highway and State Railway of Thailand.',
+    '[115kV Transmission Line (PEA, FEC)] Obstruct by water pipe along Department of Highway.'],
+  activities: [],
+});
+
+// ── GSPG-PTN (PRJ-003) Week 28 — auto-extracted
+seedIfEmpty('PRJ-003_W28_2026', {
+  plan: 87.06, actual: 63.0,
+  scopes: {
+    'GUE': {
+      plan: 87.06, actual: 63.0,
+      disciplines: {
+        'Engineering': { plan: 100.0, actual: 99.03 },
+        'Procurement': { plan: 100.0, actual: 92.03 },
+        'Construction': { plan: 94.11, actual: 50.98 }
+      }
+    },
+    'Siemens': { plan: 70.7, actual: 49.73 },
+    '115kV T/L': { plan: 66.61, actual: 68.75 },
+    'Comm/Fiber': { plan: 95.23, actual: 90.57 },
+    'Add Bay': { plan: 85.1, actual: 87.2 }
+  },
+  concerns: ['[Pre-Civil (VAP)] Site Security Issue preventing overtime work on holidays (Friday).',
+    '[Pre-Civil (VAP)] To expedite the delayed Pre-Civil work to be complete and handover to C&E work.',
+    '[PV Farm (GUE)] Site Security Issue.',
+    '[PV Farm (GUE)] To expedite electrical work and fulfill the manpower increase commitment',
+    '[PV Farm (GUE)] To expedite civil work for unit sub.',
+    '[PV Farm (GUE)] The rainy season may cause waterlogging across the site.',
+    '[Substation (SIEMENS)] Site Security Issue preventing overtime work on holidays (Friday).',
+    '[Substation (SIEMENS)] To expedite Electrical work.',
+    '[Substation (SIEMENS)] To expedite civil work for the control building.',
+    '[115kV Transmission line (PEA, FEC)] To expedite the delayed foundation work ,concrete pole and top pole installation work.',
+    '[Add Bay (PEA, FEC)] To expedite the delayed civil and Electrical work.',
+    '[Communication / Fiber (PEA, JANUS)] Awaiting 115kV Transmission Line HDD work completion and concrete pole installation to proceed with fiber optic cable pulling. 2'],
+  activities: [],
+});
+
+// ── GSPG-STN (PRJ-004) Week 28 — auto-extracted
+seedIfEmpty('PRJ-004_W28_2026', {
+  plan: 88.21, actual: 71.95,
+  scopes: {
+    'GUE': {
+      plan: 88.21, actual: 71.95,
+      disciplines: {
+        'Engineering': { plan: 100.0, actual: 99.51 },
+        'Procurement': { plan: 100.0, actual: 95.48 },
+        'Construction': { plan: 96.41, actual: 66.72 }
+      }
+    },
+    'Siemens': { plan: 81.25, actual: 53.63 },
+    '115kV T/L': { plan: 87.23, actual: 79.9 },
+    'Comm/Fiber': { plan: 82.52, actual: 82.52 }
+  },
+  concerns: ['[PV Farm (GUE)] To expedite the secondary electrical work already in progress.',
+    '[Substation (SIEMENS)] To expedite the mobilization of the additional manpower for the Civil works.',
+    '[115 kV Transmission line (PEA, FEC)] Transmission line work in the P84-239 (อบจ.) area has been temporarily suspended due to the pole locations overlapping with the planned future road expansion.'],
+  activities: [],
+});
+
+// ── GCE (PRJ-013) Week 28 — auto-extracted
+seedIfEmpty('PRJ-013_W28_2026', {
+  plan: 47.34, actual: 40.39,
+  disciplines: {
+      'Engineering': { plan: 88.35, actual: 51.33 },
+      'Procurement': { plan: 77.49, actual: 75.54 },
+      'Construction': { plan: 18.78, actual: 12.61 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['BOP Tasks that have started and those that have not yet started are behind schedule',
+    'A conclusion regarding the execution of the manhole, duct bank, and underground piping work has not yet been reached.'],
+  activities: ['Safety & Health:',
+    'Management site walkdown',
+    'Toolbox talk activity',
+    'Safety induction training to new contractors​',
+    'Weekly Inspect Safety​',
+    'Weekly Random Alc. Test',
+    'Environment & CoP:',
+    'Road cleaning (Campsite STECON/IEAT Road)',
+    'Water spray to reduce dust',
+    'Monitor noise during overtime work',
+    'LTA ADB AIIB Construction Audit',
+    'Activities CC/SC (*)',
+    'Plan Actual Diff. Plan Actual Diff. Acc.Plan',
+    '% % % % % % %',
+    'Engineering 10.00% 84.08% 49.76% -34.32% 88.35% 51.33% -37.02% 90.50%',
+    'Procurement 40.00% 76.00% 73.11% -2.89% 77.49% 75.54% -1.95% 78.91%',
+    'Construction 40.00% 17.25% 12.37% -4.88 18.78% 12.61% -6.17% 20.13%',
+    'Commissioning 10.00% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00%',
+    'Overall 100.00% 45.71% 39.17% -6.54% 47.34% 40.39% -6.95% 48.67%',
+    '** The data cut off every Friday of week'],
+});
+
+// ── GSE (PRJ-014) Week 28 — auto-extracted
+seedIfEmpty('PRJ-014_W28_2026', {
+  plan: 47.34, actual: 41.59,
+  disciplines: {
+      'Engineering': { plan: 88.35, actual: 51.86 },
+      'Procurement': { plan: 77.49, actual: 75.54 },
+      'Construction': { plan: 18.78, actual: 15.46 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Detail and spec of equipment at riser pole for PEA approval.'],
+  activities: ['Activities CC/SC (*)',
+    'Plan% Actual% Diff.% Plan% Actual% Diff.% Acc. Plan%',
+    'Engineering 10% 84.08% 50.23% -33.85% 88.35% 51.86% -36.49% 90.50%',
+    'Procurement 40% 76.00% 73.11% -2.89% 77.49% 75.54% -1.95% 78.91%',
+    'Construction 40% 17.25% 15.15% -2.10% 18.78% 15.46% -3.32% 20.13%',
+    'Commissioning 10% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00%',
+    'Overall 100% 45.71% 40.33% -5.38% 47.34% 41.59% -5.75% 48.67%',
+    'Safety & Health:',
+    '• Safety Toolbox Talk before starting work and Mass Toolbox Talk and counting manpower',
+    '• Safety training for newcomer',
+    '• SHE Weekly Site Walkdown',
+    '• Random Alcohol breath testing before working',
+    '• Bi-weekly meeting with SHE CEEC (5 provinces)',
+    '• Weekly meeting with HUASHI for assess risks before starting work to ensure safety according to Thai safety laws/CoP/ESIA and not disrupt the construction plan.',
+    '• Monitor the turnstile gate and follow-up generate the counting manpower',
+    'Environment & CoP/ESIA:',
+    '• Water spray to reduce dust',
+    '• Cleaning IEAT road',
+    '• Wheel washing station',
+    '• Waste management (General, Recycle, Domestic, Hazardous, Infectious waste)'],
+});
+
+// ── KKE (PRJ-015) Week 28 — auto-extracted
+seedIfEmpty('PRJ-015_W28_2026', {
+  plan: 51.38, actual: 43.72,
+  disciplines: {
+      'Engineering': { plan: 91.68, actual: 53.06 },
+      'Procurement': { plan: 83.43, actual: 77.78 },
+      'Construction': { plan: 22.1, actual: 18.25 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['311-314 Refuse Bunker Super structure up to 35.5m elevation 9 May 26 23 Nov 26 Delay Start',
+    '325-326 Tipping hall Foundation up to ground (Include piling work) 1 Feb 26 9 Jul 26 8 Feb 26 On going',
+    '327 Tipping hall Super structure up to 13m elevation 10 Jul 26 19 Oct 26',
+    '330-335 Boiler Island & Auxiliary Equipment Foundation 5 Nov 25 14 Jul 26 8 Jan 26 On going',
+    '346 Steam Turbine Generator & Electrical Construction 18 Feb 26 3 Mar 27 8 Feb 26 On going',
+    '408 Holding Pond and Emergency PondConstruction 23 May 26 20 Nov 26',
+    '14 Boiler Arrival at site 12 Jun 26 12 Jun 26',
+    '11 Incinerator Arrival at site 8 May 26 8 May 26 3 May 26 5 May 26 Completed',
+    '15 Steam turbine Arrival at site 2 Oct 26 2 Oct 26',
+    '62- Producing qualified water (Water Receiving date) 23 Feb 27 8 Mar 27',
+    'Stakeholder',
+    'Follow up face recognition system',
+    'Follow up foreigner work permit status',
+    '147 Safety Weekly Audit issue status by weekly',
+    'Total Issues',
+    'Since 11 Nov 2025 10',
+    '9 - 15 July',
+    'Safety Weekly Audit issue Status Chart',
+    'Open Closed',
+    'Before After'],
+  activities: ['Key Lookahead milestone:',
+    'Bunker building: Concrete pouring for Lift 3 Wall EL +5.45 to +8.00 m. Targeted by 30-31 Jul 2026',
+    'Tipping hall: Completed concrete pouring for footing 15 Sets.',
+    'Boiler & Incinerator Erection: Completed of Boiler water wall assembly.',
+    'FGT: Completed steel structure installation for Reaction tower and Dust collector',
+    'STG & ECB: Completed concrete pouring for Tie-beam (EL -0.7 to EL+0.3 m.) 370 m.',
+    'BOP: Completed of ground slab for fire water pump shelter',
+    'Pre-conditions required: -',
+    'Area of Concern: -',
+    'Issue to request HO support: -',
+    '(11th Jul 2026) (17th Jul 2026)',
+    'Activities CC/SC (*)',
+    'Plan % Actual % Diff. % Plan % Actual % Diff. % Acc.Plan %',
+    'Engineering 10% 89.38% 51.88% -37.50% 91.68% 53.06% -38.62% 92.55%',
+    'Procurement 40% 82.01% 76.85% -5.16% 83.43% 77.785 -5.65% 84.78%',
+    'Construction 40% 20.13% 16.49% -3.64% 22.10% 18.25% -3.85% 23.65%',
+    'Commissioning 10% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00%',
+    'Overall 100% 49.79% 42.52% -7.27% 51.38% 43.72% -7.66% 52.62%',
+    'On Schedule A Bit Delay Big Delay EPC has adjusted the PMS to Rev.H to make the plan consistent with the actual work.',
+    '(0.00% or more) (-0.01% to – 4.99%) (-5.00% or more)'],
+});
+
+// ── MKP (PRJ-016) Week 28 — auto-extracted
+seedIfEmpty('PRJ-016_W28_2026', {
+  plan: 40.89, actual: 38.2,
+  disciplines: {
+      'Engineering': { plan: 73.31, actual: 51.62 },
+      'Procurement': { plan: 72.46, actual: 70.54 },
+      'Construction': { plan: 11.44, actual: 12.06 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Zhonghang is suffering with manpower management Manpower shortage'],
+  activities: ['(10 Jul 26) (17 Jul 26)',
+    'Activities CC/SC (*)',
+    'Plan Actual Diff. Plan Actual Diff. Acc.Plan',
+    '% % % % % % %',
+    'Engineering 10% 67.53 49.80 -17.73 73.31 51.62 -21.69 76.66',
+    'Procurement 40% 70.89 67.23 -3.66 72.46 70.54 -1.92 73.82',
+    'Construction 40% 10.17 11.00 0.73 11.44 12.06 0.62 12.87',
+    'Commissioning 10% 0 0 0 0 0 0 0',
+    'Overall 100% 39.18 36.27 -2.91 40.89 38.20 -2.69 42.34',
+    'Safety & Health :',
+    '• Conduct SafetyToolbox Talk before starting work.',
+    '• Mass Safety Talk at Site Area',
+    '• Management Walk Down every Friday (10.00 – 11.00)',
+    '• HSE Weekly Audit every Wednesday (10.00-11.00)',
+    '• HSE Weekly Meeting with Subcontractor every Wednesday (10.00-11.00)',
+    '• Safety Induction Training for new comers',
+    '• Working at height Training',
+    '• Lender Audit',
+    'Environment & CoP :',
+    '• Water spray at construction site'],
+});
+
+// ── MPE (PRJ-017) Week 28 — auto-extracted
+seedIfEmpty('PRJ-017_W28_2026', {
+  plan: 31.51, actual: 33.78,
+  disciplines: {
+      'Engineering': { plan: 60.29, actual: 51.75 },
+      'Procurement': { plan: 56.96, actual: 64.34 },
+      'Construction': { plan: 6.75, actual: 7.18 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['BOP Tasks that have started and those that have not yet started are behind schedule',
+    'A conclusion regarding the execution of the manhole, duct bank, and underground piping work has not yet been reached.'],
+  activities: ['Safety & Health:',
+    'Management site walkdown',
+    'Toolbox talk activity',
+    'Safety induction training to new contractors​',
+    'Weekly Inspect Safety​',
+    'Weekly Random Alc. Test',
+    'Environment & CoP:',
+    'Road cleaning (Campsite STECON/IEAT Road)',
+    'Water spray to reduce dust',
+    'Monitor noise during overtime work',
+    'LTA ADB AIIB Construction Audit',
+    'Activities CC/SC (*)',
+    'Plan Actual Diff. Plan Actual Diff. Acc.Plan',
+    '% % % % % % %',
+    'Engineering 10.00% 55.47% 49.80% -5.67% 60.29% 51.75% -8.54% 65.43%',
+    'Procurement 40.00% 54.81% 60.25% 5.44% 56.96% 64.34% 7.38% 59.29%',
+    'Construction 40.00% 6.15% 6.99% 0.83% 6.75% 7.18% 0.43% 7.26%',
+    'Commissioning 10.00% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00%',
+    'Overall 100.00% 29.93% 31.87% 1.94% 31.51% 33.78% 2.27% 33.16%',
+    '**Engineering Delay from O & M Manual, Shop Test Report'],
+});
+
+// ── PFP (PRJ-018) Week 28 — auto-extracted
+seedIfEmpty('PRJ-018_W28_2026', {
+  plan: 40.89, actual: 36.46,
+  disciplines: {
+      'Engineering': { plan: 73.31, actual: 51.18 },
+      'Procurement': { plan: 72.46, actual: 70.54 },
+      'Construction': { plan: 11.44, actual: 7.81 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['BOP Tasks that have started and those that have not yet started are behind schedule',
+    'A conclusion regarding the execution of the manhole, duct bank, and underground piping work has not yet been reached.'],
+  activities: ['Safety & Health:',
+    'Management site walkdown',
+    'Toolbox talk activity',
+    'Safety induction training to new contractors​',
+    'Weekly Inspect Safety​',
+    'Weekly Random Alc. Test',
+    'Environment & CoP:',
+    'Road cleaning (Campsite STECON/IEAT Road)',
+    'Water spray to reduce dust',
+    'Monitor noise during overtime work',
+    'LTA ADB AIIB Construction Audit',
+    'Activities CC/SC (*)',
+    'Plan Actual Diff. Plan Actual Diff. Acc.Plan',
+    '% % % % % % %',
+    'Engineering 10.00% 67.35% 49.34% -18.01% 73.31% 51.18% -22.13% 76.66%',
+    'Procurement 40.00% 70.89% 67.23% -3.66 % 72.46% 70.54% -1.92 % 73.82%',
+    'Construction 40.00% 10.17% 7.62% -2.55% 11.44% 7.81% -3.63% 12.87%',
+    'Commissioning 10.00% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00%',
+    'Overall 100.00% 39.18% 34.87% -4.31% 40.89% 36.46% -4.43% 42.34%',
+    '** Engineering delay from O & M Manual, Shop Test Report , Shop ITP'],
+});
+
+// ── PKP (PRJ-019) Week 28 — auto-extracted
+seedIfEmpty('PRJ-019_W28_2026', {
+  plan: 40.89, actual: 36.51,
+  disciplines: {
+      'Engineering': { plan: 73.31, actual: 51.44 },
+      'Procurement': { plan: 72.46, actual: 70.54 },
+      'Construction': { plan: 11.44, actual: 7.88 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Stakeholder',
+    '79 Safety Weekly Audit issue status by weekly',
+    'Total Issues 20',
+    'Since 25 Jan 2026',
+    'Safety Weekly Audit issue Status Chart',
+    'Open Closed',
+    'Before After',
+    'Unsafe Condition Already improved',
+    'STECON : Lack of Hard Barricade',
+    'Government Agencies',
+    '• As the proposed installation location of the 22 kV power poles is located close to Underground system X, J1, YY, YW, J0and underground gutter',
+    '• If the 22 kV power poles are installed first, there is a risk that future excavation for pipeline installation may affect the power poles.',
+    '• Option 1: Consider relocating Electrical pole for 22 kV away from underground piping and inspection pit area to avoid future excavation affecting the 22 kV pole foundations.',
+    '• Option 2: Install Electrical pole for 22 kV in parallel with underground piping and inspection pit works.',
+    'Transmission line 22 kV Underground system X, J1, YY, YW, J0 Site photo 64',
+    'Total of corrective action request EHS issue 1 issue',
+    'Opened 2 issues',
+    'Closed 1 issues',
+    'Closed Open',
+    'No. Date of Discipline Subject Status'],
+  activities: ['Key Lookahead Milestones:',
+    'Bunker Building: Lift 1 (-4.5 to +1.0 EL),on 30-31 Jul (Completed Lift 1)',
+    'Boiler Island Area: Completed Ground Slab and Embedded Plate at Z3–Z4 for Slag Extractor',
+    'Installation',
+    'STG & ECB: Complete Pouring Concrete Footing (38/38) 100%',
+    'Boiler Steel Structure Erection: Completed First Lift (Z1–Z4) for Incinerator Grate Installation',
+    'Area of Concern:',
+    'Bunker, Boiler Island, STG & ECB building, FGT : Level 3 Schedule update from CEEC is still',
+    'Issue to request HO support:',
+    'Activities CC/SC (*)',
+    'Plan Actual Diff. Plan Actual Diff. Acc.Plan',
+    '% % % % % % %',
+    'Engineering 10% 67.53% 49.67% 73.31% 51.44% -21.87% 76.66%',
+    'Procurement 40% 70.89% 67.23% 72.46% 70.54% -1.92% 73.82%',
+    'Construction 40% 10.17% 7.20% 11.44% 7.88% -3.56% 12.87%',
+    'Commissioning 10% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00%',
+    'Overall 100% 39.18% 34.74% 40.89% 36.51% -4.38% 42.34%',
+    'On Schedule A Bit Delay Big Delay EPC has adjusted the PMS to Rev.c to make the plan consistent with the actual work.',
+    '(0.00%or more) (-0.01% to – 4.99%) (-5.00% or more)',
+    'Safety & Health'],
+});
+
+// ── PSD (PRJ-020) Week 28 — auto-extracted
+seedIfEmpty('PRJ-020_W28_2026', {
+  plan: 47.34, actual: 39.35,
+  disciplines: {
+      'Engineering': { plan: 88.35, actual: 51.89 },
+      'Procurement': { plan: 77.49, actual: 75.54 },
+      'Construction': { plan: 18.78, actual: 9.87 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Stakeholder',
+    '98 Safety Weekly Audit issue status by weekly',
+    'Total Issues',
+    'Since 2 Jan 2026 10',
+    '9 - 15 July',
+    'Safety Weekly Audit issue Status Chart',
+    'Open Closed',
+    'Before After',
+    'Poor Environmental management',
+    'Already improved',
+    'STECON : Scaffolding didn’t have',
+    'Government Agencies',
+    '• As the proposed installation location of the 22 kV power poles is located close to Underground system Y, YY, J0, MH.',
+    '• If the 22 kV power poles are installed first, there is a risk that future excavation for pipeline installation may affect the power poles.',
+    '• Option 1: Consider relocating Electrical pole for 22 kV away from underground piping and inspection pit area to avoid future excavation',
+    'affecting the 22 kV pole foundations.',
+    '• Option 2: Install Electrical pole for 22 kV in parallel with underground piping',
+    'Transmission line 22 kV Underground system Y, YY, J0, MH Site photo',
+    'Problem : Electric Pole obstruct Entrance',
+    'ต ำแหน่งเสำไฟฟ้ำเดมิ'],
+  activities: ['Key Lookahead Milestones:',
+    'Bunker Building: Lift 1 (EL. -4.5 to +1.0) scheduled for 30–31 Jul (Lift 1 completed).',
+    'Boiler Island: Handover of Z5–Z6 by the end of this month, followed by Incinerator Installation.',
+    'FGT : Column concrete pouring and soil backfilling up to the ground beam level.',
+    'STG & ECB: Commencement of slab works for the 22 kV SWGR & MCC cable trench',
+    'at EL. -0.70.',
+    'Boiler & Incinerator: Completion of Incinerator Installation.',
+    'AREA OF CONCERN :',
+    'Bunker Building , Boiler , FGT & STG civil work : Level 3 Schedule update from CEEC is still',
+    'ISSUE TO REQUEST HO SUPPORT : -',
+    'Jul 2026) Jul 2026)',
+    'Activities CC/SC (*)',
+    'Plan Actual Diff. Plan Actual Diff. Acc.Plan',
+    '% % % % % % %',
+    'Engineering 10% 84.08% 50.18% -33.90% 88.35% 51.89% -36.46% 90.50%',
+    'Procurement 40% 76.00% 73.11% 77.49% 75.54% -1.95% 78.91%',
+    'Construction 40% 17.25% 8.90% 18.78% 9.87% -8.91% 20.13%',
+    'Commissioning 10% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00%',
+    'Overall 100% 45.71% 37.82% -7.89% 47.34% 39.35% -7.99% 48.67%',
+    'On Schedule A Bit Delay Big Delay EPC has adjusted the PMS to Rev.C to make the plan consistent with the actual work.'],
+});
+
+// ── PWW1 (PRJ-021) Week 28 — auto-extracted
+seedIfEmpty('PRJ-021_W28_2026', {
+  plan: 40.89, actual: 37.22,
+  disciplines: {
+      'Engineering': { plan: 73.31, actual: 52.26 },
+      'Procurement': { plan: 72.46, actual: 70.54 },
+      'Construction': { plan: 11.44, actual: 9.46 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['333 Boiler Foundation - Boiler Island 1 May 26 26 June 26 21 May 26 5 Jul 26 Completed',
+    '334 Clearance for boiler installation- Boiler Island 27 June 26 4 July 26',
+    'Piling Work(Including Pile test)- Flue Gas Treatment',
+    '342 2 May 26 30 May 26 4 May 26 19 May 26 Completed',
+    'Equipment Foundation',
+    'Foundation work- Flue Gas Treatment Equipment',
+    '344 11 June 26 21 Aug 26 21 May 26 On going Rebar work column',
+    'Safety Weekly Audit issue status by weekly',
+    'Total Issues 40',
+    'Since 2 Apr 2026',
+    'Safety Weekly Audit issue Status Chart',
+    'April\'26 May\'26 Jun\'26 9 - 15 Jul \'26',
+    '1 Open Closed',
+    'Unsafe Condition: The material storage area',
+    'lacked proper barricades.',
+    'Open Closed',
+    'BEFORE AFTER 27',
+    'installation.>>Now vendor start production process.',
+    'PWW1 and Access road underground pipe.(HDPE Material) STECON already order HDPE Piping first lot.',
+    'Follow up CEEC & STECON Order Material of PWW1 and Access road underground pipe.(HDPE Material).'],
+  activities: ['Safety & Health:',
+    '• Safety Toolbox Talk before starting work and Mass Safety Talk.',
+    '• Safety induction training.',
+    '• Tools and equipment’s inspection.',
+    '• Management walkdown.',
+    '• Random alcohol test.',
+    '• Random drug test.',
+    'Environment & CoP:',
+    '• Water spray to reduce dust.',
+    '• Wheel washing before entering public road.',
+    '• Road cleaning.',
+    '• Review CoP Monitoring.',
+    '• Lender audit 20 July 2026 (9:00-17:00)',
+    'Addition wall work',
+    '• Bunker wall',
+    '• Pouring concrete bunker column +5.45 m. (Middle Column)',
+    '• Remove wall formwork',
+    '• Continuous slipform fabrication at the steel former warehouse',
+    '• Mobilize and install slipform (+5.45 m.)',
+    'Activity wall Qty total Qty complete %Complete'],
+});
+
+// ── PWW2 (PRJ-022) Week 28 — auto-extracted
+seedIfEmpty('PRJ-022_W28_2026', {
+  plan: 31.51, actual: 34.06,
+  disciplines: {
+      'Engineering': { plan: 60.29, actual: 52.55 },
+      'Procurement': { plan: 56.96, actual: 64.34 },
+      'Construction': { plan: 6.75, actual: 7.68 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['74 Safety Weekly Audit issue status by weekly',
+    'Total Issues',
+    'Since 2 Apr 2026',
+    'April\'26 May\'26 Jun \'26 9-15 Jul\'26',
+    'Safety Weekly Audit issue Status Chart',
+    'Open Closed',
+    'Unsafe condition: Remove scrap materials',
+    'BEFORE AFTER',
+    'installation.>>Now vendor start production process.',
+    'PWW1 and Access road underground pipe.(HDPE Material) STECON already order HDPE Piping first lot.',
+    'Follow up CEEC & STECON Order Material of PWW1 and Access road underground pipe.(HDPE Material).',
+    '• Follow up CEEC & STECON Issue the purchase order (PO) and Submit production plan to us. Lead time 16 week for procurement, production and',
+    'Fire water system',
+    'Follow up equipment(Jockey water pump and Diesel water pump). [Now status CEEC Procurement Process plan issued PO on 15 Aug 2026]',
+    '• Follow up CEEC Order Jockey water pump and Diesel water pump.>>Still CEEC Procurement Process.',
+    'Follow up equipment(Raw water pre-treatment). [Now status CEEC Procurement Process plan issued PO on 15 Aug 2026]',
+    '• Follow up CEEC Order Raw water pre-treatment.>>Still CEEC Procurement Process.',
+    'Follow up equipment(Raw Water Tank). [Now Status Procurement Process by Zhong hang sub. Con. Of CEEC]',
+    '• Follow up CEEC Issue procurement schedule.>>GULF Still follow up.',
+    'Follow up Equipment & Piping construction work. [Now Status CEEC Not yet contactor for construction]'],
+  activities: ['Safety & Health:',
+    '• Safety Toolbox Talk before starting work and Mass Safety Talk.',
+    '• Safety induction training.',
+    '• Tools and equipment’s inspection.',
+    '• Management walkdown.',
+    '• Random alcohol test.',
+    '• Random drug test.',
+    'Environment & CoP:',
+    '• Water spray to reduce dust.',
+    '• Wheel washing before entering public road.',
+    '• Road cleaning.',
+    '• Review CoP Monitoring.',
+    '• Lender audit 20 July 2026 (9:00-17:00)',
+    '• Refuse bunker wall',
+    '• Continuous waterproof membrane',
+    'Backfill • Install slipform +1.00 m.',
+    '• Bunker building',
+    '• Continuous backfill around bunker wall',
+    'Activity Qty total Qty complete %Complete',
+    'Bunker pit wall – Waterproof membrane 8 side 7.5 side 93.75%'],
+});
+
+// ── TPP (PRJ-023) Week 28 — auto-extracted
+seedIfEmpty('PRJ-023_W28_2026', {
+  plan: 47.34, actual: 41.11,
+  disciplines: {
+      'Engineering': { plan: 88.35, actual: 51.36 },
+      'Procurement': { plan: 77.49, actual: 75.54 },
+      'Construction': { plan: 18.78, actual: 14.39 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Zhonghang is suffering with manpower management'],
+  activities: ['(10 Jul 26) (17 Jul 26)',
+    'Activities CC/SC (*)',
+    'Plan Actual Diff. Plan Actual Diff. Acc.Plan',
+    '% % % % % % %',
+    'Engineering 10% 84.08 49.81 -34.27 88.35 51.36 -36.99 90.50',
+    'Procurement 40% 76.00 73.11 -2.89 77.49 75.54 -1.95 78.91',
+    'Construction 40% 17.25 14.24 -3.01 18.78 14.39 -4.39 20.13',
+    'Commissioning 10% 0 0 0 0 0 0 0',
+    'Overall 100% 45.71 39.92 -5.79 47.34 41.11 -6.23 48.67',
+    'Safety & Health :',
+    '• Conduct SafetyToolbox Talk before starting work.',
+    '• Mass Safety Talk at Site Area',
+    '• Management Walk Down every Friday (10.00 – 11.00)',
+    '• HSE Weekly Audit every Wednesday (10.00-11.00)',
+    '• HSE Weekly Meeting with Subcontractor every Wednesday (10.00-11.00)',
+    '• Safety Induction Training for new comers',
+    '• Working at height Training',
+    '• Lender Audit',
+    'Environment & CoP :',
+    '• Water spray at construction site'],
+});
+
+// ── TSE (PRJ-024) Week 28 — auto-extracted
+seedIfEmpty('PRJ-024_W28_2026', {
+  plan: 51.38, actual: 43.54,
+  disciplines: {
+      'Engineering': { plan: 91.68, actual: 56.41 },
+      'Procurement': { plan: 83.43, actual: 77.78 },
+      'Construction': { plan: 22.1, actual: 16.97 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Detail and spec of equipment at riser pole for PEA approval.'],
+  activities: ['Activities CC/SC (*)',
+    'Plan% Actual% Diff.% Plan% Actual% Diff.% Acc. Plan%',
+    'Engineering 10% 89.38% 54.27% -35.11% 91.68% 56.41% -35.27% 92.55%',
+    'Procurement 40% 82.01% 76.85% -5.16% 83.43% 77.78% -5.65% 84.78%',
+    'Construction 40% 20.13% 16.00% -4.13% 22.10% 16.97% -5.13% 23.65%',
+    'Commissioning 10% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00% 0.00%',
+    'Overall 100% 49.79% 42.56% -7.23% 51.38% 43.54% -7.84% 52.62%',
+    '5 Maximum Quantity of Heavy Machinery at Site Inspection as period',
+    'and keep related document',
+    '6 Summary of SHE Weekly Audit issues Walk down',
+    '- This week (Finished : 17, Remaining : 3)',
+    '- Total (Finished : 81, Remaining : 3)',
+    '0 RFC , 3 NCR',
+    '7 Stakeholder Engagement Plan Continue as plan',
+    '8 SHE Plan for counting manpower working at site Able to be facial scan 100% (Manpower daily report havealready',
+    'started to generating automatically at 7:00 AM everyday by e-mail',
+    '9 Status of EPC Foreigner staff and worker personal mandatory document Pending 34 prs. Plan to finish <30 Jul 2026>',
+    'Safety & Health:',
+    '• Safety Toolbox Talk before starting work and Mass Toolbox Talk and counting manpower',
+    '• Safety training for newcomer'],
+});
+
+// ── Pak Lay (PRJ-025) Week 28 — auto-extracted
+seedIfEmpty('PRJ-025_W28_2026', {
+  plan: 4.29, actual: 6.57,
+  concerns: ['No. Description Progress Remark',
+    'Contractor submitted the Contractor’s',
+    'The contractor has appointed persons to all positions of key personnel and provided a',
+    'representative proposal for the',
+    'detailed organization chart to the employer before the commencement of LNTP works,',
+    '1 Employer’s review. And key',
+    'and for this purpose sub-clause 6.12 of the general conditions shall apply mutatis',
+    'personnel and organization are also',
+    'submitted for review.',
+    'The EPC contractor has sorted out a total of 38 types of permits required for the',
+    'contract to take effect and 33 have been completed.',
+    'No Issue Detail Action by Target ate Progress Remark',
+    'Submit finalized baseline schedule and S-curve. The baseline was submitted on 30th June 2026,',
+    'EPC shall provide a reasonable and detailed which is under review by OE. Methodology for S',
+    'Baseline Schedule breakdown of each weighted item to enable curve calcluation was submitted on 22 June 2026',
+    '1 EPC 14/Jul/2026',
+    'and S-curve. verification of the claimed percentage while final S curve will be submitted after the',
+    'allocation for Progress Calculation approval of Baseline program and a premilinary S',
+    'Methodology. curve is in place.',
+    'Submit detailed drawing list and quantity'],
+  activities: ['List of Issues to be Coordinated',
+    'Fish-Friendly ensure a productive discussion, EPC shall',
+    '11 EPC/OE 12/Jul/2026 To be submitted on July 13',
+    'Turbine prepare the clarification and supporting',
+    'information for submission to the LTA before',
+    'the meeting and OE shall complete the review',
+    'by the end of this week.',
+    'Planned (%) (%)',
+    'Design Works 0.350% 15.93% 0.404% 16.334% 0.404% 16.738% 0.404% 17.142%',
+    'Procurement,',
+    'Production & 0.330% 5.57% 0.386% 5.956% 0.386% 6.342% 0.386% 6.728%',
+    'Preparatory',
+    '605% 35.18% 0.605% 35.785% 0.705% 36.490% 0.705% 37.195%',
+    '614% 20.33% 0.614% 20.944% 0.614% 21.557% 0.614% 22.171%',
+    'Construction',
+    '000% 0.00% 0.000% 0.000% 0.000% 0.000% 0.000% 0.000%',
+    '430% 7.06% 0.430% 7.490% 0.430% 7.919% 0.430% 8.349%',
+    'Phase 1 & 2'],
+});
+
+// ── LNE (PRJ-005) Week 28 — auto-extracted
+seedIfEmpty('PRJ-005_W28_2026', {
+  plan: 97.78, actual: 95.47,
+  scopes: {
+    'GUE': { plan: 97.78, actual: 95.47 },
+    'Siemens': { plan: 100.0, actual: 100.0 },
+    '115kV T/L': { plan: 100.0, actual: 100.0 }
+  },
+  concerns: [],
+  activities: [],
+});
+
+// ── SSE (PRJ-006) Week 28 — auto-extracted
+seedIfEmpty('PRJ-006_W28_2026', {
+  plan: 100.0, actual: 98.11,
+  scopes: {
+    'GUE': {
+      plan: 100.0, actual: 98.11,
+      disciplines: {
+        'Construction': { plan: 100.0, actual: 98.11 }
+      }
+    },
+    'Siemens': { plan: 100.0, actual: 100.0 },
+    '115kV T/L': { plan: 100.0, actual: 100.0 }
+  },
+  concerns: ['Total Indirect Workforce 60 55 +5',
+    'Total Direct Workforce 127 122 +5'],
+  activities: [],
+});
+
+// ── SDCE (PRJ-007) Week 28 — auto-extracted
+seedIfEmpty('PRJ-007_W28_2026', {
+  plan: 88.07, actual: 86.35,
+  scopes: {
+    'GUE': {
+      plan: 88.07, actual: 86.35,
+      disciplines: {
+        'Construction': { plan: 90.95, actual: 90.18 }
+      }
+    },
+    'Siemens': { plan: 66.15, actual: 77.8 },
+    '115kV T/L': { plan: 86.37, actual: 76.16 },
+    'Add Bay': { plan: 27.55, actual: 71.38 },
+    'GIS Substation': { plan: 49.4, actual: 53.96 }
+  },
+  concerns: ['[PV farm (GPD)] Missing Mounting Components On-Site – GPD must issue the Purchase Order to Antai by 24 July 2026 to protect the PPA Load Rejection test scheduled for 2 November 2026.',
+    '[Transmission Line (PEA&TEC)] Project progress is behind schedule due to insufficient manpower and heavy equipment. Immediate mobilization of additional resources is required to recover the schedule.',
+    '[Transmission Line (PEA&TEC)] Construction permit approval from the Royal Irrigation Department and the Department of Highways is still pending, delaying critical activities (HDD, UG foundations, and MH1/MH2 construction).'],
+  activities: ['Civil work Civil work',
+    '➢ Permanent fence work. ➢ Steel structure installation at BESS area.',
+    '➢ Steel structure installation at transformer station and ➢ Chain-link installation.',
+    '➢ Chain-link installation.',
+    'Electrical work',
+    '➢ Foundation water tank.',
+    '➢ Mounting and PV panel installation.',
+    '➢ DC cable and LV AC installation.',
+    '➢ SAT/Individual work.',
+    '➢ MV Cable installation.',
+    '➢ Cable test and IV Curve test.',
+    '➢ LV cable pulling BESS area.',
+    '➢ Control cable pulling TR station.',
+    '➢ Start LV cable pulling BESS area.',
+    '➢ Start control cable pulling TR station.',
+    '➢ Drainage system work. ➢ Drainage system work.',
+    '➢ Shutter door installation completed. ➢ Sanitary ware installation completed.',
+    '➢ Crush rock at SWYD installation. ➢ Crush rock at SWYD installation.',
+    'Electrical work Electrical work',
+    '➢ External wiring check. ➢ External wiring check completed.'],
+});
+
+// ── TTT (PRJ-027) Week 28 — auto-extracted
+seedIfEmpty('PRJ-027_W28_2026', {
+  plan: null, actual: null,
+  concerns: [],
+  activities: ['To be later'],
+});
+
+// ── GULF AC8 (PRJ-008) Week 28 — auto-extracted
+seedIfEmpty('PRJ-008_W28_2026', {
+  plan: 66.02, actual: 33.51,
+  scopes: {
+    'CBOP': { plan: 66.02, actual: 33.51 },
+    'Substation': { plan: 25.29, actual: 24.88 },
+    '115kV T/L': { plan: 11.0, actual: 74.99 },
+    'Terminal Substation': { plan: 39.28, actual: 38.98 }
+  },
+  concerns: [],
+  activities: ['Backfilling',
+    '- West : RW01 STA 4+500 to 4+800',
+    '- East : RW01 STA 4+000 to 4+500',
+    '- East : RW14,RW17 STA 3+400 to 4+500',
+    '- West : RW1 STA 2+000 to 2+500',
+    '- East : RW14,RW17 STA 1+500 to 2+000',
+    'Rebar binding and formwork installation WTG06,WTG08,WTG11,WTG12,WTG14,WTG04,WTG07',
+    'Soil improvement WTG15,WTG16,WTG17',
+    'Lean concrete WTG15',
+    'Ductbank concrete casting (Completed 9/28 ea)',
+    'Substation control building',
+    '- First floor concrete casting (19/07/26)',
+    '- Start first floor column',
+    '115 KV foundation',
+    '- Grounding work',
+    'Power transformer',
+    '- Outside wall concrete casting (20/07/26)',
+    '- Sand backfilling for transformer foundation',
+    'O&M building',
+    '- Ground beam rebar and formwork installation'],
+});
+
+// ── AL1 (Alpha 1) (PRJ-009) Week 28 — auto-extracted
+seedIfEmpty('PRJ-009_W28_2026', {
+  plan: 27.11, actual: 24.97,
+  scopes: {
+    'CBOP': {
+      plan: 27.11, actual: 24.97,
+      disciplines: {
+        'Engineering': { plan: 100.0, actual: 89.09 },
+        'Procurement': { plan: 46.2, actual: 49.4 },
+        'Construction': { plan: 25.11, actual: 22.78 }
+      }
+    },
+    'TSA': { plan: 26.02, actual: 24.88 },
+    '115kV T/L': { plan: 100.0, actual: 72.88 }
+  },
+  concerns: ['[Pre-NTP] Along road of route east: observed that certain areas the tree-cutting and houses not yet been cleared.',
+    '[Transmission Line (ENCOM/SCT)] Highway no.41 and steel tower: Kindly expedite approval construction permit for Highway no.41 and conclude the decision steel tower construction, as these matters are significantly impacting the schedule.'],
+  activities: ['➢ Road excavation at east route.',
+    '➢ Continue subbase work at west route.',
+    '➢ Continue box culvert construction at route to substation.',
+    '➢ Start survey setting out and excavation for WTG03, WTG05 Foundation.',
+    '➢ Continue TSA access west route.',
+    '➢ Continue rebars cutting, bending for WTG06, WTG08 Foundation.',
+    '➢ Start rebars installation for WTG06 Foundation.',
+    '➢ Kick-off meeting.'],
+});
+
+// ── AL2 (Alpha 2) (PRJ-010) Week 28 — auto-extracted
+seedIfEmpty('PRJ-010_W28_2026', {
+  plan: 38.51, actual: 43.42,
+  scopes: {
+    'CBOP': { plan: 38.51, actual: 43.42 },
+    'TSA': { plan: 25.46, actual: 24.53 },
+    'Substation': { plan: 3.42, actual: 1.03 },
+    '115kV T/L': { plan: 99.38, actual: 19.06 },
+    'Terminal Substation': { plan: 84.3, actual: 92.5 }
+  },
+  concerns: ['[CBOP (PCZ)] Requires an additional Soil and Rock Disposal Area with a capacity of approximately 58,530 cubic meters for South , Central A and Central B.',
+    '[TSA (GOLD WIND)] Requires an additional Soil and Rock Disposal Area with a capacity of approximately 157,630 cubic meters for WTG-02,WTG-06 and WTG-07.'],
+  activities: ['➢ Continue Cut and Fill for Subgrade layer and Subbase layer Central A, Central B ,Service Road and South',
+    '➢ Continue Pipe and Box culvert',
+    '- South STA. 1+410 , 1+480 and STA. Central A Sta. 0+806, Sta. 1+554 and Sta. 2+837',
+    '➢ Continue 33kV Pole Installation',
+    '- North A North B and Service Road',
+    'Actual Completed Deviation',
+    'Fri Sat Sun Mon Tue Wed Thu Fri Sat Sun Mon Tue Wed Thu Fri Sat Sun Mon Tue Wed Thu Fri Sat Sun Mon Tue Wed Thu',
+    'Start Finish',
+    '7/3 7/4 7/5 7/6 7/7 7/8 7/9 7/10 7/11 7/12 7/13 7/14 7/15 7/16 7/17 7/18 7/19 7/20 7/21 7/22 7/23 7/24 7/25 7/26 7/27 7/28 7/29 7/30',
+    '1 North A ( STA.1+400 - STA.4+667 )',
+    'Plan 15-May 16-Aug 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5% 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5% 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5% 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5%',
+    '12 DRAINAGE SYSYTEM ( PIPE & BOX CULVERT )',
+    'Actual 15-May 0.0% -50.0% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0%',
+    'Plan 12-Jun 9-Aug 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5% 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5% 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5% 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5%',
+    '13 SLOPE PROTECTION',
+    'Actual 12-Jun 0.0% -50.0% 5% 5% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0%',
+    'Plan 19-Jun 9-Aug 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5% 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5% 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5% 7.5% 7.5% 7.5% 7.5% 7.5% 7.5% 5%',
+    '14 INSTALLATION ELECTRIC POLE',
+    'Actual 19-Jun 21.0% -29.0% 5% 5% 2.5% 2.5% 2.5% 5% 2.5% 2.5% 2.5% 2.5% 2.5% 3% 3% 5%',
+    '2 North B ( STA.0+000 - STA.1+355 )'],
+});
+
+// ── ECE (PRJ-011) Week 28 — auto-extracted
+seedIfEmpty('PRJ-011_W28_2026', {
+  plan: 66.89, actual: 66.1,
+  scopes: {
+    'CBOP': { plan: 66.89, actual: 66.1 },
+    'TSA': { plan: 38.97, actual: 37.07 },
+    'Substation': { plan: 3.54, actual: 1.69 },
+    '115kV T/L': { plan: 99.67, actual: 72.5 }
+  },
+  concerns: [],
+  activities: ['➢ Continue to road base course compaction work.',
+    '➢ Continue to excavation and installation for 33kV Pole.',
+    '➢ Continue to excavation work for drainage system.',
+    '➢ Continue to excavation work.',
+    '➢ Continue to rebar installation.',
+    '➢ Plan to pouring lean concrete at WTG-03 on 19 July 26.',
+    '➢ Continue to site preparation (Earth Work).',
+    '➢ Start to excavation for foundation at SWYD area.',
+    '➢ Continue to foundation work',
+    '➢ Continue to cable Stringing work.',
+    '➢ Continue foundation excavation work.'],
+});
+
+// ── GULF_Wayu (PRJ-012) Week 28 — auto-extracted
+seedIfEmpty('PRJ-012_W28_2026', {
+  plan: 54.83, actual: 54.65,
+  scopes: {
+    'CBOP': { plan: 54.83, actual: 54.65 },
+    'Substation': { plan: 0.18, actual: 0.18 }
+  },
+  concerns: ['[TSA (Goldwind)] The Aor.1 permit approval is currently behind schedule and does not align with the planned start date of the WTG foundation works on 1 June 2026.>>Done',
+    '[CBOP (PCZ)] Bridge and box culvert permit approval is pending.',
+    '[CBOP (PCZ)] The final COP document has not yet been approved, please expedite the approval process.'],
+  activities: ['Compaction and Backfilling Electrical',
+    '▪ Subbase CBR>25%',
+    '-Concrete pole 33kV installation.',
+    '▪ Crushed rock base course (CBR > 80%)',
+    '-East route Sta 0+000 to 3+400.',
+    '-West A route Sta 0+600 to 2+650.',
+    'Bridge and Box culvert works',
+    '-Bridge NO.05,06 : Slope protection work.',
+    '-Soil backfill for Box Culvert No. 08.',
+    '-Bridge NO.02A rebar installation and formwork for Pier2,3.',
+    '-RC pipe culvert installation.',
+    'Acc.Plan Last Week Acc.Plan Last Week Acc. Plan',
+    'Acc.Actual Last Week as Plan this week Plan this week Acc. Plan (Contract BL) Acc. Actual this week as',
+    '(Contract BL) (Execution Plan) Delay/Ahead Progress this week (Execution Plan) Delay/Ahead',
+    'No. Work Task %W.V. of 09 Jul 26 (Contract BL) (Execution Plan) as of 16 Jul 26 of 16 Jul 26',
+    'as of 09 Jul 26 as of 09 Jul 26 [B] - [C] of 16 Jul 26 as of 16 Jul 26 [B] - [C]',
+    '[B] as of 16 Jul 26 as of 16 Jul 26 [A] [B]',
+    '[A] [C] [C]',
+    '1 ENGINEERING WORK 5.00% 88.24% 43.28% 51.15% 7.88% 1.95% 1.22% 0.32% 90.19% 44.49% 51.47% 6.98%',
+    '2 PROCUREMENT WORK 55.00% 41.91% 35.40% 35.40% 0.00% 0.72% 0.00% 0.00% 42.63% 35.40% 35.40% 0.00%'],
+});
 
 
 // ── Week 28/2026 — AUTO-GENERATED ──

@@ -14,6 +14,19 @@ from extract import extract_from_pdf
 
 
 # ── 1. Find latest week folder ─────────────────────────────────────────────
+def _parse_folder_date(name):
+    """Folder name is 'WEEK_YYMMDD' (e.g. '28_260715') — return the date
+    part as an ISO string ('2026-07-15'), or None if it doesn't parse."""
+    parts = name.split('_')
+    if len(parts) > 1 and len(parts[1]) >= 6:
+        try:
+            return (f"{2000 + int(parts[1][:2])}-"
+                    f"{int(parts[1][2:4]):02d}-{int(parts[1][4:6]):02d}")
+        except ValueError:
+            pass
+    return None
+
+
 def find_week_folder(year=None):
     pattern = os.path.join(BASE_REPORT_PATH, r"[0-9]*_[0-9]*")
     folders = sorted(glob.glob(pattern))
@@ -24,7 +37,7 @@ def find_week_folder(year=None):
     parts  = name.split('_')
     week   = int(parts[0])
     yr     = 2000 + int(parts[1][:2]) if len(parts) > 1 else datetime.now().year
-    return latest, week, yr
+    return latest, week, yr, _parse_folder_date(name)
 
 
 # ── 2. Find PDF for a project ──────────────────────────────────────────────
@@ -120,10 +133,12 @@ def build_seed(prj_id, week, year, data):
 SEED_MARKER          = '// ── SEED DATA (pre-loaded from PDF reports) ──'
 MISSING_MARKER_START = '// ── AUTO: MISSING REPORTS ──'
 MISSING_MARKER_END   = '// ── END MISSING REPORTS ──'
+DATE_MARKER_START    = '// ── AUTO: REPORT DATES ──'
+DATE_MARKER_END      = '// ── END REPORT DATES ──'
 WEEK_MARKER_START    = '// ── AUTO: CURRENT WEEK ──'
 WEEK_MARKER_END      = '// ── END CURRENT WEEK ──'
 
-def update_html(week, year, seeds_js, missing_ids):
+def update_html(week, year, seeds_js, missing_ids, report_date=None):
     with open(DASHBOARD_HTML, encoding='utf-8') as f:
         html = f.read()
 
@@ -180,6 +195,26 @@ def update_html(week, year, seeds_js, missing_ids):
             html  = html[:start] + new_block + html[end:]
         else:
             html = html.replace('<script>', new_block + '\n<script>', 1)
+
+    # Update real report date — merge into REPORT_DATES_BY_WEEK dict
+    if report_date:
+        date_re = re.compile(
+            r'(// ── AUTO: REPORT DATES ──.*?)'
+            r'const REPORT_DATES_BY_WEEK = (\{.*?\});'
+            r'(.*?// ── END REPORT DATES ──)',
+            re.DOTALL)
+        m = date_re.search(html)
+        if m:
+            existing = json.loads(m.group(2))
+            existing[week_key] = report_date
+            new_block = (
+                m.group(1) +
+                f"const REPORT_DATES_BY_WEEK = {json.dumps(existing, separators=(',', ':'))};" +
+                m.group(3)
+            )
+            html = html[:m.start()] + new_block + html[m.end():]
+        else:
+            print("  [warn] REPORT_DATES_BY_WEEK marker not found, skipping report date")
 
     # Update current week displayed in dashboard
     week_js = (
@@ -457,8 +492,9 @@ def main():
             sys.exit(1)
         week_folder = matches[0]
         week, year = args.week, args.year
+        report_date = _parse_folder_date(os.path.basename(week_folder))
     else:
-        week_folder, week, year = find_week_folder()
+        week_folder, week, year, report_date = find_week_folder()
 
     print(f"  Week: {week}/{year}")
     print(f"  Folder: {week_folder}")
@@ -518,7 +554,7 @@ def main():
 
     # Update files
     print("\n  Updating dashboard...")
-    update_html(week, year, seeds_js, missing)
+    update_html(week, year, seeds_js, missing, report_date=report_date)
     update_excel(week, year, results)
     git_push(week, year)
     xl_path = os.path.join(EXCEL_DIR, f'Gulf_Dashboard_W{week}_{year}.xlsx')
