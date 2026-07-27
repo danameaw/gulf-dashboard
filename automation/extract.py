@@ -376,8 +376,13 @@ def _parse_gmtp_overall_row(text):
     return None, None, {}
 
 
+# The 'Plan / Actual :' label and its values can be split across lines, and a
+# y-axis gridline label (e.g. "60%") sometimes lands between them in the text
+# layer — "Plan / Actual :\n60% 24.02% / 28.79% (4.76%)". Allow a short gap
+# (non-greedy, capped) so the stray axis label is skipped and the real
+# "plan% / actual%" pair is captured.
 _GMTP_PLAN_ACTUAL_CALLOUT = re.compile(
-    r'plan\s*/\s*actual\s*:?\s*\n?\s*'
+    r'plan\s*/\s*actual\s*:?[\s\S]{0,20}?'
     r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s*/\s*(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)
 
 

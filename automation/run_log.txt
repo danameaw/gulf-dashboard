@@ -133,3 +133,72 @@ Gulf Dashboard Weekly Automation
 
   Done! Dashboard URL: https://danameaw.github.io/gulf-dashboard/
 ============================================================
+'outlook.exe' is not recognized as an internal or external command,
+operable program or batch file.
+============================================================
+Gulf Dashboard Weekly Automation
+============================================================
+  Week: 29/2026
+  Folder: C:\Users\danaya.th\Gulf\Engineering - Engineering Documents\00 Project Reports\2026\29_260722
+
+  [PRJ-001] LNG Terminal (GMTP) ... OK → GMTP-PCC-PM-WR-050_EPC Weekly Report [LNG Terminal].pdf
+       concerns=20, activities=20, plan=null, actual=null, discs=0
+  [PRJ-002] GOE2-NWT3 ... OK → GOE2-NWT3 Construction Progress Report_Week43_18-24 JULY 2026.pdf
+       concerns=3, activities=0, plan=89.02%, actual=65.43%, scopes=4
+  [PRJ-003] GSPG-PTN ... OK → GSPG-PTN Construction Progress Report_Week No.43  18-24 July 2026.pdf
+       concerns=12, activities=0, plan=89.02%, actual=64.0%, scopes=5
+  [PRJ-004] GSPG-STN ... OK → GSPG-STN Construction Progress Report_Week no.43_18-24 Jul 2026.pdf
+       concerns=3, activities=0, plan=88.99%, actual=72.78%, scopes=4
+  [PRJ-013] GCE ... OK → Project_GCE_Construction_weekly_report_18- 24 Jul 2026 Rev.pdf
+       concerns=1, activities=20, plan=48.67%, actual=42.12%, discs=4
+  [PRJ-014] GSE ... OK → Project_GSE_Construction_weekly_report_19_25Jul 2026 weekly 28.pdf
+       concerns=1, activities=20, plan=48.67%, actual=43.46%, discs=4
+  [PRJ-015] KKE ... PDF NOT FOUND
+  [PRJ-016] MKP ... OK → Project_MKP_Construction_weekly_report_19 - 25 Jul 26 Weekly 28.pdf
+       concerns=1, activities=20, plan=42.36%, actual=40.42%, discs=4
+  [PRJ-017] MPE ... OK → Project_MPE_Construction_weekly_report_18-24 Jul 2026 Rev.00.pdf
+       concerns=2, activities=20, plan=33.16%, actual=35.39%, discs=4
+  [PRJ-018] PFP ... OK → Project_PFP_Construction_weekly_report_18-24 July 2026_.pdf
+       concerns=2, activities=20, plan=42.4%, actual=38.15%, discs=4
+  [PRJ-019] PKP ... PDF NOT FOUND
+  [PRJ-020] PSD ... PDF NOT FOUND
+  [PRJ-021] PWW1 ... OK → Project_PWW1_Construction_weekly_report 19 - 25 July 2026.pdf
+       concerns=20, activities=20, plan=42.4%, actual=39.25%, discs=4
+  [PRJ-022] PWW2 ... OK → Project_PWW2_Construction_weekly_report 19 - 25 July 2026.pdf
+       concerns=20, activities=20, plan=33.24%, actual=35.77%, discs=4
+  [PRJ-023] TPP ... OK → Project_TPP_Construction_weekly_report_19 - 25 Jul 26 Weekly 28.pdf
+       concerns=1, activities=20, plan=48.67%, actual=42.77%, discs=4
+  [PRJ-024] TSE ... OK → Project_TSE_Construction_weekly_report_19_25Jul 2026 weekly 28.pdf
+       concerns=1, activities=20, plan=52.62%, actual=45.09%, discs=4
+  [PRJ-026] Pak Beng ... OK → Pak Beng Hydroelectric Power Project Weekly Report 063.pdf
+       concerns=20, activities=20, plan=6.28%, actual=5.8%, discs=0
+  [PRJ-025] Pak Lay ... OK → PLHPP_Weekly Report No.59.pdf
+       concerns=20, activities=20, plan=4.49%, actual=6.71%, discs=0
+  [PRJ-005] LNE ... OK → SPB1(LNE) Construction Progress week No.43.pdf
+       concerns=0, activities=0, plan=98.0%, actual=95.77%, scopes=3
+  [PRJ-006] SSE ... OK → SPB8(SSE) Construction Progress Weekly Report No.43_ 18 - 24 July  2026.pdf
+       concerns=2, activities=7, plan=100.0%, actual=98.93%, scopes=3
+  [PRJ-007] SDCE ... OK → PBR8 (SDCE) Construction Progress Weekly Report No.43 date 18 - 24 Jul 2026.pdf
+       concerns=3, activities=20, plan=89.19%, actual=87.09%, scopes=5
+  [PRJ-027] TTT ... OK → CHANG-PM-WR-007-R0.pdf (manual override)
+  [PRJ-008] GULF AC8 ... PDF NOT FOUND
+  [PRJ-009] AL1 (Alpha 1) ... OK → ALPHA 1 Construction Progress Weekly Report  No.54 as of 18 July 2026 – 24 July 2026.pdf
+       concerns=2, activities=7, plan=28.87%, actual=26.31%, scopes=3
+  [PRJ-010] AL2 (Alpha 2) ... OK → Alpha 2 Construction Progress Weekly Report week No.77_18 Jul - 24 Jul 2026_R1.pdf
+       concerns=2, activities=20, plan=39.98%, actual=47.57%, scopes=5
+  [PRJ-011] ECE ... OK → ECE Construction Progress Weekly Report No.54_Date 18 - 24 July 2026 R.0.pdf
+       concerns=0, activities=12, plan=69.76%, actual=68.54%, scopes=4
+  [PRJ-012] GULF_Wayu ... OK → WAYU Power Construction Progress Weekly Report No.54, date 18Jul-24Jul26.pdf
+       concerns=3, activities=20, plan=57.69%, actual=57.26%, scopes=2
+
+  Found:   23 projects
+  Missing: 4 projects: ['PRJ-015', 'PRJ-019', 'PRJ-020', 'PRJ-008']
+
+  Updating dashboard...
+  ✓ index.html updated (Week 29/2026)
+  ✓ Excel saved: C:\Users\danaya.th\OneDrive - Gulf\Documents\GitHub\gulf-dashboard\Gulf_Dashboard_W29_2026.xlsx
+  ✓ Pushed to GitHub
+  [OK] Email sent via Outlook to: purachet.am@gulf.co.th, chalong@gulf.co.th
+
+  Done! Dashboard URL: https://danameaw.github.io/gulf-dashboard/
+============================================================
