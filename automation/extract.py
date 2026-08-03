@@ -1206,11 +1206,23 @@ def _ocr_paklay_scurve(search_dir):
                     # 300 DPI regularly loses the "Achieved" callout box entirely
                     # (Tesseract returns zero matches for it while still reading
                     # the "Planned" box fine) — 450 DPI reads both reliably.
-                    page_img = target_page.to_image(resolution=450).original.convert('RGB')
-                    ocr_text = pytesseract.image_to_string(page_img)
-
+                    #
+                    # The "Achieved" callouts sit on a saturated ORANGE fill;
+                    # Tesseract binarizes those RGB boxes inconsistently and often
+                    # drops them entirely (while the blue "Planned" box reads fine),
+                    # e.g. W30/2026 read Planned=4.71% but no Achieved at all.
+                    # Converting to grayscale first (luminance → dark text on mid-
+                    # grey) lets Tesseract's Otsu threshold recover the orange boxes;
+                    # grayscale reads a strict superset of RGB here, so it's primary
+                    # and RGB stays only as a fallback if grayscale finds nothing.
+                    base_img = target_page.to_image(resolution=450).original
+                    ocr_text = pytesseract.image_to_string(base_img.convert('L'))
                     plan_matches = _PAKLAY_OCR_PLANNED.findall(ocr_text)
                     achieved_matches = _PAKLAY_OCR_ACHIEVED.findall(ocr_text)
+                    if not plan_matches and not achieved_matches:
+                        ocr_text = pytesseract.image_to_string(base_img.convert('RGB'))
+                        plan_matches = _PAKLAY_OCR_PLANNED.findall(ocr_text)
+                        achieved_matches = _PAKLAY_OCR_ACHIEVED.findall(ocr_text)
                     plan_v   = _parse_pct(plan_matches[-1]) if plan_matches else None
                     actual_v = _parse_pct(achieved_matches[-1]) if achieved_matches else None
                     if plan_v is not None or actual_v is not None:
