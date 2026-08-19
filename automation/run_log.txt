@@ -340,3 +340,4 @@ Gulf Dashboard Weekly Automation
 
   Done! Dashboard URL: https://danameaw.github.io/gulf-dashboard/
 ============================================================
+^C
