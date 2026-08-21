@@ -93,9 +93,9 @@
   "PRJ-002": {
    "actual": 67.48,
    "disciplines": {},
-   "first_activity": null,
+   "first_activity": "[PV Farm (GUE)] Install Mounting Structure 567 of 768 table, 10 Construction inspected 314 table, 40.89%.",
    "first_concern": "[PV Farm (GUE)] Expedite skilled worker, scaffolding & tools for install mounting.",
-   "n_activities": 0,
+   "n_activities": 17,
    "n_concerns": 4,
    "plan": 90.0,
    "scopes": {
@@ -140,9 +140,9 @@
   "PRJ-003": {
    "actual": 67.49,
    "disciplines": {},
-   "first_activity": null,
+   "first_activity": "[PV Farm (GUE)] Piling work PV areas T10 Constru",
    "first_concern": "[PV Farm (GUE)] Site Security Issue.",
-   "n_activities": 0,
+   "n_activities": 15,
    "n_concerns": 10,
    "plan": 91.95,
    "scopes": {
@@ -192,9 +192,9 @@
   "PRJ-004": {
    "actual": 74.23,
    "disciplines": {},
-   "first_activity": null,
+   "first_activity": "[PV Farm (GUE)] Civil work:",
    "first_concern": "[PV Farm (GUE)] To expedite the secondary electrical work.",
-   "n_activities": 0,
+   "n_activities": 20,
    "n_concerns": 3,
    "plan": 90.0,
    "scopes": {
@@ -239,9 +239,9 @@
   "PRJ-005": {
    "actual": 98.38,
    "disciplines": {},
-   "first_activity": null,
+   "first_activity": "[PVfarm(GUE)] PQ test completed",
    "first_concern": null,
-   "n_activities": 0,
+   "n_activities": 7,
    "n_concerns": 0,
    "plan": 99.66,
    "scopes": {
@@ -271,9 +271,9 @@
   "PRJ-006": {
    "actual": 99.72,
    "disciplines": {},
-   "first_activity": null,
+   "first_activity": "[PVfarm(GUE)] Grass planting works.",
    "first_concern": null,
-   "n_activities": 0,
+   "n_activities": 12,
    "n_concerns": 0,
    "plan": 100.0,
    "scopes": {
@@ -303,7 +303,7 @@
   "PRJ-007": {
    "actual": 92.24,
    "disciplines": {},
-   "first_activity": "Civil work Civil work",
+   "first_activity": "[PV farm (GPD)] Matal sheet installation RMU Station.",
    "first_concern": "[PV farm (GPD)] GPD issued the Purchase Order to Antai on 3 Aug 2026. Follow up to ensure the mounting is delivered to site by 10 September 2026, so it does not impact the load rejection test.",
    "n_activities": 20,
    "n_concerns": 2,
@@ -345,9 +345,9 @@
   "PRJ-010": {
    "actual": 50.43,
    "disciplines": {},
-   "first_activity": "\u27a2 Continue Cut and Fill for Subgrade layer and Subbase layer Central A, Central B ,Service Road and South",
+   "first_activity": "[CBOP (PCZ)] Subgrade = 18,132/18,925 (95.81%)",
    "first_concern": "[CBOP (PCZ)] Requires an additional Soil and Rock Disposal Area with a capacity of approximately 25,600 cubic meters for Central A and Route to WTG.03,06,07",
-   "n_activities": 20,
+   "n_activities": 16,
    "n_concerns": 3,
    "plan": 46.75,
    "scopes": {
@@ -381,9 +381,9 @@
   "PRJ-011": {
    "actual": 73.25,
    "disciplines": {},
-   "first_activity": "\u27a2 Continue to road base course compaction work.",
+   "first_activity": "[CBOP (PCZ)] Continue to road base course compaction work.",
    "first_concern": null,
-   "n_activities": 19,
+   "n_activities": 18,
    "n_concerns": 0,
    "plan": 77.41,
    "scopes": {
@@ -412,9 +412,9 @@
   "PRJ-012": {
    "actual": 66.79,
    "disciplines": {},
-   "first_activity": "-Plant grass for erosion control. -Concrete pole 33kV installation.",
+   "first_activity": "[TSA (Goldwind)] Excavation work for WTG-01, WTG-05.",
    "first_concern": "[TSA (Goldwind)] The Aor.1 permit approval is currently behind schedule and does not align with the planned start date of the WTG foundation works on 1 June 2026.>>Done",
-   "n_activities": 20,
+   "n_activities": 10,
    "n_concerns": 3,
    "plan": 69.29,
    "scopes": {
@@ -454,9 +454,9 @@
      null
     ]
    },
-   "first_activity": "Safety & Health:",
+   "first_activity": null,
    "first_concern": "GCE-001-C-010-UOO-001 General Plant Layout General Layout The distance of the stormwater retention pond from the property boundary does not comply with the Excavation and Land Filling Act B.E. 2543",
-   "n_activities": 20,
+   "n_activities": 0,
    "n_concerns": 1,
    "plan": 53.08,
    "scopes": {}
@@ -485,9 +485,9 @@
      null
     ]
    },
-   "first_activity": "Activities CC/SC (*)",
+   "first_activity": "Pouring concrete from EL.+5.45 to El.+8.00",
    "first_concern": "Detail and spec of equipment at riser pole for PEA approval.",
-   "n_activities": 20,
+   "n_activities": 4,
    "n_concerns": 5,
    "plan": 53.08,
    "scopes": {}
@@ -516,9 +516,9 @@
      null
     ]
    },
-   "first_activity": "(7th Jul 2026) (14thAug 2026)",
+   "first_activity": "Bunker building: Concrete pouring for Lift 4 Wall EL +8.00 to +12.45 m. (22 Aug 2026)",
    "first_concern": null,
-   "n_activities": 20,
+   "n_activities": 7,
    "n_concerns": 0,
    "plan": 56.55,
    "scopes": {}
@@ -547,9 +547,9 @@
      null
     ]
    },
-   "first_activity": "(07 Aug 26 (14 Aug 26)",
+   "first_activity": "Bunker wall concrete pouring at EL +12m.",
    "first_concern": "Skill manpower shortage e.g. fitter, piping welder",
-   "n_activities": 20,
+   "n_activities": 2,
    "n_concerns": 4,
    "plan": 47.17,
    "scopes": {}
@@ -578,9 +578,9 @@
      null
     ]
    },
-   "first_activity": "Safety & Health:",
+   "first_activity": null,
    "first_concern": "BOP Tasks that have started and those that have not yet started are behind schedule",
-   "n_activities": 20,
+   "n_activities": 0,
    "n_concerns": 1,
    "plan": 38.28,
    "scopes": {}
@@ -609,9 +609,9 @@
      null
     ]
    },
-   "first_activity": "Safety & Health:",
+   "first_activity": null,
    "first_concern": "Bunker surround delay start affect to Boiler installation feeding gate plan.",
-   "n_activities": 20,
+   "n_activities": 0,
    "n_concerns": 1,
    "plan": 47.17,
    "scopes": {}
@@ -640,9 +640,9 @@
      null
     ]
    },
-   "first_activity": "Jul 2026) Aug 2026)",
+   "first_activity": "Bunker Building: Pouring concrete Lift 2 EL (+1 to +5.45) (Targeted date 6 Sep 26)",
    "first_concern": "Insufficient construction access roads within the site to support ongoing activities",
-   "n_activities": 20,
+   "n_activities": 5,
    "n_concerns": 4,
    "plan": 47.17,
    "scopes": {}
@@ -671,9 +671,9 @@
      null
     ]
    },
-   "first_activity": "Jul 2026) Aug 2026)",
+   "first_activity": "Bunker Building: Lift 2 (EL. +1.0 to +5.45) ; Targeted date 24 Aug 26",
    "first_concern": "Problem : Electric Pole obstruct Entrance",
-   "n_activities": 20,
+   "n_activities": 6,
    "n_concerns": 1,
    "plan": 53.08,
    "scopes": {}
@@ -702,9 +702,9 @@
      null
     ]
    },
-   "first_activity": "Safety & Health:",
+   "first_activity": "Work Foundation at Bunker to 18.00 m",
    "first_concern": "Service Water & Firefighting Tank DWG. For order material.",
-   "n_activities": 20,
+   "n_activities": 2,
    "n_concerns": 2,
    "plan": 47.17,
    "scopes": {}
@@ -733,9 +733,9 @@
      null
     ]
    },
-   "first_activity": "Safety & Health:",
+   "first_activity": "1. Work Foundation at Bunker to 18.00 m",
    "first_concern": "Contractor for Retaining wall south side",
-   "n_activities": 20,
+   "n_activities": 2,
    "n_concerns": 3,
    "plan": 38.28,
    "scopes": {}
@@ -764,9 +764,9 @@
      null
     ]
    },
-   "first_activity": "(07 Aug 26) (14 Aug 26)",
+   "first_activity": "Tie beam works at EL+8m of bunker building 2. Water Wall installation",
    "first_concern": "Skill manpower shortage e.g. fitter, piping welder",
-   "n_activities": 20,
+   "n_activities": 1,
    "n_concerns": 4,
    "plan": 53.08,
    "scopes": {}
@@ -795,9 +795,9 @@
      null
     ]
    },
-   "first_activity": "Activities CC/SC (*)",
+   "first_activity": "Pouring concrete by slip from method From EL.+8.0 to +18.30 m.",
    "first_concern": "Detail and spec of equipment at riser pole for PEA approval.",
-   "n_activities": 20,
+   "n_activities": 4,
    "n_concerns": 4,
    "plan": 56.55,
    "scopes": {}
@@ -805,20 +805,20 @@
   "PRJ-025": {
    "actual": 7.09,
    "disciplines": {},
-   "first_activity": "List of Issues to be Coordinated",
-   "first_concern": "No. Description Progress Remark",
-   "n_activities": 14,
-   "n_concerns": 20,
+   "first_activity": "[EPC Hub Camp] R etaining wall concrete pouring(#1) \u2014 12 m3",
+   "first_concern": null,
+   "n_activities": 20,
+   "n_concerns": 0,
    "plan": 5.34,
    "scopes": {}
   },
   "PRJ-026": {
    "actual": 6.29,
    "disciplines": {},
-   "first_activity": "Health and Safety Health and Safety",
-   "first_concern": "Jan-26 0 0 0",
-   "n_activities": 20,
-   "n_concerns": 20,
+   "first_activity": "Earth\u2011 rock Excavation \u2014 10000 m\u00b3 (2.71%)",
+   "first_concern": null,
+   "n_activities": 11,
+   "n_concerns": 0,
    "plan": 6.45,
    "scopes": {}
   },

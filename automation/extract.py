@@ -188,6 +188,21 @@ _IWTE_FIELD_END    = re.compile(
 # "Area of Concern: Refer to page 15" / "AREA OF CONCERN : Ref. page 14"
 _IWTE_CROSS_REF    = re.compile(r'^(refer|ref\.?)\s*(to\s*)?page\s*\d+', re.I)
 _IWTE_CONCERN_TITLE = re.compile(r'^\s*areas?\s+of\s+concern\s*$', re.I | re.M)
+# "Key Lookahead milestone:" - the Executive Summary field stating the work
+# coming up, as opposed to the "Next Week Activities" slide which only ever
+# lists safety routine.
+_IWTE_LOOKAHEAD = re.compile(r'key\s+look\s*-?\s*ahead(?:\s+milestones?)?\s*:?', re.I)
+# Items in these fields are numbered on some reports and dash-bulleted on
+# others (GSE/TSE), so both start a new item.
+_IWTE_ITEM_START = re.compile(r'^(?:\d+[.)]|[-\u2013\u2022\u25aa])\s*')
+# Terminators for a field that is followed by other summary fields. The
+# concern reader deliberately does not use this: "Issue to request HO
+# support" sits ABOVE its items in reading order there, so it has to be
+# stripped rather than stopped on.
+_IWTE_NEXT_FIELD = re.compile(
+    r'^(key\s+\w+|catch\s*[- ]?up|pre-?conditions|area\s+of\s+concern'
+    r'|issue\s+to\s+request|progress\b|construction\b|commissioning\b'
+    r'|total\s+progress|manpower|organization|milestone\s+tracking)', re.I)
 
 
 def _page_lines(page, min_x0=None):
@@ -244,28 +259,36 @@ def _extract_right_column_text(page, split_frac=0.45):
         for l in lines)
 
 
-def _iwte_concern_items(lines, start_idx, col_x):
+def _iwte_field_items(lines, start_idx, col_x, stop_re=None,
+                     item_re=None, strip_ho=True):
     """
-    Collect numbered concern items from the lines below `start_idx` that
-    belong to the column starting at `col_x`. Returns (items, cross_ref)
-    where cross_ref is True when the field just points at another page.
+    Collect the list items of an Executive Summary field: the lines below
+    `start_idx` that belong to the column starting at `col_x`, grouped into
+    items on bullet or number starts, with wrapped lines folded into the item
+    above. Returns (items, cross_ref) - cross_ref is True when the field only
+    points at another page ("Refer to page 15").
     """
+    stop_re = stop_re or _IWTE_FIELD_END
+    item_re = item_re or _IWTE_NUM_BULLET
     items, current, cross_ref = [], None, False
     for ln in lines[start_idx + 1:]:
         if ln['x0'] < col_x:
             continue
-        text = _IWTE_HO_SUPPORT.sub('', ln['text']).strip()
+        text = ln['text']
+        if strip_ho:
+            text = _IWTE_HO_SUPPORT.sub('', text)
+        text = text.strip()
         if not text or _IWTE_FIELD_NOISE.match(text):
             continue
         if _IWTE_CROSS_REF.match(text):
             cross_ref = True
             continue
-        if _IWTE_FIELD_END.match(text):
+        if stop_re.match(text):
             break
-        if _IWTE_NUM_BULLET.match(text):
+        if item_re.match(text):
             if current:
                 items.append(current)
-            current = _IWTE_NUM_BULLET.sub('', text).strip()
+            current = item_re.sub('', text).strip()
         elif current is not None:
             current += ' ' + text
         else:
@@ -273,6 +296,68 @@ def _iwte_concern_items(lines, start_idx, col_x):
     if current:
         items.append(current)
     return items, cross_ref
+
+
+def _iwte_exec_summary_page(doc, anchor_re):
+    """
+    The Executive Summary slide, plus the index of `anchor_re` on it and the
+    column-filtered lines to read from.
+    A report's Table of Contents lists "Executive Summary" as an entry, so
+    matching on that phrase alone finds the contents page first - which is
+    why this requires the field itself to be present before accepting a page.
+    Returns (lines, idx, anchor_x) or None.
+    """
+    for page in doc.pages[:8]:
+        text = page.extract_text() or ''
+        if 'executive summary' not in text.lower() or not anchor_re.search(text):
+            continue
+        base = _page_lines(page)
+        idx = next((i for i, ln in enumerate(base)
+                    if anchor_re.search(ln['text'])), None)
+        if idx is None:
+            continue
+        anchor_x = base[idx]['x0']
+        # Re-read keeping only words from the heading's column onward, so a
+        # wrapped continuation is not discarded for sharing its visual line
+        # with the left-hand KPI box.
+        lines = _page_lines(page, min_x0=anchor_x - 10)
+        idx = next((i for i, ln in enumerate(lines)
+                    if anchor_re.search(ln['text'])), None)
+        if idx is None:
+            continue
+        return page, lines, idx, anchor_x
+    return None
+
+
+def extract_iwte_lookahead(pdf_path):
+    """
+    The Executive Summary's "Key Lookahead milestone" field - the work coming
+    up next period. Returns a list, or None when the field is absent so the
+    caller can tell "nothing planned stated" from "could not read it".
+    """
+    try:
+        with pdfplumber.open(pdf_path) as doc:
+            found = _iwte_exec_summary_page(doc, _IWTE_LOOKAHEAD)
+            if not found:
+                return None
+            _, lines, idx, anchor_x = found
+            head = _IWTE_LOOKAHEAD.sub('', lines[idx]['text'], count=1).strip(' :')
+            # The heading line can also carry a stray KPI figure from the box
+            # to its left ("TRIR 0"), and a plural label spelling used to
+            # leave a lone "s" behind. Only keep a remainder substantial
+            # enough to be a real item.
+            head = re.sub(r'^\s*(trir|tri)\s*[\d.]*\s*', '', head, flags=re.I)
+            head = _IWTE_ITEM_START.sub('', head).strip()
+            items, _ = _iwte_field_items(
+                lines, idx, anchor_x - 10, stop_re=_IWTE_NEXT_FIELD,
+                item_re=_IWTE_ITEM_START, strip_ho=False)
+            if len(head) >= 10 and not _IWTE_NEXT_FIELD.match(head):
+                items.insert(0, head)
+            return [it for it in items
+                    if it and it.upper() not in ('N/A', 'NA', 'NONE')]
+    except Exception as e:
+        print(f"  [iwte lookahead error] {e}")
+    return None
 
 
 def extract_iwte_concerns_from_section(doc):
@@ -338,7 +423,7 @@ def extract_iwte_concerns_from_exec_summary(pdf_path):
                 # ("Area of Concern: Refer to page 15").
                 head = _IWTE_AREA_OF_CONCERN.sub('', lines[idx]['text'], count=1)
                 head = _IWTE_HO_SUPPORT.sub('', head).strip(' :')
-                items, cross_ref = _iwte_concern_items(
+                items, cross_ref = _iwte_field_items(
                     lines, idx, anchor_x - 10)
                 if head:
                     if _IWTE_CROSS_REF.match(head):
@@ -793,31 +878,60 @@ def extract_progress_gmtp(pdf):
 #   Sections 6.3 / 6.4 / 6.5 "Main Activities in Next Week (<Area>)" — '•'
 #   bullets under numbered sub-headings ("6.4.2 Piperack – B, C, D, E").
 
-_GMTP_CONCERN_PAGE   = re.compile(r'key\s+issues\s+and\s+concerns', re.I)
-_GMTP_CONCERN_ITEM   = re.compile(r'^[○●◦o]\s+(\S.*)$')
+# Pak Beng shares this report's section layout but not its exact wording, and
+# loosening these patterns to cover both is what broke GMTP: allowing numbered
+# concern items pulled unrelated numbered lines off its Key Issues pages, and
+# making the activities heading's area suffix optional let that reader match
+# GMTP's own "5.7 Main Activities in Next Week" under Procurement. Each
+# project passes its own pair; neither is widened for the other.
+_GMTP_CONCERN_PAGE    = re.compile(r'key\s+issues\s+and\s+concerns', re.I)
+_GMTP_CONCERN_ITEM    = re.compile(r'^[○●◦o]\s+(\S.*)$')
+_PAKBENG_CONCERN_PAGE = re.compile(r'this\s+week\s+issues\s+and\s+concerns', re.I)
+_PAKBENG_CONCERN_ITEM = re.compile(r'^\d+\s*\.\s*(\S.*)$')
+# Pak Beng repeats each concern in Chinese; the English above it is enough.
+_CJK_LINE = re.compile(r'[\u3000-\u9fff\uff00-\uffef]')
 _GMTP_CONCERN_CLOSE  = re.compile(r'^\d+\s+\w+\.?\s+\w+\.?\s*$')
 _GMTP_CONCERN_NOISE  = re.compile(
     r'^(status|no\.|<\s*open|\d+\s*$|key\s+issues)', re.I)
 
+# GMTP's construction sections suffix the heading with their area ("... in
+# Next Week (BOP Area)"). Requiring the suffix is what keeps this off the
+# report's other "Main Activities in Next Week" sections, notably 5.7 under
+# Procurement. Pak Beng's single unsuffixed section has its own pattern below.
 _GMTP_NEXT_WEEK_PAGE = re.compile(
     r'main\s+activities\s+in\s+next\s+week\s*\(([^)]*)\)', re.I)
+_PAKBENG_NEXT_WEEK_PAGE = re.compile(
+    r'main\s+activities\s+in\s+next\s+week', re.I)
 _GMTP_SUBHEADING     = re.compile(r'^\s*6\.\d+(?:\.\d+)*\s+(\S.*?)\s*$')
 _GMTP_BULLET         = re.compile(r'^\s*[•▪·]\s*(\S.*)$')
 
 
-def extract_gmtp_concerns(pdf, max_items=20):
+def extract_gmtp_concerns_checked(pdf, max_items=20, page_re=None,
+                                  item_re=None):
     """
     Section 10 "KEY ISSUES AND CONCERNS" → one line per item, rendered as
     "<heading> — <first description line>" so the dashboard shows what the
     issue is, not just its title. Returns [] if the section is absent.
+
+    page_re/item_re let Pak Beng reuse this: its section is titled "THIS WEEK
+    ISSUES AND CONCERNS" and numbers its items rather than bulleting them.
     """
+    page_re = page_re or _GMTP_CONCERN_PAGE
+    item_re = item_re or _GMTP_CONCERN_ITEM
     items = []
+    # Whether the section was located at all. A report that states
+    # "None." (Pak Beng 066) yields an empty list, and the caller has to
+    # be able to tell that from "this reader found nothing to read" -
+    # otherwise the generic scan's table wreckage keeps winning against
+    # a report that genuinely has no concerns this week.
+    found_section = False
     try:
         with pdfplumber.open(pdf) as doc:
             for page in doc.pages:
                 text = page.extract_text() or ''
-                if not _GMTP_CONCERN_PAGE.search(text):
+                if not page_re.search(text):
                     continue
+                found_section = True
                 # An item reads:
                 #   ○ <heading>
                 #   <description, wrapped over 1-2 lines>      ← preferred
@@ -840,7 +954,12 @@ def extract_gmtp_concerns(pdf, max_items=20):
 
                 for raw in text.splitlines():
                     line = raw.strip()
-                    m = _GMTP_CONCERN_ITEM.match(line)
+                    # Pak Beng's section title ("8.THIS WEEK ISSUES AND
+                    # CONCERNS") is itself a numbered line, so skip it before
+                    # the item test or it becomes the first concern.
+                    if page_re.search(line):
+                        continue
+                    m = item_re.match(line)
                     if m:
                         done = _flush(heading, lead, first_bullet)
                         if done:
@@ -852,7 +971,14 @@ def extract_gmtp_concerns(pdf, max_items=20):
                     if (not line or _GMTP_CONCERN_NOISE.match(line)
                             or _GMTP_CONCERN_CLOSE.match(line)):
                         continue
-                    if line.startswith(('-', '–', '•')):
+                    if _CJK_LINE.search(line):
+                        continue
+                    # Layout artefacts: a line made only of dashes or other
+                    # punctuation carries no text ("- -" sits between Pak
+                    # Beng's concern title and its description).
+                    if not re.search(r'[A-Za-z]{3}', line):
+                        continue
+                    if line.startswith(('-', '–', '•', '‑')):
                         seen_bullet = True
                         if first_bullet is None:
                             first_bullet = line.lstrip('-–• ').strip()
@@ -870,7 +996,12 @@ def extract_gmtp_concerns(pdf, max_items=20):
         if it not in seen and len(it) > 10:
             seen.add(it)
             out.append(it)
-    return out[:max_items]
+    return out[:max_items], found_section
+
+
+def extract_gmtp_concerns(pdf, max_items=20, page_re=None, item_re=None):
+    """Concern list only; see extract_gmtp_concerns_checked for the flag."""
+    return extract_gmtp_concerns_checked(pdf, max_items, page_re, item_re)[0]
 
 
 def extract_gmtp_next_week_activities(pdf, max_items=20):
@@ -888,13 +1019,15 @@ def extract_gmtp_next_week_activities(pdf, max_items=20):
                 mp = _GMTP_NEXT_WEEK_PAGE.search(text)
                 if not mp:
                     continue
-                area, sub = mp.group(1).strip(), None
+                area = (mp.group(1) or '').strip()
+                sub = None
                 for raw in text.splitlines():
                     line = raw.strip()
                     mb = _GMTP_BULLET.match(line)
                     if mb:
                         body = mb.group(1).strip()
-                        label = f"[{area}] " + (f"{sub}: " if sub else '')
+                        label = (f"[{area}] " if area else '') \
+                            + (f"{sub}: " if sub else '')
                         items.append(label + body)
                         continue
                     mh = _GMTP_SUBHEADING.match(line)
@@ -1162,57 +1295,80 @@ def _extract_solar_from_exec_summary(pdf):
     return scopes
 
 
-def extract_solar_concerns_from_exec_summary(pdf):
+# Cells in this table are bulleted with whichever glyph the contractor's
+# template uses. An unrecognised marker does not fail loudly - it just folds
+# every bullet in the cell into one run-on item - so the set is deliberately
+# broad.
+_EXEC_CELL_BULLET = re.compile(r'^[\u2022\u25aa\u25a1\u2751\u274f\u27a2\u25cb\u25e6*-]\s*')
+# A cell can carry the slide's page number in its corner ("N/A 4"), so strip a
+# trailing bare number before deciding whether the cell is empty.
+_EXEC_CELL_EMPTY = ('N/A', 'NA', 'N.A', '-', 'NONE')
+
+
+def _exec_summary_row_items(pdf, row_key, header_keys,
+                            require_site_progress=False, page_limit=10):
     """
-    Read the 'Concern need management attention' row of the same Executive
-    Summary table used by _extract_solar_from_exec_summary, instead of the
-    generic keyword-based bullet scan used elsewhere in extract_from_pdf.
-    Each non-N/A cell is prefixed with its column header for context.
-    Returns a list of concern strings (possibly empty).
+    Read one row of the Solar/Wind Executive Summary table and return
+    (items, found_row). Each item is prefixed with its scope column header,
+    e.g. "[PVfarm(GUE)] Installation Pump water tank".
+
+    row_key is matched against the row's text with spaces removed: these
+    cells lose their spacing in extraction ("Concernneedmanagement attention",
+    "Keyhighlight activitythisweek").
+
+    found_row distinguishes "the row is there and says nothing this week" from
+    "the row could not be located", which callers need in order to decide
+    whether falling back to the generic whole-PDF scan is right. Keeping stale
+    text from elsewhere in the report over a genuine "no concerns" is not.
     """
-    concerns = []
+    items_out = []
+    found_row = False
     with pdfplumber.open(pdf) as doc:
-        for page in doc.pages[:10]:
-            text = page.extract_text() or ''
-            if 'executive summary' not in text.lower() and 'site progress' not in text.lower():
+        for page in doc.pages[:page_limit]:
+            text = (page.extract_text() or '').lower()
+            has_exec = 'executive summary' in text
+            has_site = 'site progress' in text
+            if require_site_progress:
+                if not (has_exec and has_site):
+                    continue
+            elif not (has_exec or has_site):
                 continue
+
             for tbl in page.extract_tables():
                 if not tbl:
                     continue
-                header_row = None
-                concern_row = None
+                header_row = target_row = None
                 for row in tbl:
                     if not _is_multicol_row(row):
                         continue
                     joined = ' '.join(str(c or '') for c in row).lower()
-                    if any(k in joined for k in ['gue', 'pvfarm', 'pv farm', 'siemens']):
-                        if header_row is None:
-                            header_row = row
-                    if 'concern' in joined.replace(' ', ''):
-                        concern_row = row
+                    if header_row is None and any(k in joined for k in header_keys):
+                        header_row = row
+                    if row_key in joined.replace(' ', ''):
+                        target_row = row
 
-                if header_row is None or concern_row is None:
+                if header_row is None or target_row is None:
                     continue
+                found_row = True
 
-                bullet_re = re.compile(r'^[•▪❑\-]\s*')
-                for ci, cell in enumerate(concern_row):
-                    header = str(header_row[ci]) if ci < len(header_row) and header_row[ci] else None
+                for ci, cell in enumerate(target_row):
+                    header = (str(header_row[ci])
+                              if ci < len(header_row) and header_row[ci] else None)
                     if not header or not cell or header.strip().lower() == 'topic':
                         continue
                     header_label = ' '.join(header.split())
-                    # A single bullet's text wraps across multiple lines in
-                    # the PDF (narrow column) — only lines starting with a
-                    # bullet marker begin a new item; other lines continue
-                    # the previous one.
+                    # One bullet's text wraps over several lines in these
+                    # narrow columns: only a bullet marker starts a new item,
+                    # everything else continues the one above.
                     items, current = [], None
                     for line in str(cell).split('\n'):
                         line = line.strip()
                         if not line:
                             continue
-                        if bullet_re.match(line):
+                        if _EXEC_CELL_BULLET.match(line):
                             if current:
                                 items.append(current)
-                            current = bullet_re.sub('', line)
+                            current = _EXEC_CELL_BULLET.sub('', line)
                         elif current is not None:
                             current += ' ' + line
                         else:
@@ -1220,15 +1376,27 @@ def extract_solar_concerns_from_exec_summary(pdf):
                     if current:
                         items.append(current)
                     for it in items:
-                        # The last column's cell often has the page number
-                        # bleed into its text (e.g. "N/A 4") since it sits at
-                        # the page's bottom-right corner — strip a trailing
-                        # bare number before the N/A check.
                         it_check = re.sub(r'\s*\d+\s*$', '', it).strip()
-                        if not it_check or it_check.upper() in ('N/A', 'NA'):
+                        if not it_check or it_check.upper() in _EXEC_CELL_EMPTY:
                             continue
-                        concerns.append(f'[{header_label}] {it}')
-    return concerns
+                        items_out.append(f'[{header_label}] {it}')
+    return items_out, found_row
+
+
+_SOLAR_SCOPE_HEADERS = ['gue', 'pvfarm', 'pv farm', 'siemens']
+_WIND_SCOPE_HEADERS  = ['pcz', 'siemens', 'goldwind', 'gold wind', 'tsa']
+
+
+def extract_solar_concerns_from_exec_summary(pdf):
+    """The 'Concern need management attention' row of a Solar report."""
+    items, _ = _exec_summary_row_items(pdf, 'concern', _SOLAR_SCOPE_HEADERS)
+    return items
+
+
+def extract_solar_highlights_from_exec_summary(pdf):
+    """The 'Key highlight activity this week' row of a Solar report."""
+    items, _ = _exec_summary_row_items(pdf, 'keyhighlight', _SOLAR_SCOPE_HEADERS)
+    return items
 
 
 # ── Wind Executive Summary ────────────────────────────────────────────────────
@@ -1370,69 +1538,25 @@ def _extract_wind_from_exec_summary(pdf):
 
 def extract_wind_concerns_from_exec_summary(pdf):
     """
-    Read the 'Concern need management attention' row of the Wind Executive
-    Summary table — same approach as extract_solar_concerns_from_exec_summary,
-    just with Wind's scope-column keywords. Some reports (e.g. ECE) use a
-    bare '-' for an empty cell instead of 'N/A'.
-    Returns a list of concern strings, or None if the Concern row itself
-    couldn't be located at all — the caller treats None as "fall back to the
-    generic whole-PDF scan" and [] as "found the row, it's genuinely empty
-    this week" (a week with a real 'no concerns' should not keep stale
-    concern text the generic scan picked up from elsewhere in the report).
+    The 'Concern need management attention' row of a Wind report. Returns None
+    when the row itself could not be found, so the caller can fall back to the
+    generic scan; [] means the row is there and empty this week.
     """
-    concerns = []
-    found_row = False
-    with pdfplumber.open(pdf) as doc:
-        for page in doc.pages[:8]:
-            text = page.extract_text() or ''
-            if 'executive summary' not in text.lower() or 'site progress' not in text.lower():
-                continue
-            for tbl in page.extract_tables():
-                if not tbl:
-                    continue
-                header_row = None
-                concern_row = None
-                for row in tbl:
-                    if not _is_multicol_row(row):
-                        continue
-                    joined = ' '.join(str(c or '') for c in row).lower()
-                    if header_row is None and any(
-                            k in joined for k in ['pcz', 'siemens', 'goldwind', 'gold wind', 'tsa']):
-                        header_row = row
-                    if 'concern' in joined.replace(' ', ''):
-                        concern_row = row
+    items, found = _exec_summary_row_items(
+        pdf, 'concern', _WIND_SCOPE_HEADERS, require_site_progress=True,
+        page_limit=8)
+    return items if found else None
 
-                if header_row is None or concern_row is None:
-                    continue
-                found_row = True
 
-                bullet_re = re.compile(r'^[•▪❑\-]\s*')
-                for ci, cell in enumerate(concern_row):
-                    header = str(header_row[ci]) if ci < len(header_row) and header_row[ci] else None
-                    if not header or not cell or header.strip().lower() == 'topic':
-                        continue
-                    header_label = ' '.join(header.split())
-                    items, current = [], None
-                    for line in str(cell).split('\n'):
-                        line = line.strip()
-                        if not line:
-                            continue
-                        if bullet_re.match(line):
-                            if current:
-                                items.append(current)
-                            current = bullet_re.sub('', line)
-                        elif current is not None:
-                            current += ' ' + line
-                        else:
-                            current = line
-                    if current:
-                        items.append(current)
-                    for it in items:
-                        it_check = re.sub(r'\s*\d+\s*$', '', it).strip()
-                        if not it_check or it_check.upper() in ('N/A', 'NA', '-'):
-                            continue
-                        concerns.append(f'[{header_label}] {it}')
-    return concerns if found_row else None
+def extract_wind_highlights_from_exec_summary(pdf):
+    """
+    The 'Key highlight activity this week' row of a Wind report. Same
+    None-versus-empty contract as the concerns reader above.
+    """
+    items, found = _exec_summary_row_items(
+        pdf, 'keyhighlight', _WIND_SCOPE_HEADERS, require_site_progress=True,
+        page_limit=8)
+    return items if found else None
 
 
 # ── Wind extractor ─────────────────────────────────────────────────────────────
@@ -1666,6 +1790,178 @@ def _ocr_paklay_scurve(search_dir):
     return {'plan': None, 'actual': None}
 
 
+# ── Pak Beng next-week activities ─────────────────────────────────────────────
+#
+# "6.2 Main Activities in Next Week" is a table, not a bulleted list:
+#
+#   No.  Construction Location   Work Content        Unit  Design   Remaining  Next-Week  Next-Week
+#                                                          Quantity Quantity   Planned    Planned %
+#   1.1  Right-bank Abutment     Earth-rock Excav.   m3    369000   53401.00   0          0.00%
+#                               EL.364~379 Slope Sup Item  1        0.28       0.03       3.00%
+#
+# Most rows plan nothing for the coming week, so only those with a non-zero
+# planned figure are reported, tagged with the location heading above them.
+
+_PAKBENG_WORK_ROW = re.compile(
+    r'^\s*(?:\d+(?:\.\d+)*\s+)?(\S.*?)\s+'
+    r'(m\u00b3|m\u00b2|m3|m2|m|Item|Pcs|No|set|t)\s+'
+    r'([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s*%\s*$', re.I)
+
+
+def extract_pakbeng_activities(pdf, max_items=20):
+    """
+    Rows of "6.2 Main Activities in Next Week" that plan work for the coming
+    week, with the quantity planned.
+    Returns [] when the section is absent.
+    """
+    items = []
+    try:
+        with pdfplumber.open(pdf) as doc:
+            for page in doc.pages:
+                text = page.extract_text() or ''
+                if not _PAKBENG_NEXT_WEEK_PAGE.search(text):
+                    continue
+                for raw in text.splitlines():
+                    line = raw.strip()
+                    m = _PAKBENG_WORK_ROW.match(line)
+                    if m:
+                        desc, unit, planned, pct = (m.group(1).strip(), m.group(2),
+                                                    m.group(5), m.group(6))
+                        try:
+                            if float(pct.replace(',', '')) <= 0:
+                                continue
+                        except ValueError:
+                            continue
+                        # No location tag. This table wraps its location names
+                        # across lines ("Downstream Approach" on one, "1.2
+                        # ChannelAbove EL.349m" on the next), so the heading
+                        # above a row cannot be tracked reliably - every row
+                        # after the first location ended up carrying that one,
+                        # putting the cofferdam's drainage channel under the
+                        # right-bank abutment. A wrong location reads as fact;
+                        # no location does not.
+                        items.append(
+                            f'{desc} \u2014 {planned} {unit} ({pct}%)')
+    except Exception as e:
+        print(f"  [pakbeng activities error] {e}")
+
+    out, seen = [], set()
+    for it in items:
+        if it not in seen and len(it) > 10:
+            seen.add(it)
+            out.append(it)
+    return out[:max_items]
+
+
+# ── Pak Lay content ───────────────────────────────────────────────────────────
+#
+# Pak Lay's EPC uses its own report format. Section 2 is the next week's work
+# plan, and its 2.3 Construction tables list the work item by item with
+# quantities; 2.5 "Weekly Look Ahead Plan" in the same section is a percentage
+# table, which is what the generic scan had been serving as activities
+# ("Design Works 0.404% 17.14% 0.804% 17.946% ..."). Section 3.1 is the
+# issues list.
+
+_PAKLAY_NEXT_WEEK_SECTION = re.compile(r"next\s+week'?s?\s+work\s+plan", re.I)
+_PAKLAY_CONSTRUCTION_PAGE = re.compile(r'^\s*2\.3\s+construction', re.I | re.M)
+_PAKLAY_LOOKAHEAD_PAGE    = re.compile(r'^\s*2\.\d+\s+weekly\s+look\s+ahead',
+                                       re.I | re.M)
+_PAKLAY_ISSUES_PAGE       = re.compile(
+    r'^\s*3(?:\.\d+)?\s+list\s+of\s+issues\s+to\s+be\s+coordinated',
+    re.I | re.M)
+# "1.2 Site hardening(#2~#5) m2 5213 600 180" - a numbered work row whose
+# description is followed by a unit and its quantities.
+_PAKLAY_WORK_ROW = re.compile(
+    r'^\s*(\d+(?:\.\d+)+)\s+(\S.*?)\s+'
+    r'(m3|m2|m\u00b3|m\u00b2|m|Item|Pcs|No|set|t)\s+'
+    r'([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s*$', re.I)
+# "1 EPC Hub Camp" - the group heading the rows below belong to.
+_PAKLAY_WORK_GROUP = re.compile(r'^\s*(\d+)\s+(\D[^\d]{3,})\s*$')
+
+
+def extract_paklay_activities(pdf, max_items=20):
+    """
+    Section 2.3's construction work rows, prefixed with their group
+    ("[Left Bank Aggregate & Batching System] Conveyor belt concrete
+    pouring - 293 m3"). Rows planning nothing this period are skipped, and
+    2.5's percentage table is excluded outright.
+    Returns [] when the section is absent.
+    """
+    items = []
+    try:
+        with pdfplumber.open(pdf) as doc:
+            for page in doc.pages:
+                text = page.extract_text() or ''
+                if not _PAKLAY_CONSTRUCTION_PAGE.search(text):
+                    continue
+                if _PAKLAY_LOOKAHEAD_PAGE.search(text):
+                    continue
+                group = None
+                for raw in text.splitlines():
+                    line = raw.strip()
+                    m = _PAKLAY_WORK_ROW.match(line)
+                    if m:
+                        desc, unit, planned = (m.group(2).strip(), m.group(3),
+                                               m.group(5))
+                        try:
+                            if float(planned.replace(',', '')) <= 0:
+                                continue
+                        except ValueError:
+                            pass
+                        label = f'[{group}] ' if group else ''
+                        items.append(f'{label}{desc} \u2014 {planned} {unit}')
+                        continue
+                    g = _PAKLAY_WORK_GROUP.match(line)
+                    if g:
+                        group = g.group(2).strip()
+    except Exception as e:
+        print(f"  [paklay activities error] {e}")
+
+    out, seen = [], set()
+    for it in items:
+        if it not in seen and len(it) > 10:
+            seen.add(it)
+            out.append(it)
+    return out[:max_items]
+
+
+def extract_paklay_concerns(pdf, max_items=20):
+    """
+    Section 3.1 "List of Issues to be Coordinated". Numbered items, or the
+    single word "None" - in which case there are genuinely no issues to
+    coordinate this week and the honest answer is an empty list, not the
+    twenty rows of table headers the generic scan was producing.
+    Returns [] when the section is absent or says None.
+    """
+    items = []
+    try:
+        with pdfplumber.open(pdf) as doc:
+            for page in doc.pages:
+                text = page.extract_text() or ''
+                if not _PAKLAY_ISSUES_PAGE.search(text):
+                    continue
+                current = None
+                for raw in text.splitlines()[1:]:
+                    line = raw.strip()
+                    if not line or _PAGE_NUM.match(line):
+                        continue
+                    if line.upper() in ('NONE', 'N/A', 'NA'):
+                        continue
+                    if _IWTE_NUM_BULLET.match(line):
+                        if current:
+                            items.append(current)
+                        current = _IWTE_NUM_BULLET.sub('', line).strip()
+                    elif current is not None:
+                        current += ' ' + line
+                    else:
+                        current = line
+                if current:
+                    items.append(current)
+    except Exception as e:
+        print(f"  [paklay concerns error] {e}")
+    return [it for it in items if len(it) > 10][:max_items]
+
+
 # ── Progress dispatcher ───────────────────────────────────────────────────────
 
 def extract_progress(pdf_path, prj_id, search_dir=None):
@@ -1789,6 +2085,12 @@ def extract_from_pdf(pdf_path, prj_id=None, search_dir=None):
                 concerns = exec_concerns
         except Exception as e:
             print(f"  [iwte concerns error] {e}")
+        try:
+            lookahead = extract_iwte_lookahead(pdf_path)
+            if lookahead is not None:
+                activities = lookahead
+        except Exception as e:
+            print(f"  [iwte lookahead error] {e}")
 
     # Wind: Executive Summary's 'Concern need management attention' row is
     # the authoritative source going forward. Unlike iWTE, the row is always
@@ -1805,6 +2107,21 @@ def extract_from_pdf(pdf_path, prj_id=None, search_dir=None):
         except Exception as e:
             print(f"  [wind concerns error] {e}")
 
+    # Solar and Wind both state the period's work per scope in their Executive
+    # Summary's "Key highlight activity this week" row. The generic scan found
+    # nothing at all for five of these projects and hit its item cap on table
+    # text for three more, so prefer the row wherever it is present.
+    if AUTO_EXTRACT_PROJECTS.get(prj_id) in ('solar', 'wind'):
+        try:
+            reader = (extract_wind_highlights_from_exec_summary
+                      if AUTO_EXTRACT_PROJECTS.get(prj_id) == 'wind'
+                      else extract_solar_highlights_from_exec_summary)
+            highlights = reader(pdf_path)
+            if highlights:
+                activities = highlights
+        except Exception as e:
+            print(f"  [highlights error] {e}")
+
     # GMTP: section 10 "Key Issues and Concerns" and sections 6.3-6.5 "Main
     # Activities in Next Week" are the authoritative sources; the generic scan
     # above reads the SHE/milestone tables instead. Only replace what the
@@ -1812,14 +2129,40 @@ def extract_from_pdf(pdf_path, prj_id=None, search_dir=None):
     # whatever the generic scan managed to pick up.
     if AUTO_EXTRACT_PROJECTS.get(prj_id) == 'gmtp':
         try:
-            gmtp_concerns = extract_gmtp_concerns(pdf_path)
-            if gmtp_concerns:
+            gmtp_concerns, gmtp_found = extract_gmtp_concerns_checked(pdf_path)
+            if gmtp_found:
                 concerns = gmtp_concerns
             gmtp_activities = extract_gmtp_next_week_activities(pdf_path)
             if gmtp_activities:
                 activities = gmtp_activities
         except Exception as e:
             print(f"  [gmtp content error] {e}")
+
+    # Pak Beng shares GMTP's report template, so the same section readers
+    # apply once their patterns allow its spelling.
+    if AUTO_EXTRACT_PROJECTS.get(prj_id) == 'hydro_pakbeng':
+        try:
+            pb_concerns, pb_found = extract_gmtp_concerns_checked(
+                pdf_path, page_re=_PAKBENG_CONCERN_PAGE,
+                item_re=_PAKBENG_CONCERN_ITEM)
+            if pb_found:
+                concerns = pb_concerns
+            pb_activities = extract_pakbeng_activities(pdf_path)
+            if pb_activities:
+                activities = pb_activities
+        except Exception as e:
+            print(f"  [pakbeng content error] {e}")
+
+    # Pak Lay uses its own format; both of its sections are authoritative,
+    # including when the issues list says "None".
+    if AUTO_EXTRACT_PROJECTS.get(prj_id) == 'hydro_paklay':
+        try:
+            concerns = extract_paklay_concerns(pdf_path)
+            pl_activities = extract_paklay_activities(pdf_path)
+            if pl_activities:
+                activities = pl_activities
+        except Exception as e:
+            print(f"  [paklay content error] {e}")
 
     # Extract progress %
     progress = extract_progress(pdf_path, prj_id, search_dir=search_dir) if prj_id else \
