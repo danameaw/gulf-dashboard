@@ -40,6 +40,36 @@ def find_week_folder(year=None):
     return latest, week, yr, _parse_folder_date(name)
 
 
+def _norm_key(name):
+    """Reduce a folder name to letters+digits for tolerant comparison."""
+    return re.sub(r'[^a-z0-9]', '', name.lower())
+
+
+def resolve_group_folder(week_folder, folder_name):
+    """
+    Locate a project group's folder inside the week folder.
+    These folders are named by hand and the spelling drifts week to week:
+    'iWTE' / 'IWTE' / 'Iwte' (harmless, Windows paths are case-insensitive)
+    but also 'Wind2027' vs 'Wind 2027' (as in 33_260819), which an exact
+    os.path.join misses — reporting FOLDER NOT FOUND for all five Wind
+    projects even though the reports were sitting right there. Compare on
+    letters and digits only so case, spacing and punctuation don't matter.
+    Returns the real path, or None if no folder matches.
+    """
+    exact = os.path.join(week_folder, folder_name)
+    if os.path.isdir(exact):
+        return exact
+    want = _norm_key(folder_name)
+    try:
+        for entry in sorted(os.listdir(week_folder)):
+            cand = os.path.join(week_folder, entry)
+            if os.path.isdir(cand) and _norm_key(entry) == want:
+                return cand
+    except OSError:
+        pass
+    return None
+
+
 # ── 2. Find PDF for a project ──────────────────────────────────────────────
 def find_pdf(folder_path, prj_id):
     keywords = PROJECT_KEYWORDS.get(prj_id, [])
@@ -111,12 +141,14 @@ def build_seed(prj_id, week, year, data):
     scopes = data.get('scopes', {})
     discs  = data.get('disciplines', {})
 
+    # A project can have both: GMTP reports per-area progress (LNG Tank /
+    # BOP & Utility / Marine) *and* a project-wide EPCC breakdown. Emitting
+    # only `scopes` dropped the disciplines from the dashboard entirely.
+    structure_line = ''
     if scopes:
-        structure_line = f"  scopes: {_build_scopes_js(scopes)},\n"
-    elif discs:
-        structure_line = f"  disciplines: {_build_disciplines_js(discs)},\n"
-    else:
-        structure_line = ''
+        structure_line += f"  scopes: {_build_scopes_js(scopes)},\n"
+    if discs:
+        structure_line += f"  disciplines: {_build_disciplines_js(discs)},\n"
 
     return (
         f"// ── {PROJECT_NAMES.get(prj_id, prj_id)} ({prj_id}) Week {week} — auto-extracted\n"
@@ -138,6 +170,79 @@ DATE_MARKER_END      = '// ── END REPORT DATES ──'
 WEEK_MARKER_START    = '// ── AUTO: CURRENT WEEK ──'
 WEEK_MARKER_END      = '// ── END CURRENT WEEK ──'
 
+def _find_seed_inject_point(html):
+    """
+    Offset just past seedIfEmpty()'s closing brace, where generated seed
+    blocks are injected. Anchored on the closing brace rather than the
+    function body so edits inside seedIfEmpty can't silently break the match.
+    Returns -1 when the marker or the function can't be found.
+    """
+    marker_pos = html.find(SEED_MARKER)
+    if marker_pos == -1:
+        return -1
+    fn_pos = html.find('function seedIfEmpty(key, data) {', marker_pos)
+    if fn_pos == -1:
+        return -1
+    close_pos = html.find('\n}\n', fn_pos)
+    if close_pos == -1:
+        return -1
+    return close_pos + len('\n}\n')
+
+
+def _week_seed_header(week, year):
+    return f'// ── Week {week}/{year} — AUTO-GENERATED ──'
+
+
+def _drop_week_seed_block(html, week_header):
+    """
+    Remove any existing seed block for one week: from its header up to the
+    next week header (or the end of the seed region). Re-running a week used
+    to insert a SECOND block for the same keys instead of replacing the
+    first; the newest block does win (it is injected at the top, and
+    seedIfEmpty skips keys already set), but every stale copy stayed in the
+    file forever - index.html is already 1.5MB - and made "what is actually
+    seeded for W32" impossible to answer by reading the file. Dropping the
+    old block first makes a corrective re-run idempotent.
+    """
+    while True:
+        start = html.find(week_header)
+        if start == -1:
+            return html
+        end = html.find('// ── Week ', start + len(week_header))
+        if end == -1:
+            # Blocks are injected newest-first, so the week being re-run
+            # normally has an older week's header after it. Without one
+            # this is the oldest block in the file and the only stop point
+            # left is </script> - everything between would go with it.
+            # Leave it alone and fall back to the old append behaviour.
+            print(f'  [warn] no block after {week_header.strip()} - '
+                  'leaving the existing one in place')
+            return html
+        html = html[:start] + html[end:]
+
+
+def bump_seed_version(html):
+    """
+    seedIfEmpty() refuses to overwrite a key that already holds real
+    plan/actual numbers in a visitor's browser, so re-extracting a week only
+    reaches people who have never opened the dashboard - everyone else keeps
+    seeing the old, wrong numbers forever. index.html carries a SEED_VERSION
+    force-refresh guard for exactly this case, but nothing ever bumped it: it
+    still read '2026-07-22.2' while five weekly runs shipped on top of it.
+    Stamp it on every run so a correction always reaches every visitor.
+
+    This drops each visitor's cached progressData wholesale, manual dashboard
+    edits included, for any week whose seed block does not carry them.
+    """
+    m = re.search(r"const SEED_VERSION = '([^']*)';", html)
+    if not m:
+        print("  [warn] SEED_VERSION not found - visitors may keep stale data")
+        return html
+    stamp = datetime.now().strftime('%Y-%m-%d.%H%M')
+    print(f"  ✓ SEED_VERSION {m.group(1)} → {stamp} (forces client refresh)")
+    return html[:m.start()] + f"const SEED_VERSION = '{stamp}';" + html[m.end():]
+
+
 def update_html(week, year, seeds_js, missing_ids, report_date=None):
     with open(DASHBOARD_HTML, encoding='utf-8') as f:
         html = f.read()
@@ -150,17 +255,11 @@ def update_html(week, year, seeds_js, missing_ids, report_date=None):
     # at the end of the file. Because seedIfEmpty only overwrites a key that
     # is still null, those appended duplicates could permanently shadow any
     # later correction for a key that already had a non-null value.)
-    inject_point = -1
-    marker_pos = html.find(SEED_MARKER)
-    if marker_pos != -1:
-        fn_pos = html.find('function seedIfEmpty(key, data) {', marker_pos)
-        if fn_pos != -1:
-            close_pos = html.find('\n}\n', fn_pos)
-            if close_pos != -1:
-                inject_point = close_pos + len('\n}\n')
+    week_header = _week_seed_header(week, year)
+    html = _drop_week_seed_block(html, week_header)
+    inject_point = _find_seed_inject_point(html)
     if inject_point != -1:
-        new_seeds = '\n\n// ── Week ' + str(week) + '/' + str(year) + ' — AUTO-GENERATED ──\n'
-        new_seeds += '\n'.join(seeds_js)
+        new_seeds = '\n\n' + week_header + '\n' + '\n'.join(seeds_js)
         html = html[:inject_point] + new_seeds + html[inject_point:]
     else:
         print("  [warn] SEED_MARKER not found, appending seeds before </script>")
@@ -232,6 +331,8 @@ def update_html(week, year, seeds_js, missing_ids, report_date=None):
         html = _re.sub(
             r'currentWeek\s*=\s*\d+;\s*currentYear\s*=\s*\d+;\s*saveData\(\);',
             week_js, html)
+
+    html = bump_seed_version(html)
 
     with open(DASHBOARD_HTML, 'w', encoding='utf-8') as f:
         f.write(html)
@@ -476,6 +577,10 @@ def main():
                         help='Extract only, do not update files')
     parser.add_argument('--no-email', action='store_true',
                         help='Skip sending email notification')
+    parser.add_argument('--no-push', action='store_true',
+                        help='Update index.html/Excel locally but do not '
+                             'commit or push (for reviewing a correction '
+                             'before it goes live)')
     args = parser.parse_args()
 
     print("=" * 60)
@@ -506,8 +611,8 @@ def main():
 
     # Process each project group
     for folder_name, prj_ids in FOLDER_PROJECTS.items():
-        group_path = os.path.join(week_folder, folder_name)
-        folder_exists = os.path.isdir(group_path)
+        group_path = resolve_group_folder(week_folder, folder_name)
+        folder_exists = group_path is not None
 
         for prj_id in prj_ids:
             name = PROJECT_NAMES.get(prj_id, prj_id)
@@ -556,7 +661,10 @@ def main():
     print("\n  Updating dashboard...")
     update_html(week, year, seeds_js, missing, report_date=report_date)
     update_excel(week, year, results)
-    git_push(week, year)
+    if args.no_push:
+        print("  [no-push] Skipping git commit/push.")
+    else:
+        git_push(week, year)
     xl_path = os.path.join(EXCEL_DIR, f'Gulf_Dashboard_W{week}_{year}.xlsx')
     if not args.no_email:
         send_email(week, year, results, missing, xl_path)

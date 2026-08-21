@@ -386,6 +386,72 @@ _GMTP_PLAN_ACTUAL_CALLOUT = re.compile(
     r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s*/\s*(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)
 
 
+# Every "3.2 S-Curve" page carries a numbered heading ("3.2.6 Engineering")
+# next to one clean "Plan / Actual :" callout. Reading those headings is far
+# more robust than parsing the 3.1.1 Overall Progress table, whose text layer
+# some exports scramble to one character per line (unrecoverable by any
+# regex — which is why GMTP reported discs=0 every week since W30), and it
+# recovers the per-area breakdown (LNG Tank / BOP & Utility / Marine) that
+# section 3.1.1 has but nothing was surfacing to the dashboard at all.
+_GMTP_SCURVE_HEADING = re.compile(r'^\s*3\.2\.(\d+)\s+(\S.*?)\s*$', re.M)
+_GMTP_DISC_TITLES = {
+    'engineering':   'Engineering',
+    'procurement':   'Procurement',
+    'construction':  'Construction',
+    'commissioning': 'Commissioning',
+}
+
+
+def _gmtp_section_kind(title):
+    """
+    Classify a 3.2.x section heading: 'overall', a discipline name, or None
+    (= a project area/package such as "LNG Tank Area").
+    Matched on the heading with any parenthetical and punctuation stripped,
+    and only as a whole word — a future area named e.g. "Marine Construction
+    Area" must not be mistaken for the project-wide Construction discipline.
+    """
+    key = re.sub(r'\([^)]*\)', ' ', title).strip().lower()
+    key = re.sub(r'[^a-z ]+', ' ', key).strip()
+    if 'overall' in key:
+        return 'overall'
+    return _GMTP_DISC_TITLES.get(key)
+
+
+def _gmtp_scurve_sections(pdf):
+    """
+    Walk the section-3.2 S-Curve pages and read each one's "Plan / Actual :"
+    callout, keyed by its heading.
+    Returns (overall_plan, overall_actual, disciplines, areas) where
+    disciplines/areas are {name: {'plan': float, 'actual': float}}.
+    """
+    overall_plan = overall_actual = None
+    discs, areas = {}, {}
+    try:
+        with pdfplumber.open(pdf) as doc:
+            for page in doc.pages:
+                text = page.extract_text() or ''
+                if '3.2 s-curve' not in text.lower():
+                    continue
+                mh = _GMTP_SCURVE_HEADING.search(text)
+                mv = _GMTP_PLAN_ACTUAL_CALLOUT.search(text)
+                if not mh or not mv:
+                    continue
+                plan, actual = _parse_pct(mv.group(1)), _parse_pct(mv.group(2))
+                if plan is None or actual is None:
+                    continue
+                title = mh.group(2).strip()
+                kind  = _gmtp_section_kind(title)
+                if kind == 'overall':
+                    overall_plan, overall_actual = plan, actual
+                elif kind:
+                    discs[kind] = {'plan': plan, 'actual': actual}
+                else:
+                    areas[title] = {'plan': plan, 'actual': actual}
+    except Exception as e:
+        print(f"  [gmtp s-curve error] {e}")
+    return overall_plan, overall_actual, discs, areas
+
+
 def _gmtp_overall_scurve(pdf):
     """
     The '3.2 S-Curve' / '3.2.1 Overall Progress' page prints a clean
@@ -421,6 +487,22 @@ def extract_progress_gmtp(pdf):
     Looks for page with discipline breakdown and plan/actual headers.
     Returns { plan, actual, disciplines: {disc: {plan, actual}} }.
     """
+    # Section 3.2's per-section callouts first — they carry the whole picture
+    # (project overall + all four disciplines + every project area) in the one
+    # format that has never failed to parse.
+    s_plan, s_actual, s_discs, s_areas = _gmtp_scurve_sections(pdf)
+    if s_plan is not None and (s_discs or s_areas):
+        result = {'plan': s_plan, 'actual': s_actual, 'disciplines': s_discs}
+        if s_areas:
+            # Scopes are the project's real areas (LNG Tank / BOP & Utility /
+            # Marine). The project-wide EPCC breakdown rides along in
+            # 'disciplines' above and the dashboard renders it as its own
+            # table, so there is no synthetic 'overall' scope here - that
+            # only duplicated the discipline table's Overall row while
+            # reading like a fourth area.
+            result['scopes'] = dict(s_areas)
+        return result
+
     scurve_plan, scurve_actual = _gmtp_overall_scurve(pdf)
 
     with pdfplumber.open(pdf) as doc:
@@ -484,6 +566,140 @@ def extract_progress_gmtp(pdf):
     if scurve_plan is not None:
         return {'plan': scurve_plan, 'actual': scurve_actual, 'disciplines': {}}
     return {'plan': None, 'actual': None, 'disciplines': {}}
+
+
+# ── GMTP concerns & next-week activities ──────────────────────────────────────
+#
+# The generic whole-PDF bullet scan in extract_from_pdf is a bad fit for this
+# report: it matched the SHE NCR table and the "This Week Key Milestone" list
+# as "concerns", and the safety/TBT event log as "activities", while the two
+# sections that actually say what the project is worried about and what it
+# will build next week were never read at all. Both are cleanly structured, so
+# read them directly.
+#
+#   Section 10 "KEY ISSUES AND CONCERNS" — one item per '○' heading, followed
+#   by free-text description lines and '-' detail bullets, closed by a
+#   "<no.> <owner> <status>" row (e.g. "1 Eng. Info.").
+#
+#   Sections 6.3 / 6.4 / 6.5 "Main Activities in Next Week (<Area>)" — '•'
+#   bullets under numbered sub-headings ("6.4.2 Piperack – B, C, D, E").
+
+_GMTP_CONCERN_PAGE   = re.compile(r'key\s+issues\s+and\s+concerns', re.I)
+_GMTP_CONCERN_ITEM   = re.compile(r'^[○●◦o]\s+(\S.*)$')
+_GMTP_CONCERN_CLOSE  = re.compile(r'^\d+\s+\w+\.?\s+\w+\.?\s*$')
+_GMTP_CONCERN_NOISE  = re.compile(
+    r'^(status|no\.|<\s*open|\d+\s*$|key\s+issues)', re.I)
+
+_GMTP_NEXT_WEEK_PAGE = re.compile(
+    r'main\s+activities\s+in\s+next\s+week\s*\(([^)]*)\)', re.I)
+_GMTP_SUBHEADING     = re.compile(r'^\s*6\.\d+(?:\.\d+)*\s+(\S.*?)\s*$')
+_GMTP_BULLET         = re.compile(r'^\s*[•▪·]\s*(\S.*)$')
+
+
+def extract_gmtp_concerns(pdf, max_items=20):
+    """
+    Section 10 "KEY ISSUES AND CONCERNS" → one line per item, rendered as
+    "<heading> — <first description line>" so the dashboard shows what the
+    issue is, not just its title. Returns [] if the section is absent.
+    """
+    items = []
+    try:
+        with pdfplumber.open(pdf) as doc:
+            for page in doc.pages:
+                text = page.extract_text() or ''
+                if not _GMTP_CONCERN_PAGE.search(text):
+                    continue
+                # An item reads:
+                #   ○ <heading>
+                #   <description, wrapped over 1-2 lines>      ← preferred
+                #   - <supporting detail bullet>               ← fallback
+                #   ...
+                #   <no.> <owner> <status>
+                # Wrapped continuation lines resume AFTER the bullets too, so
+                # collecting plain lines indiscriminately splices sentence
+                # fragments together ("and gondola for LNG tanks. to be
+                # possible."). Take only the plain lines that precede the
+                # first bullet, and fall back to the first bullet for items
+                # whose description is entirely bulleted.
+                heading, lead, first_bullet, seen_bullet = None, [], None, False
+
+                def _flush(heading, lead, first_bullet):
+                    if not heading:
+                        return None
+                    body = ' '.join(lead).strip() or (first_bullet or '')
+                    return f"{heading} — {body}" if body else heading
+
+                for raw in text.splitlines():
+                    line = raw.strip()
+                    m = _GMTP_CONCERN_ITEM.match(line)
+                    if m:
+                        done = _flush(heading, lead, first_bullet)
+                        if done:
+                            items.append(done)
+                        heading, lead, first_bullet, seen_bullet =                             m.group(1).strip(), [], None, False
+                        continue
+                    if heading is None:
+                        continue
+                    if (not line or _GMTP_CONCERN_NOISE.match(line)
+                            or _GMTP_CONCERN_CLOSE.match(line)):
+                        continue
+                    if line.startswith(('-', '–', '•')):
+                        seen_bullet = True
+                        if first_bullet is None:
+                            first_bullet = line.lstrip('-–• ').strip()
+                        continue
+                    if not seen_bullet and sum(len(d) for d in lead) < 220:
+                        lead.append(line)
+                done = _flush(heading, lead, first_bullet)
+                if done:
+                    items.append(done)
+    except Exception as e:
+        print(f"  [gmtp concerns error] {e}")
+
+    out, seen = [], set()
+    for it in items:
+        if it not in seen and len(it) > 10:
+            seen.add(it)
+            out.append(it)
+    return out[:max_items]
+
+
+def extract_gmtp_next_week_activities(pdf, max_items=20):
+    """
+    Sections 6.3-6.5 "Main Activities in Next Week (<Area>)" → one line per
+    '•' bullet, prefixed with its area and sub-heading
+    ("[BOP Area] Piling Work: Pile Driving at Process Area"). Returns [] if
+    no next-week section is present.
+    """
+    items = []
+    try:
+        with pdfplumber.open(pdf) as doc:
+            for page in doc.pages:
+                text = page.extract_text() or ''
+                mp = _GMTP_NEXT_WEEK_PAGE.search(text)
+                if not mp:
+                    continue
+                area, sub = mp.group(1).strip(), None
+                for raw in text.splitlines():
+                    line = raw.strip()
+                    mb = _GMTP_BULLET.match(line)
+                    if mb:
+                        body = mb.group(1).strip()
+                        label = f"[{area}] " + (f"{sub}: " if sub else '')
+                        items.append(label + body)
+                        continue
+                    mh = _GMTP_SUBHEADING.match(line)
+                    if mh and not _GMTP_NEXT_WEEK_PAGE.search(line):
+                        sub = mh.group(1).strip()
+    except Exception as e:
+        print(f"  [gmtp activities error] {e}")
+
+    out, seen = [], set()
+    for it in items:
+        if it not in seen and len(it) > 10:
+            seen.add(it)
+            out.append(it)
+    return out[:max_items]
 
 
 # ── Solar extractor ───────────────────────────────────────────────────────────
@@ -1161,11 +1377,17 @@ def extract_progress_hydro_paklay(pdf, search_dir=None):
 # baked into the page's image content, so OCR misreads "Achieved" as
 # "Achived" fairly consistently — match both spellings.
 _PAKLAY_CHART_PAGE_TITLE = re.compile(r'construction\s+progress\s+curve', re.I)
+# As of W32/2026 the EPC dropped the "Accumulative ... up to <week>" wording
+# and now labels the boxes plainly ("Planned Progress = 5.34%"), which the
+# old regexes required and so silently returned nothing for two weeks running.
+# Everything that isn't load-bearing is optional now: the "Accumulative"
+# prefix, the "up to <week>" clause, and the spaces OCR drops between words
+# ("PlannedProgress = 4.95 %" is a real W33 read) or adds before the '%'.
 _PAKLAY_OCR_PLANNED  = re.compile(
-    r'accumulative\s+planned\s+progress\s+up\s*to\s*[\w\s]{0,20}?=\s*'
+    r'(?:accumulative\s*)?planned\s*progress\s*(?:up\s*to[^=]{0,25})?=\s*'
     r'(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)
 _PAKLAY_OCR_ACHIEVED = re.compile(
-    r'accumulative\s+achi(?:e)?ved\s+progress\s+up\s*to\s*[\w\s]{0,20}?=\s*'
+    r'(?:accumulative\s*)?achi(?:e)?ved\s*progress\s*(?:up\s*to[^=]{0,25})?=\s*'
     r'(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)
 
 
@@ -1369,6 +1591,22 @@ def extract_from_pdf(pdf_path, prj_id=None, search_dir=None):
                 concerns = exec_concerns
         except Exception as e:
             print(f"  [wind concerns error] {e}")
+
+    # GMTP: section 10 "Key Issues and Concerns" and sections 6.3-6.5 "Main
+    # Activities in Next Week" are the authoritative sources; the generic scan
+    # above reads the SHE/milestone tables instead. Only replace what the
+    # dedicated readers actually found, so a report that drops a section keeps
+    # whatever the generic scan managed to pick up.
+    if AUTO_EXTRACT_PROJECTS.get(prj_id) == 'gmtp':
+        try:
+            gmtp_concerns = extract_gmtp_concerns(pdf_path)
+            if gmtp_concerns:
+                concerns = gmtp_concerns
+            gmtp_activities = extract_gmtp_next_week_activities(pdf_path)
+            if gmtp_activities:
+                activities = gmtp_activities
+        except Exception as e:
+            print(f"  [gmtp content error] {e}")
 
     # Extract progress %
     progress = extract_progress(pdf_path, prj_id, search_dir=search_dir) if prj_id else \

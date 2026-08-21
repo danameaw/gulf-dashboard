@@ -610,7 +610,7 @@ function saveData() {
 // (e.g. to today's date) whenever a manual data correction ships; on the
 // next load this drops the visitor's entire cached progressData so every
 // seedIfEmpty() call below re-applies fresh from this file.
-const SEED_VERSION = '2026-07-22.2';
+const SEED_VERSION = '2026-08-21.0943';
 if (localStorage.getItem('gulfSeedVersion') !== SEED_VERSION) {
   progressData = {};
   localStorage.setItem('gulfSeedVersion', SEED_VERSION);
@@ -995,9 +995,19 @@ function renderDetail(projectId) {
   } else if (prog.scopes && Object.keys(prog.scopes).length) {
     // No scope selected — show every scope's Plan/Actual/Variance at once
     // instead of requiring a dropdown pick per scope; select one from the
-    // dropdown to drill into its discipline breakdown instead.
+    // dropdown to drill into that scope's own discipline breakdown.
     discTitle = 'All Scopes';
     discTableHtml = buildScopesSummaryTable(prog.scopes);
+    // A project-wide EPCC breakdown can exist alongside the scope split
+    // (GMTP: areas + Eng/Proc/Con/Com). It used to be reachable only by
+    // picking a scope from the dropdown, so the default view of the panel
+    // claimed 'No discipline data recorded' for a project that had it.
+    if (prog.disciplines && Object.keys(prog.disciplines).length) {
+      discTableHtml +=
+        `<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:14px 0 6px">EPCC Discipline Breakdown</div>` +
+        buildDiscTable({ plan: prog.plan, actual: prog.actual,
+                         disciplines: prog.disciplines });
+    }
   } else if (prog.disciplines && Object.keys(prog.disciplines).length) {
     discTableHtml = buildDiscTable({ plan: prog.plan, actual: prog.actual, disciplines: prog.disciplines });
   } else {
@@ -1394,46 +1404,41 @@ function seedIfEmpty(key, data) {
 // ── LNG Terminal (GMTP) (PRJ-001) Week 32 — auto-extracted
 seedIfEmpty('PRJ-001_W32_2026', {
   plan: 26.98, actual: 30.65,
-  concerns: ['8.4 SHE NCR Status',
-    'Doc No. Description Issue date Root cause Status',
-    '14 PRO [Elec.] Submission of revised TBE for MV, LV SWGR & MCC, PDP, ATS, Busduct, CSCS_T1 11 August, 2026',
-    '15 PRO [Inst.] Submission of TBE for Waste Water Management System_R0 11 August, 2026',
-    '18 CON [LNG Tank] Commencement of Roof Plate Installation for LNG Tank 102 6 August, 2026',
-    '19 CON [BOP & Utility] Commencement of Pile Cutting and Lean Concrete Work for Warehouse Building 7 August, 2026',
-    '20 CON [BOP & Utility] Completion of Foundation Work for Maintenance Building 8 August, 2026',
-    '21 CON [BOP & Utility] Completion of Foundation Work for Water Storage Tank 12 August, 2026',
-    'Discipline Plan & Actual Approval & Review / Information Construction',
-    'Total This Week Accum. Total This Week Accum.',
-    'Plan 0 29 0 20',
-    'General 35 35 34',
-    'Actual 0 29 0 21',
-    'Plan 0 107 0 80',
-    'Process 115 115 93',
-    'Actual 0 107 0 85',
-    'Plan 0 76 0 73',
-    'Mechanical 77 77 77',
-    'Actual 0 76 0 74',
-    'Plan 0 113 2 100'],
-  activities: ['- GMTP/PMC/PCC Mass TBT was cancelled due to Thai Mother’s Day.',
-    '- SHE/EIA weekly audit was cancelled due to Thai Mother’s Day.',
-    '- Big cleaning day on 8 Aug 2026.',
-    '- Knot Tying Training for Work at Height (WAH)on 6 Aug 2026. - GMTP/PMC/PCC management TBT and safety award on 19 Aug 2026.',
-    '- Basic Fire Fighting Training was held on 10-11 Aug 2026. - SHE/EIA weekly audit on 19 Aug 2026.',
-    '- Demonstration of Roof Plate Installation at T-101 on 10 Aug 2026. - Big cleaning day every Saturday',
-    '- Roof plate installation at T-101 on 12 Aug 2026.',
-    'Security Security',
-    '- Strictly control personnel and vehicle gate pass, check the entrance and exit of materials and - Provided temporary security guard for control personal, vehicle and material at site main gate 24 hours.',
-    'equipment into and out of the projectarea 24/7.(Night shift patrols every 1 hour)',
-    'EIA/EHIA EIA/EHIA',
-    '- CNT Worker camp audit with Pha Yoon Community Leader on 19 Aug 2026.',
-    '- Hazardous waste disposal on 8 Aug 2026',
-    '- Mass concrete pouring for Tank wall on 17 and 19 Aug 2026.',
-    '- Sampling Coastal Water Quality (Suspended Solids) on 12 Aug 2026.',
-    'Issue for Issue for Document Class',
-    'Approval Construction Z X Y',
-    'General 0 0 0 0 0',
-    'Process 0 0 0 0 0',
-    'Mechanical 0 0 0 0 0'],
+  scopes: {
+    'LNG Tank Area': { plan: 34.44, actual: 39.99 },
+    'BOP & Utility Area': { plan: 28.87, actual: 32.53 },
+    'Marine Area': { plan: 7.63, actual: 8.24 }
+  },
+  disciplines: {
+      'Commissioning': { plan: 0.0, actual: 0.0 },
+      'Engineering': { plan: 76.81, actual: 84.57 },
+      'Procurement': { plan: 33.0, actual: 36.01 },
+      'Construction': { plan: 18.44, actual: 22.71 }
+    },
+  concerns: ['ISB Elevator — Application of elevator in instrument / substation building should be settled considering construction schedule.',
+    'Duct Bank for Future GTG Power Line — Confirmation on duct bank for future GTG power line installation is required.',
+    'Painting Specification (Color) — Review result to be required quickly for proceeding further.',
+    'Trolley Beam and Gondola for LNG Tanks — Considering the safe work and maintenance, it is suggested not to install trolley beam'],
+  activities: ['[LNG Tank] Tank 101: Installation DOKA (outer wall 6th) climbing form',
+    '[LNG Tank] Tank 101: Wall rebar pre-fabrication and installation work for outer wall 6th',
+    '[LNG Tank] Tank 101: Insert plate installation and Post-tensioning Work for outer wall 6th',
+    '[LNG Tank] Tank 101: Pouring Concrete for outer wall 6th (19.Aug)',
+    '[LNG Tank] Tank 102: Wall rebar pre-fabrication and installation work for outer wall 5th',
+    '[LNG Tank] Tank 102: Post- tensioning Work for outer wall 5th',
+    '[LNG Tank] Tank 102: Pouring Concrete for outer wall 5th (17.Aug)',
+    '[LNG Tank] Tank 101: Purlin Welding & Grinding',
+    '[LNG Tank] Tank 101: Roof Plate arrangement',
+    '[LNG Tank] Tank 102: Purlin Welding & Grinding',
+    '[LNG Tank] Tank 102: Roof Plate arrangement',
+    '[LNG Tank] Shop Area: Compression Ring Fabrication',
+    '[BOP Area] UG Piping Work: Excavation and Backfill work',
+    '[BOP Area] UG Piping Work: Field Fusion Weld work',
+    '[BOP Area] UG Piping Work: Pouring Con’c for Valve Box wall',
+    '[BOP Area] UG Piping Work: GRP lamination work',
+    '[BOP Area] Piperack – B, C, D, E: Excavation work for FDN',
+    '[BOP Area] Piperack – B, C, D, E: Rebar, Formwork and Concrete Work for Foundation, PC Frame and Longi. Beam',
+    '[BOP Area] Piperack – B, C, D, E: Piperack B/C Main Frame & Longi Beam erection work',
+    '[BOP Area] Piling Work: Pile Driving at Process Area'],
 });
 
 // ── GOE2-NWT3 (PRJ-002) Week 32 — auto-extracted
@@ -1998,7 +2003,7 @@ seedIfEmpty('PRJ-024_W32_2026', {
 
 // ── Pak Lay (PRJ-025) Week 32 — auto-extracted
 seedIfEmpty('PRJ-025_W32_2026', {
-  plan: null, actual: null,
+  plan: 5.34, actual: 7.09,
   concerns: ['No. Description Progress Remark',
     'Contractor submitted the Contractor’s',
     'The contractor has appointed persons to all positions of key personnel and provided a',
