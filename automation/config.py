@@ -57,6 +57,25 @@ MANUAL_OVERRIDES = {
     "PRJ-027": {"concerns": [], "activities": ["To be later"], "plan": None, "actual": None},
 }
 
+# How often each project actually issues a report. Anything not listed here
+# reports weekly. A project that is not yet due is not a late report - it is
+# simply not expected, and chasing it every week trains people to ignore the
+# missing-reports list.
+REPORT_CADENCE = {
+    "PRJ-026": "monthly",   # Pak Beng - monthly progress report
+}
+DEFAULT_CADENCE = "weekly"
+
+# Weeks of grace before a project of each cadence counts as overdue. Monthly
+# gets five: a calendar month spans five week-folders often enough that four
+# would raise a false alarm.
+CADENCE_GRACE_WEEKS = {
+    "weekly":   1,
+    "biweekly": 3,
+    "monthly":  5,
+}
+
+
 PROJECT_NAMES = {
     "PRJ-001": "LNG Terminal (GMTP)",
     "PRJ-002": "GOE2-NWT3",

@@ -43,7 +43,7 @@ def week_folder(week):
 def snapshot(data):
     """The part of an extraction result a fixture pins down."""
     def discs(d):
-        return {k: [v.get('plan'), v.get('actual')]
+        return {k: [v.get('plan'), v.get('actual'), v.get('wf')]
                 for k, v in sorted((d or {}).items())}
 
     return {

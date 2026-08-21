@@ -9,9 +9,11 @@ sys.path.insert(0, os.path.dirname(__file__))
 from config import (BASE_REPORT_PATH, DASHBOARD_HTML, EXCEL_DIR,
                     GIT_REPO, DASHBOARD_URL,
                     FOLDER_PROJECTS, PROJECT_KEYWORDS, PROJECT_NAMES,
-                    MANUAL_OVERRIDES)
+                    MANUAL_OVERRIDES, REPORT_CADENCE, DEFAULT_CADENCE,
+                    CADENCE_GRACE_WEEKS)
 from extract import extract_from_pdf
 from validate import (findings_html, format_findings, load_history,
+                      project_history,
                       record_run, save_history, validate_run, FAIL)
 
 
@@ -91,6 +93,36 @@ def find_pdf(folder_path, prj_id):
     return canonical[0] if canonical else matches[0]
 
 
+def is_report_due(history, prj_id, week, year):
+    """
+    Should this project have a report this week?
+    Returns (due, note). A weekly project is always due. A monthly or
+    biweekly one is due only once its grace period since the last report it
+    actually filed has elapsed, so it is not chased every week in between.
+    A project with no history at all is treated as due - better to ask than
+    to silently stop expecting a report.
+    """
+    cadence = REPORT_CADENCE.get(prj_id, DEFAULT_CADENCE)
+    if cadence == DEFAULT_CADENCE:
+        return True, None
+
+    rows = project_history(history, prj_id, before=(year, week))
+    if not rows:
+        return True, f'{cadence}, no prior report on record'
+
+    last = rows[-1]['week_key']
+    m = re.search(r'_W(\d+)_(\d+)$', last)
+    if not m:
+        return True, cadence
+    last_week, last_year = int(m.group(1)), int(m.group(2))
+    elapsed = (year - last_year) * 52 + (week - last_week)
+    grace = CADENCE_GRACE_WEEKS.get(cadence, 1)
+    if elapsed < grace:
+        return False, (f'{cadence}, last reported W{last_week}/{last_year} '
+                       f'({elapsed} week(s) ago)')
+    return True, (f'{cadence}, {elapsed} week(s) since W{last_week}/{last_year}')
+
+
 # ── 3. Build JS seed snippet ───────────────────────────────────────────────
 def js_escape(s):
     return s.replace('\\', '\\\\').replace("'", "\\'").replace('\n', ' ')
@@ -107,7 +139,11 @@ def _build_disciplines_js(discs, indent='    '):
     for disc, vals in discs.items():
         p = _js_num(vals.get('plan'))
         a = _js_num(vals.get('actual'))
-        parts.append(f"{indent}  '{disc}': {{ plan: {p}, actual: {a} }}")
+        # Weight factor, where the report states one (GMTP's area tables do).
+        wf = vals.get('wf')
+        wf_js = f", wf: {_js_num(wf)}" if wf is not None else ''
+        parts.append(
+            f"{indent}  '{disc}': {{ plan: {p}, actual: {a}{wf_js} }}")
     return '{\n' + ',\n'.join(parts) + f'\n{indent}}}'
 
 def _build_scopes_js(scopes):
@@ -622,6 +658,11 @@ def main():
     results    = {}   # prj_id → {found, data}
     seeds_js   = []
     missing    = []
+    not_due    = []
+
+    # Loaded up front: the main loop needs it to tell a late report from one
+    # that simply is not due yet.
+    history = load_history()
 
     # Process each project group
     for folder_name, prj_ids in FOLDER_PROJECTS.items():
@@ -632,17 +673,16 @@ def main():
             name = PROJECT_NAMES.get(prj_id, prj_id)
             print(f"  [{prj_id}] {name}", end=' ... ')
 
-            if not folder_exists:
-                print(f"FOLDER NOT FOUND ({folder_name})")
-                results[prj_id] = {'found': False, 'data': {'concerns': [], 'activities': []}}
-                missing.append(prj_id)
-                continue
-
-            pdf = find_pdf(group_path, prj_id)
+            pdf = find_pdf(group_path, prj_id) if folder_exists else None
             if not pdf:
-                print("PDF NOT FOUND")
-                results[prj_id] = {'found': False, 'data': {'concerns': [], 'activities': []}}
-                missing.append(prj_id)
+                reason = ('FOLDER NOT FOUND (%s)' % folder_name
+                          if not folder_exists else 'PDF NOT FOUND')
+                due, note = is_report_due(history, prj_id, week, year)
+                suffix = f' — {note}' if note else ''
+                print(f"{'' if due else 'NOT DUE — '}{reason}{suffix}")
+                results[prj_id] = {'found': False,
+                                   'data': {'concerns': [], 'activities': []}}
+                (missing if due else not_due).append(prj_id)
                 continue
 
             if prj_id in MANUAL_OVERRIDES:
@@ -666,6 +706,8 @@ def main():
     print()
     print(f"  Found:   {sum(1 for r in results.values() if r['found'])} projects")
     print(f"  Missing: {len(missing)} projects: {missing}")
+    if not_due:
+        print(f"  Not due: {len(not_due)} projects: {not_due}")
 
     # Quality gate. Every project that produced a PDF used to print "OK"
     # whatever came out of it, so a pattern that stopped matching stayed
@@ -678,8 +720,7 @@ def main():
             json.dump(results, f, indent=1, ensure_ascii=False)
         print(f"  [dump] raw results written to {args.dump}")
 
-    history = load_history()
-    report  = validate_run(results, week, year, history=history)
+    report = validate_run(results, week, year, history=history)
     print()
     print(format_findings(report))
 

@@ -834,6 +834,13 @@ function onScopeChange(projectId, scopeName) {
 function buildDiscTable(sc) {
   const discs = sc.disciplines || {};
   const discEntries = Object.entries(discs);
+  // Weight factor is only reported by some projects (GMTP states one per
+  // discipline per area). Show the column when there is something to put in
+  // it rather than a column of dashes everywhere else.
+  const hasWf = discEntries.some(([, dd]) => dd.wf != null);
+  const wfHead = hasWf ? '<th>W.F %</th>' : '';
+  const wfCell = dd => hasWf
+    ? `<td>${dd.wf != null ? dd.wf.toFixed(1) + '%' : '—'}</td>` : '';
   // Extracted values can legitimately be `null` (percentage not found in the
   // PDF this week) as opposed to `undefined` (field absent) — `!= null`
   // catches both, whereas `!== undefined` let `null` through into
@@ -843,6 +850,7 @@ function buildDiscTable(sc) {
     const vc = v < 0 ? 'var-negative' : v > 0 ? 'var-positive' : 'var-zero';
     return `<tr style="font-weight:700;background:#f5f8ff">
       <td>Overall</td>
+      ${hasWf ? '<td>100.0%</td>' : ''}
       <td>${sc.plan.toFixed(1)}%</td>
       <td>${sc.actual.toFixed(1)}%</td>
       <td class="${vc}">${v>0?'+':''}${v.toFixed(1)}%</td>
@@ -854,13 +862,14 @@ function buildDiscTable(sc) {
     const vs = v === null ? '—' : `${v>0?'+':''}${v.toFixed(1)}%`;
     return `<tr>
       <td>${d}</td>
+      ${wfCell(dd)}
       <td>${dd.plan!=null ? dd.plan.toFixed(1)+'%' : '—'}</td>
       <td>${dd.actual!=null ? dd.actual.toFixed(1)+'%' : '—'}</td>
       <td class="${vc}" style="font-weight:700">${vs}</td>
     </tr>`;
   }).join('');
   return `<table class="disc-table">
-    <thead><tr><th>Discipline</th><th>Plan %</th><th>Actual %</th><th>Variance</th></tr></thead>
+    <thead><tr><th>Discipline</th>${wfHead}<th>Plan %</th><th>Actual %</th><th>Variance</th></tr></thead>
     <tbody>${ov}${rows}</tbody>
   </table>`;
 }

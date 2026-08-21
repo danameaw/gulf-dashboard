@@ -5,19 +5,23 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      18.44,
-     22.71
+     22.71,
+     null
     ],
     "Engineering": [
      76.81,
-     84.57
+     84.57,
+     null
     ],
     "Procurement": [
      33.0,
-     36.01
+     36.01,
+     null
     ]
    },
    "first_activity": "[LNG Tank] Tank 101: Installation DOKA (outer wall 6th) climbing form",
@@ -28,17 +32,60 @@
    "scopes": {
     "BOP & Utility Area": {
      "actual": 32.53,
-     "disciplines": {},
+     "disciplines": {
+      "Construction": [
+       18.23,
+       23.0,
+       31.25
+      ],
+      "Engineering": [
+       74.7,
+       84.62,
+       5.69
+      ],
+      "Procurement": [
+       30.01,
+       32.55,
+       63.06
+      ]
+     },
      "plan": 28.87
     },
     "LNG Tank Area": {
      "actual": 39.99,
-     "disciplines": {},
+     "disciplines": {
+      "Construction": [
+       25.91,
+       31.21,
+       74.64
+      ],
+      "Engineering": [
+       82.23,
+       85.9,
+       3.41
+      ],
+      "Procurement": [
+       56.01,
+       62.67,
+       21.95
+      ]
+     },
      "plan": 34.44
     },
     "Marine Area": {
      "actual": 8.24,
-     "disciplines": {},
+     "disciplines": {
+      "Construction": [
+       1.79,
+       2.42,
+       92.74
+      ],
+      "Engineering": [
+       82.17,
+       82.55,
+       7.26
+      ]
+     },
      "plan": 7.63
     }
    }
@@ -67,15 +114,18 @@
      "disciplines": {
       "Construction": [
        100.0,
-       58.63
+       58.63,
+       null
       ],
       "Engineering": [
        100.0,
-       99.76
+       99.76,
+       null
       ],
       "Procurement": [
        100.0,
-       93.96
+       93.96,
+       null
       ]
      },
      "plan": 90.0
@@ -116,15 +166,18 @@
      "disciplines": {
       "Construction": [
        99.28,
-       58.6
+       58.6,
+       null
       ],
       "Engineering": [
        100.0,
-       99.27
+       99.27,
+       null
       ],
       "Procurement": [
        100.0,
-       94.16
+       94.16,
+       null
       ]
      },
      "plan": 91.95
@@ -160,15 +213,18 @@
      "disciplines": {
       "Construction": [
        100.0,
-       70.93
+       70.93,
+       null
       ],
       "Engineering": [
        100.0,
-       99.51
+       99.51,
+       null
       ],
       "Procurement": [
        100.0,
-       95.54
+       95.54,
+       null
       ]
      },
      "plan": 90.0
@@ -199,7 +255,8 @@
      "disciplines": {
       "Construction": [
        100.0,
-       98.77
+       98.77,
+       null
       ]
      },
      "plan": 99.66
@@ -230,7 +287,8 @@
      "disciplines": {
       "Construction": [
        100.0,
-       99.72
+       99.72,
+       null
       ]
      },
      "plan": 100.0
@@ -271,7 +329,8 @@
      "disciplines": {
       "Construction": [
        95.59,
-       96.45
+       96.45,
+       null
       ]
      },
      "plan": 92.34
@@ -376,19 +435,23 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      25.06,
-     16.54
+     16.54,
+     null
     ],
     "Engineering": [
      93.44,
-     62.29
+     62.29,
+     null
     ],
     "Procurement": [
      84.27,
-     79.5
+     79.5,
+     null
     ]
    },
    "first_activity": "Safety & Health:",
@@ -403,25 +466,29 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      25.06,
-     18.06
+     18.06,
+     null
     ],
     "Engineering": [
      93.44,
-     62.41
+     62.41,
+     null
     ],
     "Procurement": [
      84.27,
-     79.5
+     79.5,
+     null
     ]
    },
    "first_activity": "Activities CC/SC (*)",
    "first_concern": "Detail and spec of equipment at riser pole for PEA approval.",
    "n_activities": 20,
-   "n_concerns": 4,
+   "n_concerns": 5,
    "plan": 53.08,
    "scopes": {}
   },
@@ -430,25 +497,29 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      28.97,
-     22.47
+     22.47,
+     null
     ],
     "Engineering": [
      94.23,
-     63.25
+     63.25,
+     null
     ],
     "Procurement": [
      88.85,
-     80.77
+     80.77,
+     null
     ]
    },
    "first_activity": "(7th Jul 2026) (14thAug 2026)",
-   "first_concern": "311-314 Refuse Bunker Super structure up to 35.5m elevation 9 May 26 23 Nov 26 Delay progress",
+   "first_concern": null,
    "n_activities": 20,
-   "n_concerns": 20,
+   "n_concerns": 0,
    "plan": 56.55,
    "scopes": {}
   },
@@ -457,25 +528,29 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      17.02,
-     17.03
+     17.03,
+     null
     ],
     "Engineering": [
      90.56,
-     62.58
+     62.58,
+     null
     ],
     "Procurement": [
      78.27,
-     75.2
+     75.2,
+     null
     ]
    },
    "first_activity": "(07 Aug 26 (14 Aug 26)",
    "first_concern": "Skill manpower shortage e.g. fitter, piping welder",
    "n_activities": 20,
-   "n_concerns": 1,
+   "n_concerns": 4,
    "plan": 47.17,
    "scopes": {}
   },
@@ -484,19 +559,23 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      9.45,
-     9.73
+     9.73,
+     null
     ],
     "Engineering": [
      80.56,
-     62.62
+     62.62,
+     null
     ],
     "Procurement": [
      66.12,
-     69.13
+     69.13,
+     null
     ]
    },
    "first_activity": "Safety & Health:",
@@ -511,19 +590,23 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      17.02,
-     13.4
+     13.4,
+     null
     ],
     "Engineering": [
      90.56,
-     62.18
+     62.18,
+     null
     ],
     "Procurement": [
      78.27,
-     75.2
+     75.2,
+     null
     ]
    },
    "first_activity": "Safety & Health:",
@@ -538,25 +621,29 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      17.02,
-     11.09
+     11.09,
+     null
     ],
     "Engineering": [
      90.56,
-     61.96
+     61.96,
+     null
     ],
     "Procurement": [
      78.27,
-     75.2
+     75.2,
+     null
     ]
    },
    "first_activity": "Jul 2026) Aug 2026)",
-   "first_concern": "\u2022 Discussion with CEEC regarding the Bunker Building and STG & ECB implementation plan.",
+   "first_concern": "Insufficient construction access roads within the site to support ongoing activities",
    "n_activities": 20,
-   "n_concerns": 20,
+   "n_concerns": 4,
    "plan": 47.17,
    "scopes": {}
   },
@@ -565,25 +652,29 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      25.06,
-     14.9
+     14.9,
+     null
     ],
     "Engineering": [
      93.44,
-     62.69
+     62.69,
+     null
     ],
     "Procurement": [
      84.27,
-     79.5
+     79.5,
+     null
     ]
    },
    "first_activity": "Jul 2026) Aug 2026)",
-   "first_concern": "\u2022 Discussion with CEEC regarding the Bunker Building and STG & ECB implementation plan.",
+   "first_concern": "Problem : Electric Pole obstruct Entrance",
    "n_activities": 20,
-   "n_concerns": 20,
+   "n_concerns": 1,
    "plan": 53.08,
    "scopes": {}
   },
@@ -592,25 +683,29 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      17.02,
-     15.26
+     15.26,
+     null
     ],
     "Engineering": [
      90.56,
-     62.19
+     62.19,
+     null
     ],
     "Procurement": [
      78.27,
-     75.2
+     75.2,
+     null
     ]
    },
    "first_activity": "Safety & Health:",
-   "first_concern": "333 Boiler Foundation - Boiler Island 1 May 26 26 June 26 21 May 26 5 Jul 26 Completed",
+   "first_concern": "Service Water & Firefighting Tank DWG. For order material.",
    "n_activities": 20,
-   "n_concerns": 20,
+   "n_concerns": 2,
    "plan": 47.17,
    "scopes": {}
   },
@@ -619,25 +714,29 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      9.45,
-     11.43
+     11.43,
+     null
     ],
     "Engineering": [
      80.56,
-     62.36
+     62.36,
+     null
     ],
     "Procurement": [
      66.12,
-     69.13
+     69.13,
+     null
     ]
    },
    "first_activity": "Safety & Health:",
-   "first_concern": "105 Safety Weekly Audit issue status by weekly",
+   "first_concern": "Contractor for Retaining wall south side",
    "n_activities": 20,
-   "n_concerns": 20,
+   "n_concerns": 3,
    "plan": 38.28,
    "scopes": {}
   },
@@ -646,25 +745,29 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      25.06,
-     20.37
+     20.37,
+     null
     ],
     "Engineering": [
      93.44,
-     62.26
+     62.26,
+     null
     ],
     "Procurement": [
      84.27,
-     79.5
+     79.5,
+     null
     ]
    },
    "first_activity": "(07 Aug 26) (14 Aug 26)",
    "first_concern": "Skill manpower shortage e.g. fitter, piping welder",
    "n_activities": 20,
-   "n_concerns": 1,
+   "n_concerns": 4,
    "plan": 53.08,
    "scopes": {}
   },
@@ -673,19 +776,23 @@
    "disciplines": {
     "Commissioning": [
      0.0,
-     0.0
+     0.0,
+     null
     ],
     "Construction": [
      28.97,
-     20.84
+     20.84,
+     null
     ],
     "Engineering": [
      94.23,
-     66.07
+     66.07,
+     null
     ],
     "Procurement": [
      88.85,
-     80.77
+     80.77,
+     null
     ]
    },
    "first_activity": "Activities CC/SC (*)",

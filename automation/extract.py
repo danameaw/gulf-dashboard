@@ -71,6 +71,11 @@ def _extract_section(text, header_re, stop_re=None, max_lines=30):
 
 # ── Progress extraction helpers ───────────────────────────────────────────────
 
+def _is_number(text):
+    """True for a bare figure like '82.23' or '100.00' (no letters)."""
+    return bool(re.fullmatch(r'\d{1,3}(?:\.\d{1,2})?\s*%?', (text or '').strip()))
+
+
 def _parse_pct(s):
     """Return float or None from a string that should be a percentage."""
     try:
@@ -169,6 +174,52 @@ def _table_rows_to_disc(table):
 _IWTE_AREA_OF_CONCERN = re.compile(r'area\s+of\s+concern\s*:?', re.I)
 _IWTE_CONCERN_STOP    = re.compile(r'issue\s+to\s+request|ho\s+support', re.I)
 _IWTE_NUM_BULLET      = re.compile(r'^\d+[\.\)]\s*')
+# The KPI box and the neighbouring "Issue to request HO support" label share
+# text lines with the concern items on these two-column slides; drop them
+# rather than treating them as the end of the section.
+_IWTE_HO_SUPPORT   = re.compile(r'issue\s+to\s+request\s+ho\s+support\s*:?.*$',
+                                re.I)
+_IWTE_FIELD_NOISE  = re.compile(
+    r'^(\(?accumulative\)?|trir\b.*|total\s+man-?hours.*|n/?a\.?|none\.?'
+    r'|[\d,.\s%]+)$', re.I)
+_IWTE_FIELD_END    = re.compile(
+    r'^(key\s+\w+|catch\s*[- ]?up|pre-?conditions|progress\b|construction\b'
+    r'|commissioning\b|total\s+progress|manpower|organization|milestone)', re.I)
+# "Area of Concern: Refer to page 15" / "AREA OF CONCERN : Ref. page 14"
+_IWTE_CROSS_REF    = re.compile(r'^(refer|ref\.?)\s*(to\s*)?page\s*\d+', re.I)
+_IWTE_CONCERN_TITLE = re.compile(r'^\s*areas?\s+of\s+concern\s*$', re.I | re.M)
+
+
+def _page_lines(page, min_x0=None):
+    """
+    The page as visual lines: [{'top', 'x0', 'text'}], ordered top to bottom,
+    words within a line ordered left to right. Keeping x0 is what allows a
+    column to be isolated by where a heading actually sits, instead of by a
+    fixed fraction of the page width that differs between contractors.
+
+    min_x0 filters by WORD, not by line, which is the only thing that works
+    on these slides: a wrapped concern continuation shares its visual line
+    with the KPI box on the left, so the line begins at x=53 with "TRIR 0"
+    and only then carries the text belonging to the right-hand column.
+    Judging the line by its leftmost word throws that continuation away.
+    """
+    words = page.extract_words()
+    if min_x0 is not None:
+        words = [w for w in words if w['x0'] >= min_x0]
+    lines = []
+    for w in sorted(words, key=lambda w: (w['top'], w['x0'])):
+        for ln in lines:
+            if abs(ln['top'] - w['top']) <= 3:
+                ln['words'].append(w)
+                break
+        else:
+            lines.append({'top': w['top'], 'words': [w]})
+    out = []
+    for ln in sorted(lines, key=lambda l: l['top']):
+        ws = sorted(ln['words'], key=lambda w: w['x0'])
+        out.append({'top': ln['top'], 'x0': ws[0]['x0'],
+                    'text': ' '.join(w['text'] for w in ws)})
+    return out
 
 
 def _extract_right_column_text(page, split_frac=0.45):
@@ -193,52 +244,115 @@ def _extract_right_column_text(page, split_frac=0.45):
         for l in lines)
 
 
+def _iwte_concern_items(lines, start_idx, col_x):
+    """
+    Collect numbered concern items from the lines below `start_idx` that
+    belong to the column starting at `col_x`. Returns (items, cross_ref)
+    where cross_ref is True when the field just points at another page.
+    """
+    items, current, cross_ref = [], None, False
+    for ln in lines[start_idx + 1:]:
+        if ln['x0'] < col_x:
+            continue
+        text = _IWTE_HO_SUPPORT.sub('', ln['text']).strip()
+        if not text or _IWTE_FIELD_NOISE.match(text):
+            continue
+        if _IWTE_CROSS_REF.match(text):
+            cross_ref = True
+            continue
+        if _IWTE_FIELD_END.match(text):
+            break
+        if _IWTE_NUM_BULLET.match(text):
+            if current:
+                items.append(current)
+            current = _IWTE_NUM_BULLET.sub('', text).strip()
+        elif current is not None:
+            current += ' ' + text
+        else:
+            current = text
+    if current:
+        items.append(current)
+    return items, cross_ref
+
+
+def extract_iwte_concerns_from_section(doc):
+    """
+    The report's own "Areas of Concern" section, used when the Executive
+    Summary field is a cross-reference to it. Section divider slides carry
+    only the title and a page number; the content slides list numbered items
+    whose first line states the issue ("1. Problem : Electric Pole obstruct
+    Entrance") followed by a long, often Thai "Action :" narrative that is
+    too much for a dashboard line. Take the statement, leave the narrative.
+    Returns a list, empty when the section says "None".
+    """
+    items = []
+    for page in doc.pages:
+        text = page.extract_text() or ''
+        if not _IWTE_CONCERN_TITLE.search(text):
+            continue
+        for raw in text.split('\n')[1:]:
+            line = raw.strip()
+            if not line or _PAGE_NUM.match(line):
+                continue
+            if line.upper() in ('NONE', 'N/A', 'NA'):
+                continue
+            if _IWTE_NUM_BULLET.match(line):
+                items.append(_IWTE_NUM_BULLET.sub('', line).strip())
+    return [it for it in items if len(it) > 5]
+
+
 def extract_iwte_concerns_from_exec_summary(pdf_path):
     """
-    Read the 'Area of Concern' field of the iWTE Executive Summary page —
-    the authoritative source for iWTE concerns going forward. Numbered
-    items ("1. ...", "2. ...") are joined back together across their
-    wrapped continuation lines; a project with no numbered list just has
-    the whole field on one line, which is used as-is.
-    Returns a list of concern strings (possibly empty).
+    Read the "Area of Concern" field of the iWTE Executive Summary slide.
+    The column is located from the heading's own x-position (contractors
+    place it anywhere from 0.42 to 0.5 of the page width) and continuation
+    lines are allowed a little to its left, since wrapped text is often
+    indented outside the heading's own start.
+    Returns a list of concerns, or None when the field could not be found at
+    all - the caller uses that to distinguish "no concerns this week" from
+    "this reader did not work", and only falls back to the generic scan for
+    the latter.
     """
-    concerns = []
     try:
         with pdfplumber.open(pdf_path) as doc:
-            for page in doc.pages[:6]:
+            for page in doc.pages[:8]:
                 text = page.extract_text() or ''
                 if 'executive summary' not in text.lower():
                     continue
-                right_text = _extract_right_column_text(page)
-                m = _IWTE_AREA_OF_CONCERN.search(right_text)
-                if not m:
+                # Pass 1 locates the heading; pass 2 re-reads the page
+                # keeping only words from the heading's column onward, so
+                # wrapped continuations survive without the left column's
+                # text being spliced in front of them.
+                idx = next((i for i, ln in enumerate(_page_lines(page))
+                            if _IWTE_AREA_OF_CONCERN.search(ln['text'])), None)
+                if idx is None:
                     continue
-                section = right_text[m.end():]
-                stop_m = _IWTE_CONCERN_STOP.search(section)
-                if stop_m:
-                    section = section[:stop_m.start()]
-                items, current = [], None
-                for line in section.split('\n'):
-                    line = line.strip()
-                    if not line:
-                        continue
-                    if _IWTE_NUM_BULLET.match(line):
-                        if current:
-                            items.append(current)
-                        current = _IWTE_NUM_BULLET.sub('', line).strip()
-                    elif current is not None:
-                        current += ' ' + line
-                    else:
-                        current = line
-                if current:
-                    items.append(current)
-                for it in items:
-                    if it and it.upper() not in ('N/A', 'NA', 'NONE'):
-                        concerns.append(it)
-                break
+                anchor_x = _page_lines(page)[idx]['x0']
+                lines = _page_lines(page, min_x0=anchor_x - 10)
+                idx = next((i for i, ln in enumerate(lines)
+                            if _IWTE_AREA_OF_CONCERN.search(ln['text'])), None)
+                if idx is None:
+                    continue
+
+                # The heading line can carry the whole field inline
+                # ("Area of Concern: Refer to page 15").
+                head = _IWTE_AREA_OF_CONCERN.sub('', lines[idx]['text'], count=1)
+                head = _IWTE_HO_SUPPORT.sub('', head).strip(' :')
+                items, cross_ref = _iwte_concern_items(
+                    lines, idx, anchor_x - 10)
+                if head:
+                    if _IWTE_CROSS_REF.match(head):
+                        cross_ref = True
+                    elif head.upper() not in ('N/A', 'NA', 'NONE'):
+                        items.insert(0, _IWTE_NUM_BULLET.sub('', head).strip())
+
+                if not items and cross_ref:
+                    return extract_iwte_concerns_from_section(doc)
+                return [it for it in items
+                        if it and it.upper() not in ('N/A', 'NA', 'NONE')]
     except Exception as e:
         print(f"  [iwte concerns error] {e}")
-    return concerns
+    return None
 
 
 # ── iWTE extractor ────────────────────────────────────────────────────────────
@@ -417,6 +531,90 @@ def _gmtp_section_kind(title):
     return _GMTP_DISC_TITLES.get(key)
 
 
+# The area slides letter-space their small summary table, so words and cell
+# boundaries are both lost to the text layer. Characters keep their true
+# x-positions though, and the gap between two fields is far wider than the gap
+# inside a letter-spaced word - so the fields can be recovered geometrically.
+_GMTP_MATRIX_HEADER = re.compile(r'A\s*r\s*e\s*a\s+D\s*i\s*s\s*c', re.I)
+_GMTP_DISC_WORD = re.compile(
+    r'(engineering|procurement|construction|commissioning|overall)', re.I)
+# Var must equal Act - Plan; anything further off than this is not a row we
+# have understood, and is dropped rather than reported.
+_GMTP_MATRIX_TOLERANCE = 0.06
+
+
+def _split_char_run(chars, slack=1.2):
+    """
+    Group characters into fields by horizontal gap. Letter-spacing inside a
+    word leaves a near-zero (often slightly negative) gap; a column boundary
+    leaves tens of points. Splitting at anything wider than the row's median
+    gap plus `slack` separates the two reliably.
+    """
+    chars = sorted(chars, key=lambda c: c['x0'])
+    if not chars:
+        return []
+    gaps = [chars[i + 1]['x0'] - chars[i]['x1'] for i in range(len(chars) - 1)]
+    median = sorted(gaps)[len(gaps) // 2] if gaps else 0.0
+    groups, current = [], [chars[0]]
+    for i in range(len(chars) - 1):
+        if gaps[i] > median + slack:
+            groups.append(current)
+            current = []
+        current.append(chars[i + 1])
+    groups.append(current)
+    return [''.join(c['text'] for c in g).strip() for g in groups]
+
+
+def _y_bands(chars, tolerance=4):
+    """Group characters into visual rows by their top coordinate."""
+    bands = []
+    for c in sorted(chars, key=lambda c: c['top']):
+        for band in bands:
+            if abs(band['top'] - c['top']) <= tolerance:
+                band['chars'].append(c)
+                break
+        else:
+            bands.append({'top': c['top'], 'chars': [c]})
+    return sorted(bands, key=lambda b: b['top'])
+
+
+def _gmtp_matrix_rows(page):
+    """
+    Read the "Area | Discipline | W.F | Plan | Act. | Var." table on one
+    section-3.2 slide. Returns {discipline: {'plan', 'actual', 'weight'}},
+    including an 'Overall' entry when the table carries one. Rows whose Var.
+    column does not agree with Act - Plan are discarded.
+    """
+    header = next((ln for ln in _page_lines(page)
+                   if _GMTP_MATRIX_HEADER.search(ln['text'])), None)
+    if header is None:
+        return {}
+
+    col_x = header['x0'] - 20
+    body = [c for c in page.chars
+            if c['x0'] >= col_x and c['top'] > header['top'] + 2]
+
+    out = {}
+    for band in _y_bands(body):
+        fields = _split_char_run(band['chars'])
+        label = ' '.join(f for f in fields if not _is_number(f))
+        m = _GMTP_DISC_WORD.search(label)
+        if not m:
+            continue
+        nums = [_parse_pct(f) for f in fields if _is_number(f)]
+        nums = [n for n in nums if n is not None]
+        if len(nums) < 4:
+            continue
+        weight, plan, actual, var = nums[:4]
+        if abs(abs(actual - plan) - var) > _GMTP_MATRIX_TOLERANCE:
+            print(f"  [gmtp matrix] {label.strip()}: dropped, "
+                  f"Var {var} does not match {actual} - {plan}")
+            continue
+        out[m.group(1).capitalize()] = {'plan': plan, 'actual': actual,
+                                       'weight': weight}
+    return out
+
+
 def _gmtp_scurve_sections(pdf):
     """
     Walk the section-3.2 S-Curve pages and read each one's "Plan / Actual :"
@@ -446,7 +644,18 @@ def _gmtp_scurve_sections(pdf):
                 elif kind:
                     discs[kind] = {'plan': plan, 'actual': actual}
                 else:
-                    areas[title] = {'plan': plan, 'actual': actual}
+                    area = {'plan': plan, 'actual': actual}
+                    # The area slides also carry their own EPCC split with
+                    # weight factors; the dashboard renders a scope's nested
+                    # disciplines on drill-down, so keep them.
+                    matrix = _gmtp_matrix_rows(page)
+                    matrix.pop('Overall', None)   # already have it above
+                    if matrix:
+                        area['disciplines'] = {
+                            name: {'plan': v['plan'], 'actual': v['actual'],
+                                   'wf': v['weight']}
+                            for name, v in matrix.items()}
+                    areas[title] = area
     except Exception as e:
         print(f"  [gmtp s-curve error] {e}")
     return overall_plan, overall_actual, discs, areas
@@ -1572,7 +1781,11 @@ def extract_from_pdf(pdf_path, prj_id=None, search_dir=None):
     if AUTO_EXTRACT_PROJECTS.get(prj_id) == 'iwte':
         try:
             exec_concerns = extract_iwte_concerns_from_exec_summary(pdf_path)
-            if exec_concerns:
+            # [] means the report says there are none this week; None means
+            # the field could not be located. Only the latter justifies the
+            # generic whole-PDF scan, which on five of these reports had been
+            # serving 20 rows of the milestone schedule table as "concerns".
+            if exec_concerns is not None:
                 concerns = exec_concerns
         except Exception as e:
             print(f"  [iwte concerns error] {e}")
