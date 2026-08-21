@@ -1,0 +1,731 @@
+{
+ "projects": {
+  "PRJ-001": {
+   "actual": 30.65,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     18.44,
+     22.71
+    ],
+    "Engineering": [
+     76.81,
+     84.57
+    ],
+    "Procurement": [
+     33.0,
+     36.01
+    ]
+   },
+   "first_activity": "[LNG Tank] Tank 101: Installation DOKA (outer wall 6th) climbing form",
+   "first_concern": "ISB Elevator \u2014 Application of elevator in instrument / substation building should be settled considering construction schedule.",
+   "n_activities": 20,
+   "n_concerns": 4,
+   "plan": 26.98,
+   "scopes": {
+    "BOP & Utility Area": {
+     "actual": 32.53,
+     "disciplines": {},
+     "plan": 28.87
+    },
+    "LNG Tank Area": {
+     "actual": 39.99,
+     "disciplines": {},
+     "plan": 34.44
+    },
+    "Marine Area": {
+     "actual": 8.24,
+     "disciplines": {},
+     "plan": 7.63
+    }
+   }
+  },
+  "PRJ-002": {
+   "actual": 67.48,
+   "disciplines": {},
+   "first_activity": null,
+   "first_concern": "[PV Farm (GUE)] Expedite skilled worker, scaffolding & tools for install mounting.",
+   "n_activities": 0,
+   "n_concerns": 4,
+   "plan": 90.0,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 75.99,
+     "disciplines": {},
+     "plan": 91.51
+    },
+    "Comm/Fiber": {
+     "actual": 81.66,
+     "disciplines": {},
+     "plan": 91.25
+    },
+    "GUE": {
+     "actual": 67.48,
+     "disciplines": {
+      "Construction": [
+       100.0,
+       58.63
+      ],
+      "Engineering": [
+       100.0,
+       99.76
+      ],
+      "Procurement": [
+       100.0,
+       93.96
+      ]
+     },
+     "plan": 90.0
+    },
+    "Siemens": {
+     "actual": 62.21,
+     "disciplines": {},
+     "plan": 84.06
+    }
+   }
+  },
+  "PRJ-003": {
+   "actual": 67.49,
+   "disciplines": {},
+   "first_activity": null,
+   "first_concern": "[PV Farm (GUE)] Site Security Issue.",
+   "n_activities": 0,
+   "n_concerns": 10,
+   "plan": 91.95,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 78.08,
+     "disciplines": {},
+     "plan": 77.18
+    },
+    "Add Bay": {
+     "actual": 94.73,
+     "disciplines": {},
+     "plan": 94.69
+    },
+    "Comm/Fiber": {
+     "actual": 90.57,
+     "disciplines": {},
+     "plan": 95.23
+    },
+    "GUE": {
+     "actual": 67.49,
+     "disciplines": {
+      "Construction": [
+       99.28,
+       58.6
+      ],
+      "Engineering": [
+       100.0,
+       99.27
+      ],
+      "Procurement": [
+       100.0,
+       94.16
+      ]
+     },
+     "plan": 91.95
+    },
+    "Siemens": {
+     "actual": 65.15,
+     "disciplines": {},
+     "plan": 88.42
+    }
+   }
+  },
+  "PRJ-004": {
+   "actual": 74.23,
+   "disciplines": {},
+   "first_activity": null,
+   "first_concern": "[PV Farm (GUE)] To expedite the secondary electrical work.",
+   "n_activities": 0,
+   "n_concerns": 3,
+   "plan": 90.0,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 84.36,
+     "disciplines": {},
+     "plan": 92.9
+    },
+    "Comm/Fiber": {
+     "actual": 87.43,
+     "disciplines": {},
+     "plan": 88.49
+    },
+    "GUE": {
+     "actual": 74.23,
+     "disciplines": {
+      "Construction": [
+       100.0,
+       70.93
+      ],
+      "Engineering": [
+       100.0,
+       99.51
+      ],
+      "Procurement": [
+       100.0,
+       95.54
+      ]
+     },
+     "plan": 90.0
+    },
+    "Siemens": {
+     "actual": 64.75,
+     "disciplines": {},
+     "plan": 89.27
+    }
+   }
+  },
+  "PRJ-005": {
+   "actual": 98.38,
+   "disciplines": {},
+   "first_activity": null,
+   "first_concern": null,
+   "n_activities": 0,
+   "n_concerns": 0,
+   "plan": 99.66,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 100.0,
+     "disciplines": {},
+     "plan": 100.0
+    },
+    "GUE": {
+     "actual": 98.38,
+     "disciplines": {
+      "Construction": [
+       100.0,
+       98.77
+      ]
+     },
+     "plan": 99.66
+    },
+    "Siemens": {
+     "actual": 100.0,
+     "disciplines": {},
+     "plan": 100.0
+    }
+   }
+  },
+  "PRJ-006": {
+   "actual": 99.72,
+   "disciplines": {},
+   "first_activity": null,
+   "first_concern": null,
+   "n_activities": 0,
+   "n_concerns": 0,
+   "plan": 100.0,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 100.0,
+     "disciplines": {},
+     "plan": 100.0
+    },
+    "GUE": {
+     "actual": 99.72,
+     "disciplines": {
+      "Construction": [
+       100.0,
+       99.72
+      ]
+     },
+     "plan": 100.0
+    },
+    "Siemens": {
+     "actual": 100.0,
+     "disciplines": {},
+     "plan": 100.0
+    }
+   }
+  },
+  "PRJ-007": {
+   "actual": 92.24,
+   "disciplines": {},
+   "first_activity": "Civil work Civil work",
+   "first_concern": "[PV farm (GPD)] GPD issued the Purchase Order to Antai on 3 Aug 2026. Follow up to ensure the mounting is delivered to site by 10 September 2026, so it does not impact the load rejection test.",
+   "n_activities": 20,
+   "n_concerns": 2,
+   "plan": 92.34,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 83.58,
+     "disciplines": {},
+     "plan": 92.84
+    },
+    "Add Bay": {
+     "actual": 93.25,
+     "disciplines": {},
+     "plan": 93.25
+    },
+    "GIS Substation": {
+     "actual": 62.61,
+     "disciplines": {},
+     "plan": 66.22
+    },
+    "GUE": {
+     "actual": 92.24,
+     "disciplines": {
+      "Construction": [
+       95.59,
+       96.45
+      ]
+     },
+     "plan": 92.34
+    },
+    "Siemens": {
+     "actual": 89.43,
+     "disciplines": {},
+     "plan": 74.4
+    }
+   }
+  },
+  "PRJ-010": {
+   "actual": 50.43,
+   "disciplines": {},
+   "first_activity": "\u27a2 Continue Cut and Fill for Subgrade layer and Subbase layer Central A, Central B ,Service Road and South",
+   "first_concern": "[CBOP (PCZ)] Requires an additional Soil and Rock Disposal Area with a capacity of approximately 25,600 cubic meters for Central A and Route to WTG.03,06,07",
+   "n_activities": 20,
+   "n_concerns": 3,
+   "plan": 46.75,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 19.06,
+     "disciplines": {},
+     "plan": 19.06
+    },
+    "CBOP": {
+     "actual": 50.43,
+     "disciplines": {},
+     "plan": 46.75
+    },
+    "Substation": {
+     "actual": 3.42,
+     "disciplines": {},
+     "plan": 8.68
+    },
+    "TSA": {
+     "actual": 25.32,
+     "disciplines": {},
+     "plan": 27.84
+    },
+    "Terminal Substation": {
+     "actual": 95.9,
+     "disciplines": {},
+     "plan": 89.8
+    }
+   }
+  },
+  "PRJ-011": {
+   "actual": 73.25,
+   "disciplines": {},
+   "first_activity": "\u27a2 Continue to road base course compaction work.",
+   "first_concern": null,
+   "n_activities": 19,
+   "n_concerns": 0,
+   "plan": 77.41,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 84.74,
+     "disciplines": {},
+     "plan": 88.43
+    },
+    "CBOP": {
+     "actual": 73.25,
+     "disciplines": {},
+     "plan": 77.41
+    },
+    "Substation": {
+     "actual": 6.32,
+     "disciplines": {},
+     "plan": 12.37
+    },
+    "TSA": {
+     "actual": 38.98,
+     "disciplines": {},
+     "plan": 38.5
+    }
+   }
+  },
+  "PRJ-012": {
+   "actual": 66.79,
+   "disciplines": {},
+   "first_activity": "-Plant grass for erosion control. -Concrete pole 33kV installation.",
+   "first_concern": "[TSA (Goldwind)] The Aor.1 permit approval is currently behind schedule and does not align with the planned start date of the WTG foundation works on 1 June 2026.>>Done",
+   "n_activities": 20,
+   "n_concerns": 3,
+   "plan": 69.29,
+   "scopes": {
+    "CBOP": {
+     "actual": 66.79,
+     "disciplines": {},
+     "plan": 69.29
+    },
+    "Substation": {
+     "actual": 0.32,
+     "disciplines": {},
+     "plan": 0.83
+    }
+   }
+  },
+  "PRJ-013": {
+   "actual": 44.64,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     25.06,
+     16.54
+    ],
+    "Engineering": [
+     93.44,
+     62.29
+    ],
+    "Procurement": [
+     84.27,
+     79.5
+    ]
+   },
+   "first_activity": "Safety & Health:",
+   "first_concern": "GCE-001-C-010-UOO-001 General Plant Layout General Layout The distance of the stormwater retention pond from the property boundary does not comply with the Excavation and Land Filling Act B.E. 2543",
+   "n_activities": 20,
+   "n_concerns": 1,
+   "plan": 53.08,
+   "scopes": {}
+  },
+  "PRJ-014": {
+   "actual": 45.26,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     25.06,
+     18.06
+    ],
+    "Engineering": [
+     93.44,
+     62.41
+    ],
+    "Procurement": [
+     84.27,
+     79.5
+    ]
+   },
+   "first_activity": "Activities CC/SC (*)",
+   "first_concern": "Detail and spec of equipment at riser pole for PEA approval.",
+   "n_activities": 20,
+   "n_concerns": 4,
+   "plan": 53.08,
+   "scopes": {}
+  },
+  "PRJ-015": {
+   "actual": 47.62,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     28.97,
+     22.47
+    ],
+    "Engineering": [
+     94.23,
+     63.25
+    ],
+    "Procurement": [
+     88.85,
+     80.77
+    ]
+   },
+   "first_activity": "(7th Jul 2026) (14thAug 2026)",
+   "first_concern": "311-314 Refuse Bunker Super structure up to 35.5m elevation 9 May 26 23 Nov 26 Delay progress",
+   "n_activities": 20,
+   "n_concerns": 20,
+   "plan": 56.55,
+   "scopes": {}
+  },
+  "PRJ-016": {
+   "actual": 43.15,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     17.02,
+     17.03
+    ],
+    "Engineering": [
+     90.56,
+     62.58
+    ],
+    "Procurement": [
+     78.27,
+     75.2
+    ]
+   },
+   "first_activity": "(07 Aug 26 (14 Aug 26)",
+   "first_concern": "Skill manpower shortage e.g. fitter, piping welder",
+   "n_activities": 20,
+   "n_concerns": 1,
+   "plan": 47.17,
+   "scopes": {}
+  },
+  "PRJ-017": {
+   "actual": 37.81,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     9.45,
+     9.73
+    ],
+    "Engineering": [
+     80.56,
+     62.62
+    ],
+    "Procurement": [
+     66.12,
+     69.13
+    ]
+   },
+   "first_activity": "Safety & Health:",
+   "first_concern": "BOP Tasks that have started and those that have not yet started are behind schedule",
+   "n_activities": 20,
+   "n_concerns": 1,
+   "plan": 38.28,
+   "scopes": {}
+  },
+  "PRJ-018": {
+   "actual": 41.66,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     17.02,
+     13.4
+    ],
+    "Engineering": [
+     90.56,
+     62.18
+    ],
+    "Procurement": [
+     78.27,
+     75.2
+    ]
+   },
+   "first_activity": "Safety & Health:",
+   "first_concern": "Bunker surround delay start affect to Boiler installation feeding gate plan.",
+   "n_activities": 20,
+   "n_concerns": 1,
+   "plan": 47.17,
+   "scopes": {}
+  },
+  "PRJ-019": {
+   "actual": 40.71,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     17.02,
+     11.09
+    ],
+    "Engineering": [
+     90.56,
+     61.96
+    ],
+    "Procurement": [
+     78.27,
+     75.2
+    ]
+   },
+   "first_activity": "Jul 2026) Aug 2026)",
+   "first_concern": "\u2022 Discussion with CEEC regarding the Bunker Building and STG & ECB implementation plan.",
+   "n_activities": 20,
+   "n_concerns": 20,
+   "plan": 47.17,
+   "scopes": {}
+  },
+  "PRJ-020": {
+   "actual": 44.03,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     25.06,
+     14.9
+    ],
+    "Engineering": [
+     93.44,
+     62.69
+    ],
+    "Procurement": [
+     84.27,
+     79.5
+    ]
+   },
+   "first_activity": "Jul 2026) Aug 2026)",
+   "first_concern": "\u2022 Discussion with CEEC regarding the Bunker Building and STG & ECB implementation plan.",
+   "n_activities": 20,
+   "n_concerns": 20,
+   "plan": 53.08,
+   "scopes": {}
+  },
+  "PRJ-021": {
+   "actual": 42.4,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     17.02,
+     15.26
+    ],
+    "Engineering": [
+     90.56,
+     62.19
+    ],
+    "Procurement": [
+     78.27,
+     75.2
+    ]
+   },
+   "first_activity": "Safety & Health:",
+   "first_concern": "333 Boiler Foundation - Boiler Island 1 May 26 26 June 26 21 May 26 5 Jul 26 Completed",
+   "n_activities": 20,
+   "n_concerns": 20,
+   "plan": 47.17,
+   "scopes": {}
+  },
+  "PRJ-022": {
+   "actual": 38.46,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     9.45,
+     11.43
+    ],
+    "Engineering": [
+     80.56,
+     62.36
+    ],
+    "Procurement": [
+     66.12,
+     69.13
+    ]
+   },
+   "first_activity": "Safety & Health:",
+   "first_concern": "105 Safety Weekly Audit issue status by weekly",
+   "n_activities": 20,
+   "n_concerns": 20,
+   "plan": 38.28,
+   "scopes": {}
+  },
+  "PRJ-023": {
+   "actual": 46.17,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     25.06,
+     20.37
+    ],
+    "Engineering": [
+     93.44,
+     62.26
+    ],
+    "Procurement": [
+     84.27,
+     79.5
+    ]
+   },
+   "first_activity": "(07 Aug 26) (14 Aug 26)",
+   "first_concern": "Skill manpower shortage e.g. fitter, piping welder",
+   "n_activities": 20,
+   "n_concerns": 1,
+   "plan": 53.08,
+   "scopes": {}
+  },
+  "PRJ-024": {
+   "actual": 47.25,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0
+    ],
+    "Construction": [
+     28.97,
+     20.84
+    ],
+    "Engineering": [
+     94.23,
+     66.07
+    ],
+    "Procurement": [
+     88.85,
+     80.77
+    ]
+   },
+   "first_activity": "Activities CC/SC (*)",
+   "first_concern": "Detail and spec of equipment at riser pole for PEA approval.",
+   "n_activities": 20,
+   "n_concerns": 4,
+   "plan": 56.55,
+   "scopes": {}
+  },
+  "PRJ-025": {
+   "actual": 7.09,
+   "disciplines": {},
+   "first_activity": "List of Issues to be Coordinated",
+   "first_concern": "No. Description Progress Remark",
+   "n_activities": 14,
+   "n_concerns": 20,
+   "plan": 5.34,
+   "scopes": {}
+  },
+  "PRJ-026": {
+   "actual": 6.29,
+   "disciplines": {},
+   "first_activity": "Health and Safety Health and Safety",
+   "first_concern": "Jan-26 0 0 0",
+   "n_activities": 20,
+   "n_concerns": 20,
+   "plan": 6.45,
+   "scopes": {}
+  },
+  "PRJ-027": {
+   "actual": null,
+   "disciplines": {},
+   "first_activity": "To be later",
+   "first_concern": null,
+   "n_activities": 1,
+   "n_concerns": 0,
+   "plan": null,
+   "scopes": {}
+  }
+ },
+ "week": 32,
+ "year": 2026
+}

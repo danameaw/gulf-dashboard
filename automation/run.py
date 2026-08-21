@@ -11,6 +11,8 @@ from config import (BASE_REPORT_PATH, DASHBOARD_HTML, EXCEL_DIR,
                     FOLDER_PROJECTS, PROJECT_KEYWORDS, PROJECT_NAMES,
                     MANUAL_OVERRIDES)
 from extract import extract_from_pdf
+from validate import (findings_html, format_findings, load_history,
+                      record_run, save_history, validate_run, FAIL)
 
 
 # ── 1. Find latest week folder ─────────────────────────────────────────────
@@ -411,7 +413,7 @@ def git_push(week, year):
 EMAIL_FROM   = "danaya.th@gulf.co.th"
 EMAIL_TO     = ["purachet.am@gulf.co.th", "chalong@gulf.co.th"]
 
-def _build_html_body(week, year, found, missing):
+def _build_html_body(week, year, found, missing, report=None):
     found_rows = ''.join(
         f"<tr style='border-bottom:1px solid #e5e7eb'>"
         f"<td style='padding:6px 12px;color:#374151'>{pid}</td>"
@@ -432,6 +434,8 @@ def _build_html_body(week, year, found, missing):
         f"Kindly ensure the relevant PDF files are uploaded to the ShareDrive at the earliest convenience.</p>"
     ) if missing else ""
 
+    findings_block = findings_html(report) if report else ''
+
     return f"""
 <html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#111827;line-height:1.7;max-width:640px;margin:0 auto;padding:24px">
 <p style="margin:0 0 4px">Dear P'Tee and P'Hall,</p>
@@ -450,6 +454,7 @@ def _build_html_body(week, year, found, missing):
     <td style="padding:2px 0;color:#d97706;font-weight:600;text-align:right">{len(missing)} projects</td>
   </tr>
 </table>
+{findings_block}
 <p style="font-size:12px;font-weight:600;letter-spacing:0.06em;color:#6b7280;margin:0 0 8px">UPDATED PROJECTS</p>
 <table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:24px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">
   <tr style="background:#1f3864">
@@ -492,13 +497,15 @@ def _ensure_outlook_running(wait_seconds=20):
         print(f"  [email] Could not check/launch Outlook: {e}")
 
 
-def send_email(week, year, results, missing_ids, xl_path, timeout=90):
+def send_email(week, year, results, missing_ids, xl_path, timeout=90,
+               report=None):
     found   = {k: v for k, v in results.items() if v['found']}
     missing = missing_ids
 
     subject   = (f"[Gulf Dashboard] W{week}/{year} Update — "
                  f"{len(found)} Projects Updated, {len(missing)} Reports Pending")
-    html_body = _build_html_body(week, year, found, missing)
+    html_body = _build_html_body(week, year, found, missing,
+                                report=report)
 
     _ensure_outlook_running()
 
@@ -577,6 +584,13 @@ def main():
                         help='Extract only, do not update files')
     parser.add_argument('--no-email', action='store_true',
                         help='Skip sending email notification')
+    parser.add_argument('--dump', metavar='PATH', default=None,
+                        help='Write the raw extraction results to a JSON file '
+                             '(a full run takes minutes, so this lets the '
+                             'validation rules be re-checked without one)')
+    parser.add_argument('--strict', action='store_true',
+                        help='Stop before updating any file if the data '
+                             'checks report a FAIL')
     parser.add_argument('--no-push', action='store_true',
                         help='Update index.html/Excel locally but do not '
                              'commit or push (for reviewing a correction '
@@ -653,9 +667,30 @@ def main():
     print(f"  Found:   {sum(1 for r in results.values() if r['found'])} projects")
     print(f"  Missing: {len(missing)} projects: {missing}")
 
+    # Quality gate. Every project that produced a PDF used to print "OK"
+    # whatever came out of it, so a pattern that stopped matching stayed
+    # invisible until someone opened the dashboard - Pak Lay ran null for two
+    # weeks and GMTP for five that way. Check the shape of each result against
+    # what its report type always yields, and against what the project itself
+    # reported last week.
+    if args.dump:
+        with open(args.dump, 'w', encoding='utf-8') as f:
+            json.dump(results, f, indent=1, ensure_ascii=False)
+        print(f"  [dump] raw results written to {args.dump}")
+
+    history = load_history()
+    report  = validate_run(results, week, year, history=history)
+    print()
+    print(format_findings(report))
+
     if args.dry_run:
         print("\n  [dry-run] Skipping file updates.")
         return
+
+    if args.strict and report['counts'][FAIL]:
+        print(f"\n  [strict] {report['counts'][FAIL]} FAIL finding(s) - "
+              f"stopping before any file is written.")
+        sys.exit(1)
 
     # Update files
     print("\n  Updating dashboard...")
@@ -665,9 +700,12 @@ def main():
         print("  [no-push] Skipping git commit/push.")
     else:
         git_push(week, year)
+    # Recorded after validation so this week is never its own baseline.
+    save_history(record_run(history, results, week, year))
+
     xl_path = os.path.join(EXCEL_DIR, f'Gulf_Dashboard_W{week}_{year}.xlsx')
     if not args.no_email:
-        send_email(week, year, results, missing, xl_path)
+        send_email(week, year, results, missing, xl_path, report=report)
     notify(week, year,
            sum(1 for r in results.values() if r['found']),
            len(missing))
