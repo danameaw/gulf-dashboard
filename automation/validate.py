@@ -44,6 +44,7 @@ EXPECTATIONS = {
     'iwte':          {'min_disc': 4, 'min_scopes': 0, 'needs_pct': True},
     'solar':         {'min_disc': 0, 'min_scopes': 2, 'needs_pct': True},
     'wind':          {'min_disc': 0, 'min_scopes': 2, 'needs_pct': True},
+    'ttt':           {'min_disc': 4, 'min_scopes': 0, 'needs_pct': True},
     'hydro_pakbeng': {'min_disc': 0, 'min_scopes': 0, 'needs_pct': True},
     'hydro_paklay':  {'min_disc': 0, 'min_scopes': 0, 'needs_pct': True},
 }

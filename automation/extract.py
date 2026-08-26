@@ -580,10 +580,17 @@ def _parse_gmtp_overall_row(text):
 # The 'Plan / Actual :' label and its values can be split across lines, and a
 # y-axis gridline label (e.g. "60%") sometimes lands between them in the text
 # layer — "Plan / Actual :\n60% 24.02% / 28.79% (4.76%)". Allow a short gap
-# (non-greedy, capped) so the stray axis label is skipped and the real
+# (non-greedy, capped) so the stray text is skipped and the real
 # "plan% / actual%" pair is captured.
+#
+# The gap has to be generous: on pages that also carry a discipline table
+# (3.2.8 Construction in WR-054) a whole table row lands between the label and
+# its values — "Plan / Actual : Mech 2.02 0.00 0.00 0.00" then "18.81% /
+# 23.14%" on the next line. A 20-char window missed it and the project lost
+# Construction entirely. Only the "X% / Y%" slash pair can satisfy the tail,
+# and table cells carry no percent signs, so a wider window costs no precision.
 _GMTP_PLAN_ACTUAL_CALLOUT = re.compile(
-    r'plan\s*/\s*actual\s*:?[\s\S]{0,20}?'
+    r'plan\s*/\s*actual\s*:?[\s\S]{0,120}?'
     r'(\d{1,3}(?:\.\d{1,2})?)\s*%\s*/\s*(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)
 
 
@@ -1163,6 +1170,16 @@ def extract_progress_solar(pdf, prj_id=None):
                 merged_disc = dict(tw_entry['disciplines'])
                 merged_disc.update(exec_entry.get('disciplines') or {})
                 exec_entry['disciplines'] = merged_disc
+            # An Exec Summary cell does not always carry an "Overall progress"
+            # line. NWT3's GUE cell dropped it in Week 47 and the reader fell
+            # back to that scope's Construction figure — a genuinely different,
+            # lower number (61.10% against plan 100%, where Overall was 69.37%
+            # against plan 90%). Published as the project's overall it looked
+            # like progress had gone backwards week on week. The scope's own
+            # section page still states Overall, so prefer that over the proxy.
+            if exec_entry.pop('overall_is_proxy', False) and tw_entry                     and tw_entry.get('plan') is not None:
+                exec_entry['plan']   = tw_entry['plan']
+                exec_entry['actual'] = tw_entry['actual']
             scopes[scope_name] = exec_entry
     elif not scopes:
         # Fallback: scan Executive Summary table "Site Progress" row
@@ -1276,8 +1293,10 @@ def _extract_solar_from_exec_summary(pdf):
                                 if label.capitalize() not in discs:
                                     discs[label.capitalize()] = {'plan': p, 'actual': a}
                     # Use construction as proxy for overall if no explicit overall line
+                    overall_is_proxy = False
                     if plan_v is None and construction_v is not None:
                         plan_v, actual_v = construction_v
+                        overall_is_proxy = True
                     # Some columns state Overall with no plan comparison at all
                     # (e.g. "Transmission line Overall progress is 100.00%")
                     # — treat the single figure as both plan and actual rather
@@ -1290,6 +1309,9 @@ def _extract_solar_from_exec_summary(pdf):
                             plan_v = actual_v = _parse_pct(m.group(1))
                     if plan_v is not None:
                         entry = {'plan': plan_v, 'actual': actual_v}
+                        if overall_is_proxy:
+                            # Caller decides whether a better Overall exists.
+                            entry['overall_is_proxy'] = True
                         if scope == 'GUE' and discs:
                             entry['disciplines'] = discs
                         scopes[scope] = entry

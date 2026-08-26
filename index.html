@@ -610,7 +610,7 @@ function saveData() {
 // (e.g. to today's date) whenever a manual data correction ships; on the
 // next load this drops the visitor's entire cached progressData so every
 // seedIfEmpty() call below re-applies fresh from this file.
-const SEED_VERSION = '2026-08-26.0948';
+const SEED_VERSION = '2026-08-26.1028';
 if (localStorage.getItem('gulfSeedVersion') !== SEED_VERSION) {
   progressData = {};
   localStorage.setItem('gulfSeedVersion', SEED_VERSION);
@@ -1441,7 +1441,8 @@ seedIfEmpty('PRJ-001_W33_2026', {
   disciplines: {
       'Commissioning': { plan: 0.0, actual: 0.0 },
       'Engineering': { plan: 78.15, actual: 85.38 },
-      'Procurement': { plan: 33.96, actual: 37.14 }
+      'Procurement': { plan: 33.96, actual: 37.14 },
+      'Construction': { plan: 18.81, actual: 23.14 }
     },
   concerns: ['ISB Elevator — Application of elevator in instrument / substation building should be settled considering construction schedule.',
     'Painting Specification (Color) — Review result to be required quickly for proceeding further.',
@@ -1471,10 +1472,10 @@ seedIfEmpty('PRJ-001_W33_2026', {
 
 // ── GOE2-NWT3 (PRJ-002) Week 33 — auto-extracted
 seedIfEmpty('PRJ-002_W33_2026', {
-  plan: 100.0, actual: 61.1,
+  plan: 90.0, actual: 69.37,
   scopes: {
     'GUE': {
-      plan: 100.0, actual: 61.1,
+      plan: 90.0, actual: 69.37,
       disciplines: {
         'Engineering': { plan: 100.0, actual: 99.76 },
         'Procurement': { plan: 100.0, actual: 96.04 },
