@@ -610,7 +610,7 @@ function saveData() {
 // (e.g. to today's date) whenever a manual data correction ships; on the
 // next load this drops the visitor's entire cached progressData so every
 // seedIfEmpty() call below re-applies fresh from this file.
-const SEED_VERSION = '2026-08-26.0851';
+const SEED_VERSION = '2026-08-26.0929';
 if (localStorage.getItem('gulfSeedVersion') !== SEED_VERSION) {
   progressData = {};
   localStorage.setItem('gulfSeedVersion', SEED_VERSION);
@@ -1595,7 +1595,7 @@ seedIfEmpty('PRJ-004_W33_2026', {
 
 // ── Pak Beng (PRJ-026) Week 33 — auto-extracted
 seedIfEmpty('PRJ-026_W33_2026', {
-  plan: null, actual: null,
+  plan: 6.63, actual: 6.46,
   concerns: [],
   activities: ['Earth‑ rock Excavation — 10000 m³ (2.71%)',
     'EL.364~379 Slope Support — 0.02 Item (2.00%)',
@@ -1701,7 +1701,13 @@ seedIfEmpty('PRJ-007_W33_2026', {
 
 // ── TTT (PRJ-027) Week 33 — auto-extracted
 seedIfEmpty('PRJ-027_W33_2026', {
-  plan: null, actual: null,
+  plan: 1.11, actual: 1.22,
+  disciplines: {
+      'Engineering': { plan: 18.56, actual: 20.54, wf: 5.53 },
+      'Procurement': { plan: 0.0, actual: 0.0, wf: 40.48 },
+      'Construction': { plan: 0.17, actual: 0.17, wf: 49.5 },
+      'Commissioning': { plan: 0.0, actual: 0.0, wf: 4.49 }
+    },
   concerns: [],
   activities: ['To be later'],
 });

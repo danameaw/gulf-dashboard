@@ -113,6 +113,36 @@ GMTP_ROWS = {
 # 115kV T/L (RSS): bi-weekly report, S-Curve → IMAGE
 # → Overall: S-CURVE IMAGE (4 scopes)
 
+# ── TTT (PRJ-027) ───────────────────────────────────────
+# The table sits on top of the chart, so pdfplumber interleaves its rows with
+# the y-axis tick labels and the project name printed down the left margin:
+#     "Engineering 5.53 18.56 20.54 +1.98"
+#     "TTT Procurement 40.48 0.00 0.00 -"
+#     "20.00% Commissoining 4.49 0.00 0.00 -"     <- report's own spelling
+#     "OverallProgress 100 1.11 1.22 +0.11"
+# Columns are W.F. / Plan / Actual / Variance; variance is "-" while a
+# discipline has not started. Allow any leading junk before the row label.
+TTT_SCURVE_PAGE = re.compile(r's-?curve\s*\(\s*overall\s*\)', re.I)
+TTT_AREA_ROW = re.compile(
+    r'(?:^|\s)(Engineering|Procurement|Construction|Commiss\w+)\s+'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s+'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s+'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s*'
+    r'(?:[+\-−]\s*\d{1,3}(?:\.\d{1,2})?|[-–—])\s*$',
+    re.I | re.M)
+TTT_OVERALL_ROW = re.compile(
+    r'overall\s*progress\s+(?:\d{1,3}(?:\.\d{1,2})?)\s+'
+    r'(\d{1,3}(?:\.\d{1,2})?)\s+(\d{1,3}(?:\.\d{1,2})?)', re.I)
+# Fallback: the label above the curve, same split-line shape as Pak Beng's.
+TTT_PLAN_ACTUAL = re.compile(
+    r'plan/actual\s*[:：].{0,60}?'
+    r'(\d{1,3}(?:\.\d{1,2})?)%\s*/\s*(\d{1,3}(?:\.\d{1,2})?)%',
+    re.I | re.S)
+# The report writes "Commissoining"; the dashboard wants the real word.
+TTT_DISC_CANON = {'commissoining': 'Commissioning', 'commissioning': 'Commissioning',
+                  'engineering': 'Engineering', 'procurement': 'Procurement',
+                  'construction': 'Construction'}
+
 # ── Hydro Pak Lay (PRJ-025) ───────────────────────────────────────────────
 # Source: PLHPP Overall S-Curve → IMAGE
 # Overall only, no discipline breakdown
@@ -124,7 +154,10 @@ GMTP_ROWS = {
 # → Overall: S-CURVE IMAGE
 
 # ── TTT (PRJ-027) ─────────────────────────────────────────────────────────
-# No data yet → MANUAL when reports available
+# Source: '3.2 S-Curve (Overall)' page, the 'W.F. Accumulation' table
+# next to the curve. Reported from WR-011 on; earlier reports carried no
+# progress at all, which is why this project was hand-filled until now.
+# → Overall + EPCC disciplines, each with its weight factor.
 
 # ── Solar (GSO2026: PRJ-002,003,004 / SOSB2026: PRJ-005,006,007) ─────────
 # Source: "This week activities" pages per contractor section
@@ -304,9 +337,16 @@ WIND_EXEC_SCOPE_COL_NAMES = {
 #                         "Cum. Progress -Actual  ... 5.24%"
 # → Use the LAST value in each row (current month's cumulative)
 
+# Report 067 broke pattern 1: pdfplumber now emits the label on its own line
+# and the values on the next one, interleaved with the chart's y-axis ticks
+# ("Plan/Actual：" / newline / "40.00% 6.63%/6.46%（-0.17%）"). Let the label
+# and the pair sit on different lines, skipping any axis ticks in between. The
+# "X%/Y%" slash pair is distinctive enough that the lazy gap can't latch onto a
+# lone tick label, which never has a slash after it.
 PAKBENG_PLAN_ACTUAL = re.compile(
-    r'plan/actual\s*[：:]\s*(\d{1,3}(?:\.\d{1,2})?)%\s*/\s*(\d{1,3}(?:\.\d{1,2})?)%',
-    re.I)
+    r'plan/actual\s*[：:].{0,60}?'
+    r'(\d{1,3}(?:\.\d{1,2})?)%\s*/\s*(\d{1,3}(?:\.\d{1,2})?)%',
+    re.I | re.S)
 PAKBENG_CUM_PLANNED = re.compile(
     r'cum\.?\s*progress\s*[-–]\s*planned[^\n]*?(\d{1,3}\.\d{2})%\s*$', re.I | re.M)
 PAKBENG_CUM_ACTUAL  = re.compile(
@@ -363,4 +403,5 @@ AUTO_EXTRACT_PROJECTS = {
     'PRJ-024': 'iwte',    # TSE
     'PRJ-025': 'hydro_paklay',   # Pak Lay
     'PRJ-026': 'hydro_pakbeng',  # Pak Beng
+    'PRJ-027': 'ttt',            # TTT (Chang)
 }

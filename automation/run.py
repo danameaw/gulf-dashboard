@@ -685,15 +685,13 @@ def main():
                 (missing if due else not_due).append(prj_id)
                 continue
 
-            if prj_id in MANUAL_OVERRIDES:
-                print(f"OK → {os.path.basename(pdf)} (manual override)")
-                data = MANUAL_OVERRIDES[prj_id]
-                results[prj_id] = {'found': True, 'data': data}
-                seeds_js.append(build_seed(prj_id, week, year, data))
-                continue
-
-            print(f"OK → {os.path.basename(pdf)}")
+            note = " (+ manual override)" if prj_id in MANUAL_OVERRIDES else ""
+            print(f"OK → {os.path.basename(pdf)}{note}")
             data = extract_from_pdf(pdf, prj_id, search_dir=group_path)
+            # Hand-written fields win over the extractor, but only the ones
+            # actually listed — everything else stays as read from the PDF.
+            if prj_id in MANUAL_OVERRIDES:
+                data = {**data, **MANUAL_OVERRIDES[prj_id]}
             plan_s   = f"{data['plan']}%" if data['plan'] is not None else 'null'
             actual_s = f"{data['actual']}%" if data['actual'] is not None else 'null'
             scopes_n = len(data.get('scopes', {}))

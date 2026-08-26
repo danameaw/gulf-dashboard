@@ -16,6 +16,8 @@ from patterns import (
     WIND_EXEC_DELTA, WIND_EXEC_INLINE, WIND_EXEC_ACTUAL_NEWLINE_PLAN,
     WIND_EXEC_PROGRESS_DELTA, WIND_EXEC_SCOPE_COL_NAMES,
     PAKBENG_PLAN_ACTUAL, PAKBENG_CUM_PLANNED, PAKBENG_CUM_ACTUAL,
+    TTT_SCURVE_PAGE, TTT_AREA_ROW, TTT_OVERALL_ROW, TTT_PLAN_ACTUAL,
+    TTT_DISC_CANON,
     PAKLAY_PROGRESS,
 )
 
@@ -1674,6 +1676,51 @@ def extract_progress_hydro_pakbeng(pdf):
     return {'plan': None, 'actual': None, 'disciplines': {}}
 
 
+def extract_progress_ttt(pdf):
+    """
+    TTT (Chang) weekly report, '3.2 S-Curve (Overall)' page.
+
+    The W.F. Accumulation table beside the curve carries the whole picture:
+    one row per EPCC discipline (weight factor, plan, actual, variance) and an
+    'OverallProgress' row. Falls back to the 'Plan/Actual: X% / Y%' label above
+    the curve if the table rows come out of pdfplumber too mangled to match.
+    Returns { plan, actual, disciplines: {disc: {plan, actual, wf}} }.
+    """
+    empty = {'plan': None, 'actual': None, 'disciplines': {}}
+    with pdfplumber.open(pdf) as doc:
+        page_text = None
+        for page in doc.pages:
+            text = page.extract_text() or ''
+            if TTT_SCURVE_PAGE.search(text):
+                page_text = text
+                break
+    if page_text is None:
+        return empty
+
+    disciplines = {}
+    for name, wf, plan_s, actual_s in TTT_AREA_ROW.findall(page_text):
+        canon = TTT_DISC_CANON.get(name.lower())
+        if not canon or canon in disciplines:
+            continue
+        plan_v, actual_v, wf_v = (_parse_pct(plan_s), _parse_pct(actual_s),
+                                  _parse_pct(wf))
+        if plan_v is None or actual_v is None:
+            continue
+        disciplines[canon] = {'plan': plan_v, 'actual': actual_v, 'wf': wf_v}
+
+    plan = actual = None
+    m = TTT_OVERALL_ROW.search(page_text)
+    if m:
+        plan, actual = _parse_pct(m.group(1)), _parse_pct(m.group(2))
+    if plan is None or actual is None:
+        m = TTT_PLAN_ACTUAL.search(page_text)
+        if m:
+            plan, actual = _parse_pct(m.group(1)), _parse_pct(m.group(2))
+    if plan is None or actual is None:
+        return {'plan': None, 'actual': None, 'disciplines': disciplines}
+    return {'plan': plan, 'actual': actual, 'disciplines': disciplines}
+
+
 def extract_progress_hydro_paklay(pdf, search_dir=None):
     """
     Pak Lay: EPC weekly report is primarily issue/design tracking and rarely
@@ -1981,6 +2028,8 @@ def extract_progress(pdf_path, prj_id, search_dir=None):
             return extract_progress_wind(pdf_path, prj_id=prj_id)
         elif extract_type == 'hydro_pakbeng':
             return extract_progress_hydro_pakbeng(pdf_path)
+        elif extract_type == 'ttt':
+            return extract_progress_ttt(pdf_path)
         elif extract_type == 'hydro_paklay':
             return extract_progress_hydro_paklay(pdf_path, search_dir=search_dir)
     except Exception as e:

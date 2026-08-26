@@ -51,10 +51,15 @@ PROJECT_KEYWORDS = {
     "PRJ-027": ["TTT", "CHANG"],
 }
 
-# Projects with no extraction pattern yet — report has arrived (so not
-# "missing") but data is filled in by hand instead of parsed from the PDF.
+# Fields the PDF does not yield, filled in by hand. Applied ON TOP of whatever
+# was extracted, key by key — so a project can have real progress read from its
+# report while a section the extractor still can't read stays hand-written.
+# List only the keys you mean to override; anything absent comes from the PDF.
 MANUAL_OVERRIDES = {
-    "PRJ-027": {"concerns": [], "activities": ["To be later"], "plan": None, "actual": None},
+    # TTT states progress from WR-011 on (read from its S-Curve page), but its
+    # activities live in two-column This/Next Week tables that come out of
+    # pdfplumber interleaved, and 11.1 Area of Concern currently reads "N/A".
+    "PRJ-027": {"concerns": [], "activities": ["To be later"]},
 }
 
 # How often each project actually issues a report. Anything not listed here
