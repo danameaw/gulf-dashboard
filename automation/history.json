@@ -67,7 +67,7 @@
   "actual": 31.39,
   "n_activities": 20,
   "n_concerns": 4,
-  "n_disc": 3,
+  "n_disc": 4,
   "n_scopes": 3,
   "plan": 27.65
  },
@@ -144,12 +144,12 @@
   "plan": 90.0
  },
  "PRJ-002_W33_2026": {
-  "actual": 61.1,
+  "actual": 69.37,
   "n_activities": 17,
   "n_concerns": 2,
   "n_disc": 0,
   "n_scopes": 4,
-  "plan": 100.0
+  "plan": 90.0
  },
  "PRJ-003_W24_2026": {
   "actual": null,

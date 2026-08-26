@@ -610,7 +610,7 @@ function saveData() {
 // (e.g. to today's date) whenever a manual data correction ships; on the
 // next load this drops the visitor's entire cached progressData so every
 // seedIfEmpty() call below re-applies fresh from this file.
-const SEED_VERSION = '2026-08-26.1028';
+const SEED_VERSION = '2026-08-26.1044';
 if (localStorage.getItem('gulfSeedVersion') !== SEED_VERSION) {
   progressData = {};
   localStorage.setItem('gulfSeedVersion', SEED_VERSION);

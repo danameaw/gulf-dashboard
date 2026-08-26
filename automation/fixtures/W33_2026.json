@@ -1,0 +1,802 @@
+{
+ "projects": {
+  "PRJ-001": {
+   "actual": 31.39,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     18.81,
+     23.14,
+     null
+    ],
+    "Engineering": [
+     78.15,
+     85.38,
+     null
+    ],
+    "Procurement": [
+     33.96,
+     37.14,
+     null
+    ]
+   },
+   "first_activity": "[LNG Tank] Tank 101: Installation DOKA climbing form for outer wall 7th",
+   "first_concern": "ISB Elevator \u2014 Application of elevator in instrument / substation building should be settled considering construction schedule.",
+   "n_activities": 20,
+   "n_concerns": 4,
+   "plan": 27.65,
+   "scopes": {
+    "BOP & Utility Area": {
+     "actual": 33.45,
+     "disciplines": {
+      "Construction": [
+       18.58,
+       23.29,
+       31.25
+      ],
+      "Engineering": [
+       76.52,
+       85.59,
+       5.69
+      ],
+      "Procurement": [
+       30.41,
+       33.77,
+       63.06
+      ]
+     },
+     "plan": 29.34
+    },
+    "LNG Tank Area": {
+     "actual": 40.64,
+     "disciplines": {
+      "Construction": [
+       26.45,
+       31.95,
+       74.64
+      ],
+      "Engineering": [
+       82.45,
+       86.52,
+       3.41
+      ],
+      "Procurement": [
+       61.33,
+       63.05,
+       21.95
+      ]
+     },
+     "plan": 36.02
+    },
+    "Marine Area": {
+     "actual": 8.3,
+     "disciplines": {
+      "Construction": [
+       1.84,
+       2.49,
+       92.74
+      ],
+      "Engineering": [
+       82.17,
+       82.55,
+       7.26
+      ]
+     },
+     "plan": 7.67
+    }
+   }
+  },
+  "PRJ-002": {
+   "actual": 69.37,
+   "disciplines": {},
+   "first_activity": "[PV Farm (GUE)] Install Mounting Structure 633 of 768 table, 10 Construction inspected 347 table, 45.18%.",
+   "first_concern": "[PV Farm (GUE)] Expedite skilled worker & tools for install PV module.",
+   "n_activities": 17,
+   "n_concerns": 2,
+   "plan": 90.0,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 77.69,
+     "disciplines": {},
+     "plan": 94.77
+    },
+    "Comm/Fiber": {
+     "actual": 85.68,
+     "disciplines": {},
+     "plan": 93.78
+    },
+    "GUE": {
+     "actual": 69.37,
+     "disciplines": {
+      "Construction": [
+       100.0,
+       61.1,
+       null
+      ],
+      "Engineering": [
+       100.0,
+       99.76,
+       null
+      ],
+      "Procurement": [
+       100.0,
+       96.04,
+       null
+      ]
+     },
+     "plan": 90.0
+    },
+    "Siemens": {
+     "actual": 64.24,
+     "disciplines": {},
+     "plan": 86.35
+    }
+   }
+  },
+  "PRJ-003": {
+   "actual": 68.72,
+   "disciplines": {},
+   "first_activity": "[PV Farm (GUE)] Install PV mounting, PV Module T10 Constru",
+   "first_concern": "[PV Farm (GUE)] Site Security Issue.",
+   "n_activities": 16,
+   "n_concerns": 11,
+   "plan": 91.6,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 78.08,
+     "disciplines": {},
+     "plan": 77.18
+    },
+    "Add Bay": {
+     "actual": 94.73,
+     "disciplines": {},
+     "plan": 94.69
+    },
+    "Comm/Fiber": {
+     "actual": 92.13,
+     "disciplines": {},
+     "plan": 97.73
+    },
+    "GUE": {
+     "actual": 68.72,
+     "disciplines": {
+      "Construction": [
+       99.75,
+       60.81,
+       null
+      ],
+      "Engineering": [
+       100.0,
+       99.27,
+       null
+      ],
+      "Procurement": [
+       100.0,
+       94.32,
+       null
+      ]
+     },
+     "plan": 91.6
+    },
+    "Siemens": {
+     "actual": 65.15,
+     "disciplines": {},
+     "plan": 88.42
+    }
+   }
+  },
+  "PRJ-004": {
+   "actual": 74.8,
+   "disciplines": {},
+   "first_activity": "[PV Farm (GUE)] Civil work:",
+   "first_concern": "[PV Farm (GUE)] To expedite the secondary electrical work.",
+   "n_activities": 20,
+   "n_concerns": 3,
+   "plan": 90.0,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 84.36,
+     "disciplines": {},
+     "plan": 92.9
+    },
+    "Comm/Fiber": {
+     "actual": 87.43,
+     "disciplines": {},
+     "plan": 88.49
+    },
+    "GUE": {
+     "actual": 74.8,
+     "disciplines": {
+      "Construction": [
+       100.0,
+       71.53,
+       null
+      ],
+      "Engineering": [
+       100.0,
+       99.76,
+       null
+      ],
+      "Procurement": [
+       100.0,
+       96.04,
+       null
+      ]
+     },
+     "plan": 90.0
+    },
+    "Siemens": {
+     "actual": 68.3,
+     "disciplines": {},
+     "plan": 89.94
+    }
+   }
+  },
+  "PRJ-005": {
+   "actual": 98.8,
+   "disciplines": {},
+   "first_activity": "[PVfarm(GUE)] PR test on going",
+   "first_concern": null,
+   "n_activities": 6,
+   "n_concerns": 0,
+   "plan": 99.5,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 100.0,
+     "disciplines": {},
+     "plan": 100.0
+    },
+    "GUE": {
+     "actual": 98.8,
+     "disciplines": {
+      "Construction": [
+       100.0,
+       98.9,
+       null
+      ]
+     },
+     "plan": 99.5
+    },
+    "Siemens": {
+     "actual": 100.0,
+     "disciplines": {},
+     "plan": 100.0
+    }
+   }
+  },
+  "PRJ-006": {
+   "actual": 99.85,
+   "disciplines": {},
+   "first_activity": "[PVfarm(GUE)] Continue Lighting system installation",
+   "first_concern": null,
+   "n_activities": 11,
+   "n_concerns": 0,
+   "plan": 100.0,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 100.0,
+     "disciplines": {},
+     "plan": 100.0
+    },
+    "GUE": {
+     "actual": 99.85,
+     "disciplines": {
+      "Construction": [
+       100.0,
+       99.85,
+       null
+      ]
+     },
+     "plan": 100.0
+    },
+    "Siemens": {
+     "actual": 100.0,
+     "disciplines": {},
+     "plan": 100.0
+    }
+   }
+  },
+  "PRJ-007": {
+   "actual": 92.61,
+   "disciplines": {},
+   "first_activity": "[PV farm (GPD)] Mounting and PV panel installation.",
+   "first_concern": "[PV farm (GPD)] GPD issued the Purchase Order to Antai on 3 Aug 2026. Follow up to ensure the mounting is delivered to site by 25 September 2026, so it does not impact the load rejection test.",
+   "n_activities": 20,
+   "n_concerns": 5,
+   "plan": 92.87,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 87.63,
+     "disciplines": {},
+     "plan": 96.41
+    },
+    "Add Bay": {
+     "actual": 97.0,
+     "disciplines": {},
+     "plan": 97.0
+    },
+    "GIS Substation": {
+     "actual": 71.71,
+     "disciplines": {},
+     "plan": 71.1
+    },
+    "GUE": {
+     "actual": 92.61,
+     "disciplines": {
+      "Construction": [
+       96.27,
+       96.61,
+       null
+      ]
+     },
+     "plan": 92.87
+    },
+    "Siemens": {
+     "actual": 91.04,
+     "disciplines": {},
+     "plan": 76.24
+    }
+   }
+  },
+  "PRJ-011": {
+   "actual": 74.96,
+   "disciplines": {},
+   "first_activity": "[CBOP (PCZ)] Continue to road base course compaction work.",
+   "first_concern": null,
+   "n_activities": 15,
+   "n_concerns": 0,
+   "plan": 80.0,
+   "scopes": {
+    "115kV T/L": {
+     "actual": 91.0,
+     "disciplines": {},
+     "plan": 87.7
+    },
+    "CBOP": {
+     "actual": 74.96,
+     "disciplines": {},
+     "plan": 80.0
+    },
+    "Substation": {
+     "actual": 8.26,
+     "disciplines": {},
+     "plan": 13.74
+    },
+    "TSA": {
+     "actual": 39.2,
+     "disciplines": {},
+     "plan": 38.79
+    }
+   }
+  },
+  "PRJ-012": {
+   "actual": 70.25,
+   "disciplines": {},
+   "first_activity": "[TSA (Goldwind)] Excavation work for WTG-01, WTG-05.",
+   "first_concern": "[TSA (Goldwind)] The Aor.1 permit approval is currently behind schedule and does not align with the planned start date of the WTG foundation works on 1 June 2026.>>Done",
+   "n_activities": 11,
+   "n_concerns": 3,
+   "plan": 73.96,
+   "scopes": {
+    "CBOP": {
+     "actual": 70.25,
+     "disciplines": {},
+     "plan": 73.96
+    },
+    "Substation": {
+     "actual": 0.32,
+     "disciplines": {},
+     "plan": 1.39
+    }
+   }
+  },
+  "PRJ-013": {
+   "actual": 46.69,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     27.18,
+     17.44,
+     null
+    ],
+    "Engineering": [
+     94.92,
+     64.76,
+     null
+    ],
+    "Procurement": [
+     85.67,
+     83.1,
+     null
+    ]
+   },
+   "first_activity": null,
+   "first_concern": "The water pressure from the Hi-Tech system (1.5 bar) is insufficient for filling the ser vice water tank.",
+   "n_activities": 0,
+   "n_concerns": 1,
+   "plan": 54.63,
+   "scopes": {}
+  },
+  "PRJ-014": {
+   "actual": 47.26,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     27.18,
+     18.79,
+     null
+    ],
+    "Engineering": [
+     94.92,
+     65.06,
+     null
+    ],
+    "Procurement": [
+     85.67,
+     83.1,
+     null
+    ]
+   },
+   "first_activity": "Pouring concrete from EL.+5.45 to El.+8.00",
+   "first_concern": "Detail and spec of equipment at riser pole for PEA approval.",
+   "n_activities": 4,
+   "n_concerns": 4,
+   "plan": 54.63,
+   "scopes": {}
+  },
+  "PRJ-015": {
+   "actual": 49.68,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     31.24,
+     23.94,
+     null
+    ],
+    "Engineering": [
+     95.68,
+     65.75,
+     null
+    ],
+    "Procurement": [
+     89.99,
+     83.81,
+     null
+    ]
+   },
+   "first_activity": "Bunker building: Concrete pouring for Lift 4 Wall EL +8.00 to +12.45 m. (25 Aug 2026)",
+   "first_concern": null,
+   "n_activities": 7,
+   "n_concerns": 0,
+   "plan": 58.06,
+   "scopes": {}
+  },
+  "PRJ-016": {
+   "actual": 45.82,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     18.55,
+     18.17,
+     null
+    ],
+    "Engineering": [
+     92.87,
+     64.85,
+     null
+    ],
+    "Procurement": [
+     79.8,
+     80.16,
+     null
+    ]
+   },
+   "first_activity": "Bunker wall concrete pouring at EL +12m.",
+   "first_concern": "M&E manpower and subcontractor mobilization in accordance with the working plan and readiness of work permits.",
+   "n_activities": 2,
+   "n_concerns": 4,
+   "plan": 48.62,
+   "scopes": {}
+  },
+  "PRJ-017": {
+   "actual": 40.96,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     10.42,
+     10.2,
+     null
+    ],
+    "Engineering": [
+     87.84,
+     64.9,
+     null
+    ],
+    "Procurement": [
+     68.38,
+     75.96,
+     null
+    ]
+   },
+   "first_activity": null,
+   "first_concern": "The BOP workers is insufficient for the workload",
+   "n_activities": 0,
+   "n_concerns": 1,
+   "plan": 40.31,
+   "scopes": {}
+  },
+  "PRJ-018": {
+   "actual": 44.03,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     18.55,
+     13.77,
+     null
+    ],
+    "Engineering": [
+     92.87,
+     64.6,
+     null
+    ],
+    "Procurement": [
+     79.8,
+     80.16,
+     null
+    ]
+   },
+   "first_activity": null,
+   "first_concern": "The BOP workers is insufficient for the workload",
+   "n_activities": 0,
+   "n_concerns": 1,
+   "plan": 48.62,
+   "scopes": {}
+  },
+  "PRJ-019": {
+   "actual": 43.55,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     18.55,
+     12.71,
+     null
+    ],
+    "Engineering": [
+     92.87,
+     64.05,
+     null
+    ],
+    "Procurement": [
+     79.8,
+     80.16,
+     null
+    ]
+   },
+   "first_activity": "Bunker Building: Pouring concrete Lift 2 EL (+1 to +5.45) (Targeted date 6 Sep 26)",
+   "first_concern": null,
+   "n_activities": 5,
+   "n_concerns": 0,
+   "plan": 48.62,
+   "scopes": {}
+  },
+  "PRJ-020": {
+   "actual": 46.75,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     27.18,
+     17.58,
+     null
+    ],
+    "Engineering": [
+     94.92,
+     64.82,
+     null
+    ],
+    "Procurement": [
+     85.67,
+     83.1,
+     null
+    ]
+   },
+   "first_activity": "Bunker Building: Install Formwork +1.00 to +2.00,Pouring Concrete +1.00 to +2.00 ; Target date 31 Aug 26,Backfill to -2.00 ; Target date 27 Aug 26",
+   "first_concern": null,
+   "n_activities": 6,
+   "n_concerns": 0,
+   "plan": 54.63,
+   "scopes": {}
+  },
+  "PRJ-021": {
+   "actual": 45.19,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     18.52,
+     16.59,
+     null
+    ],
+    "Engineering": [
+     92.87,
+     64.94,
+     null
+    ],
+    "Procurement": [
+     79.8,
+     80.16,
+     null
+    ]
+   },
+   "first_activity": "Work Foundation at Bunker to 18.00 m",
+   "first_concern": null,
+   "n_activities": 2,
+   "n_concerns": 0,
+   "plan": 48.61,
+   "scopes": {}
+  },
+  "PRJ-022": {
+   "actual": 41.91,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     10.42,
+     12.65,
+     null
+    ],
+    "Engineering": [
+     87.84,
+     64.63,
+     null
+    ],
+    "Procurement": [
+     68.38,
+     75.96,
+     null
+    ]
+   },
+   "first_activity": "1. Work Foundation at Bunker to 18.00 m",
+   "first_concern": "Contractor for Retaining wall south side",
+   "n_activities": 2,
+   "n_concerns": 1,
+   "plan": 40.31,
+   "scopes": {}
+  },
+  "PRJ-023": {
+   "actual": 48.72,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     27.18,
+     22.52,
+     null
+    ],
+    "Engineering": [
+     94.92,
+     64.71,
+     null
+    ],
+    "Procurement": [
+     85.67,
+     83.1,
+     null
+    ]
+   },
+   "first_activity": "Bunker wall concrete pouring at EL +16.9m. 2. Water Wall installation",
+   "first_concern": "M&E manpower and subcontractor mobilization in accordance with the working plan and readiness of work permits.",
+   "n_activities": 1,
+   "n_concerns": 4,
+   "plan": 54.63,
+   "scopes": {}
+  },
+  "PRJ-024": {
+   "actual": 48.97,
+   "disciplines": {
+    "Commissioning": [
+     0.0,
+     0.0,
+     null
+    ],
+    "Construction": [
+     31.24,
+     21.55,
+     null
+    ],
+    "Engineering": [
+     95.68,
+     68.22,
+     null
+    ],
+    "Procurement": [
+     89.99,
+     83.81,
+     null
+    ]
+   },
+   "first_activity": "Pouring concrete by slip from method From EL.+8.0 to +18.30 m.",
+   "first_concern": "Detail and spec of equipment at riser pole for PEA approval.",
+   "n_activities": 4,
+   "n_concerns": 3,
+   "plan": 58.06,
+   "scopes": {}
+  },
+  "PRJ-025": {
+   "actual": 7.14,
+   "disciplines": {},
+   "first_activity": "[EPC Hub Camp] I n stallation of reinforced stone cages \u2014 200 Pcs",
+   "first_concern": null,
+   "n_activities": 20,
+   "n_concerns": 0,
+   "plan": 4.95,
+   "scopes": {}
+  },
+  "PRJ-026": {
+   "actual": 6.46,
+   "disciplines": {},
+   "first_activity": "Earth\u2011 rock Excavation \u2014 10000 m\u00b3 (2.71%)",
+   "first_concern": null,
+   "n_activities": 10,
+   "n_concerns": 0,
+   "plan": 6.63,
+   "scopes": {}
+  },
+  "PRJ-027": {
+   "actual": null,
+   "disciplines": {},
+   "first_activity": "To be later",
+   "first_concern": null,
+   "n_activities": 1,
+   "n_concerns": 0,
+   "plan": null,
+   "scopes": {}
+  }
+ },
+ "week": 33,
+ "year": 2026
+}
