@@ -580,7 +580,7 @@ const PROJECTS = [
 // Progress data store: key = "projectId_week"
 // Each entry: { plan, actual, concerns:[], activities:[], disciplineData:{} }
 // ── AUTO: MISSING REPORTS ──
-const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","PRJ-027","PRJ-009","PRJ-010","PRJ-011"],"W26_2026":["PRJ-008","PRJ-009","PRJ-010","PRJ-011","PRJ-012"],"W27_2026":["PRJ-008"],"W28_2026":["PRJ-026"],"W29_2026":["PRJ-008"],"W30_2026":["PRJ-008"],"W31_2026":["PRJ-008"],"W32_2026":["PRJ-008","PRJ-009"],"W33_2026":["PRJ-013","PRJ-014","PRJ-015","PRJ-016","PRJ-017","PRJ-018","PRJ-019","PRJ-020","PRJ-021","PRJ-022","PRJ-023","PRJ-024","PRJ-006","PRJ-008","PRJ-009","PRJ-010"]};
+const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","PRJ-027","PRJ-009","PRJ-010","PRJ-011"],"W26_2026":["PRJ-008","PRJ-009","PRJ-010","PRJ-011","PRJ-012"],"W27_2026":["PRJ-008"],"W28_2026":["PRJ-026"],"W29_2026":["PRJ-008"],"W30_2026":["PRJ-008"],"W31_2026":["PRJ-008"],"W32_2026":["PRJ-008","PRJ-009"],"W33_2026":["PRJ-008","PRJ-009","PRJ-010"]};
 // ── END MISSING REPORTS ──
 
 // ── AUTO: REPORT DATES ──
@@ -610,7 +610,7 @@ function saveData() {
 // (e.g. to today's date) whenever a manual data correction ships; on the
 // next load this drops the visitor's entire cached progressData so every
 // seedIfEmpty() call below re-applies fresh from this file.
-const SEED_VERSION = '2026-08-26.0929';
+const SEED_VERSION = '2026-08-26.0948';
 if (localStorage.getItem('gulfSeedVersion') !== SEED_VERSION) {
   progressData = {};
   localStorage.setItem('gulfSeedVersion', SEED_VERSION);
@@ -1593,6 +1593,197 @@ seedIfEmpty('PRJ-004_W33_2026', {
     '[Substation (SIEMENS)] Control building: M&E conduit installation, cable pulling and wiring work.'],
 });
 
+// ── GCE (PRJ-013) Week 33 — auto-extracted
+seedIfEmpty('PRJ-013_W33_2026', {
+  plan: 54.63, actual: 46.69,
+  disciplines: {
+      'Engineering': { plan: 94.92, actual: 64.76 },
+      'Procurement': { plan: 85.67, actual: 83.1 },
+      'Construction': { plan: 27.18, actual: 17.44 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['The water pressure from the Hi-Tech system (1.5 bar) is insufficient for filling the ser vice water tank.'],
+  activities: [],
+});
+
+// ── GSE (PRJ-014) Week 33 — auto-extracted
+seedIfEmpty('PRJ-014_W33_2026', {
+  plan: 54.63, actual: 47.26,
+  disciplines: {
+      'Engineering': { plan: 94.92, actual: 65.06 },
+      'Procurement': { plan: 85.67, actual: 83.1 },
+      'Construction': { plan: 27.18, actual: 18.79 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Detail and spec of equipment at riser pole for PEA approval.',
+    'Detail drawing of water pond.',
+    'Detail drawing of foundation and architecture of BOP building',
+    'Detail of underground pipe of toilet at steam turbine building.'],
+  activities: ['Pouring concrete from EL.+5.45 to El.+8.00',
+    'Boiler : Install water bune',
+    'FGT area: Install bag filter and reactor tower shell.',
+    'STG :Pouring concrete for column, beam and slab for 2nd floor'],
+});
+
+// ── KKE (PRJ-015) Week 33 — auto-extracted
+seedIfEmpty('PRJ-015_W33_2026', {
+  plan: 58.06, actual: 49.68,
+  disciplines: {
+      'Engineering': { plan: 95.68, actual: 65.75 },
+      'Procurement': { plan: 89.99, actual: 83.81 },
+      'Construction': { plan: 31.24, actual: 23.94 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: [],
+  activities: ['Bunker building: Concrete pouring for Lift 4 Wall EL +8.00 to +12.45 m. (25 Aug 2026)',
+    'Tipping hall: Completion of concrete pouring for ground slab',
+    'Boiler Erection: Completion of water wall by (30 Aug 26)',
+    'FGT: Completionof installation Spray Reaction tower by 4 Sep 26 and Bag filer house by (1 Sep 26)',
+    'STG & ECB: Completion of concrete pouring for column (EL -0.7 to +3.75 m.) 27 column (28 Aug 26) Completion of Concrete flat slab (EL +0.25 m.) (7 Sep 26)',
+    'BOP: Completion of ground slab for fire water pump shelter (28 Aug 26)',
+    'Manhole and duct bank: Completion of Manhole for priority 1 (30 Sep 26)'],
+});
+
+// ── MKP (PRJ-016) Week 33 — auto-extracted
+seedIfEmpty('PRJ-016_W33_2026', {
+  plan: 48.62, actual: 45.82,
+  disciplines: {
+      'Engineering': { plan: 92.87, actual: 64.85 },
+      'Procurement': { plan: 79.8, actual: 80.16 },
+      'Construction': { plan: 18.55, actual: 18.17 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['M&E manpower and subcontractor mobilization in accordance with the working plan and readiness of work permits.',
+    'Detail drawing of fire fighting system for material purchasing.',
+    'Pipe support standard detail drawing for fabrication and procurement of spring pipe supports, which are long-lead items.',
+    'Diesel oil tank drawing: Clarify the drainage arrangement for the diesel oil tank: bottom drain or draw-off sump in accordance with API 650'],
+  activities: ['Bunker wall concrete pouring at EL +12m.',
+    'Water wall installation'],
+});
+
+// ── MPE (PRJ-017) Week 33 — auto-extracted
+seedIfEmpty('PRJ-017_W33_2026', {
+  plan: 40.31, actual: 40.96,
+  disciplines: {
+      'Engineering': { plan: 87.84, actual: 64.9 },
+      'Procurement': { plan: 68.38, actual: 75.96 },
+      'Construction': { plan: 10.42, actual: 10.2 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['The BOP workers is insufficient for the workload'],
+  activities: [],
+});
+
+// ── PFP (PRJ-018) Week 33 — auto-extracted
+seedIfEmpty('PRJ-018_W33_2026', {
+  plan: 48.62, actual: 44.03,
+  disciplines: {
+      'Engineering': { plan: 92.87, actual: 64.6 },
+      'Procurement': { plan: 79.8, actual: 80.16 },
+      'Construction': { plan: 18.55, actual: 13.77 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['The BOP workers is insufficient for the workload'],
+  activities: [],
+});
+
+// ── PKP (PRJ-019) Week 33 — auto-extracted
+seedIfEmpty('PRJ-019_W33_2026', {
+  plan: 48.62, actual: 43.55,
+  disciplines: {
+      'Engineering': { plan: 92.87, actual: 64.05 },
+      'Procurement': { plan: 79.8, actual: 80.16 },
+      'Construction': { plan: 18.55, actual: 12.71 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: [],
+  activities: ['Bunker Building: Pouring concrete Lift 2 EL (+1 to +5.45) (Targeted date 6 Sep 26)',
+    'Boiler Island:Pouring concrete slab , Pouring Concrete Reuse water pool',
+    'FGT : Pouring concrete for ground beam , Pouring concrete footing',
+    'STG & ECB: Pouring concrete ground beam +0.25, Pouring concrete Miscellaneous Foundation',
+    'Boiler & Incinerator: Incinerator grate Installation ; Targeted date 4 Sep 26'],
+});
+
+// ── PSD (PRJ-020) Week 33 — auto-extracted
+seedIfEmpty('PRJ-020_W33_2026', {
+  plan: 54.63, actual: 46.75,
+  disciplines: {
+      'Engineering': { plan: 94.92, actual: 64.82 },
+      'Procurement': { plan: 85.67, actual: 83.1 },
+      'Construction': { plan: 27.18, actual: 17.58 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: [],
+  activities: ['Bunker Building: Install Formwork +1.00 to +2.00,Pouring Concrete +1.00 to +2.00 ; Target date 31 Aug 26,Backfill to -2.00 ; Target date 27 Aug 26',
+    'Boiler Island:Backfill before slab work on ground (Z1-Z6),Pouring concrete Reuse water pool',
+    'FGT : Backfill for hand over to mechanical work',
+    'STG & ECB: Pouring concrete column +3.7 ; Target Date 26 Aug 26',
+    'Boiler & Incinerator: Completion of Boiler Drum Installation. ; Targeted date 25 Aug 26',
+    'BOP : Cooling Tower Foundation work ; Targeted date 28 Aug 26 : Demin water Treatment Foundation work : Service Water Tank Foundation work'],
+});
+
+// ── PWW1 (PRJ-021) Week 33 — auto-extracted
+seedIfEmpty('PRJ-021_W33_2026', {
+  plan: 48.61, actual: 45.19,
+  disciplines: {
+      'Engineering': { plan: 92.87, actual: 64.94 },
+      'Procurement': { plan: 79.8, actual: 80.16 },
+      'Construction': { plan: 18.52, actual: 16.59 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: [],
+  activities: ['Work Foundation at Bunker to 18.00 m',
+    'Work Foundation at Boiler, FGT, STG area'],
+});
+
+// ── PWW2 (PRJ-022) Week 33 — auto-extracted
+seedIfEmpty('PRJ-022_W33_2026', {
+  plan: 40.31, actual: 41.91,
+  disciplines: {
+      'Engineering': { plan: 87.84, actual: 64.63 },
+      'Procurement': { plan: 68.38, actual: 75.96 },
+      'Construction': { plan: 10.42, actual: 12.65 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Contractor for Retaining wall south side'],
+  activities: ['1. Work Foundation at Bunker to 18.00 m',
+    'Work Foundation at Boiler, FGT, STG area'],
+});
+
+// ── TPP (PRJ-023) Week 33 — auto-extracted
+seedIfEmpty('PRJ-023_W33_2026', {
+  plan: 54.63, actual: 48.72,
+  disciplines: {
+      'Engineering': { plan: 94.92, actual: 64.71 },
+      'Procurement': { plan: 85.67, actual: 83.1 },
+      'Construction': { plan: 27.18, actual: 22.52 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['M&E manpower and subcontractor mobilization in accordance with the working plan and readiness of work permits.',
+    'Detail drawing of fire fighting system for material purchasing.',
+    'Pipe support standard detail drawing for fabrication and procurement of spring pipe supports, which are long-lead items.',
+    'Diesel oil tank drawing: Clarify the drainage arrangement for the diesel oil tank: bottom drain or draw-off sump in accordance with API 650.'],
+  activities: ['Bunker wall concrete pouring at EL +16.9m. 2. Water Wall installation'],
+});
+
+// ── TSE (PRJ-024) Week 33 — auto-extracted
+seedIfEmpty('PRJ-024_W33_2026', {
+  plan: 58.06, actual: 48.97,
+  disciplines: {
+      'Engineering': { plan: 95.68, actual: 68.22 },
+      'Procurement': { plan: 89.99, actual: 83.81 },
+      'Construction': { plan: 31.24, actual: 21.55 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Detail and spec of equipment at riser pole for PEA approval.',
+    'Detail drawing of water pond.',
+    'Detail drawing of foundation and architecture of BOP building . Detail of underground pipe of toilet at steam turbine building.'],
+  activities: ['Pouring concrete by slip from method From EL.+8.0 to +18.30 m.',
+    'Boiler: Install boiler wall.',
+    'FGT: Install reactor tower and structure.',
+    'STG : Column for second floor at EL +3.70 m'],
+});
+
 // ── Pak Beng (PRJ-026) Week 33 — auto-extracted
 seedIfEmpty('PRJ-026_W33_2026', {
   plan: 6.63, actual: 6.46,
@@ -1655,6 +1846,33 @@ seedIfEmpty('PRJ-005_W33_2026', {
     '[115kVSubstation (SIEMENS)] Handover spare parts completed',
     '[115kVSubstation (SIEMENS)] Rectifying punch list',
     '[TransmissionLine and Fiber optic (PEA)] Rectifying punch list'],
+});
+
+// ── SSE (PRJ-006) Week 33 — auto-extracted
+seedIfEmpty('PRJ-006_W33_2026', {
+  plan: 100.0, actual: 99.85,
+  scopes: {
+    'GUE': {
+      plan: 100.0, actual: 99.85,
+      disciplines: {
+        'Construction': { plan: 100.0, actual: 99.85 }
+      }
+    },
+    'Siemens': { plan: 100.0, actual: 100.0 },
+    '115kV T/L': { plan: 100.0, actual: 100.0 }
+  },
+  concerns: [],
+  activities: ['[PVfarm(GUE)] Continue Lighting system installation',
+    '[PVfarm(GUE)] Continue Close punch list.',
+    '[PVfarm(GUE)] Continue install Boundary CCTV Pole.',
+    '[PVfarm(GUE)] Installation Pump and Pipe water tank',
+    '[PVfarm(GUE)] Continue Drainage system work',
+    '[PVfarm(GUE)] Continue Grass cutting PV Farm.',
+    '[PVfarm(GUE)] Continue Cleaning PV modules',
+    '[PVfarm(GUE)] Continue Concrete pouring pavement at BESS area',
+    '[PVfarm(GUE)] Thermoscan at equipment.',
+    '[PVfarm(GUE)] Sound test at equipment.',
+    '[115kVSubstation(SIEMENS)] Continue close punch MCC.'],
 });
 
 // ── SDCE (PRJ-007) Week 33 — auto-extracted
