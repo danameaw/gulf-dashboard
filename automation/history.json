@@ -71,6 +71,14 @@
   "n_scopes": 3,
   "plan": 27.65
  },
+ "PRJ-001_W34_2026": {
+  "actual": 32.72,
+  "n_activities": 20,
+  "n_concerns": 3,
+  "n_disc": 4,
+  "n_scopes": 3,
+  "plan": 29.01
+ },
  "PRJ-002_W24_2026": {
   "actual": null,
   "n_activities": 0,
@@ -147,6 +155,14 @@
   "actual": 69.37,
   "n_activities": 17,
   "n_concerns": 2,
+  "n_disc": 0,
+  "n_scopes": 4,
+  "plan": 90.0
+ },
+ "PRJ-002_W34_2026": {
+  "actual": 71.1,
+  "n_activities": 19,
+  "n_concerns": 4,
   "n_disc": 0,
   "n_scopes": 4,
   "plan": 90.0
@@ -231,6 +247,14 @@
   "n_scopes": 5,
   "plan": 91.6
  },
+ "PRJ-003_W34_2026": {
+  "actual": 70.2,
+  "n_activities": 13,
+  "n_concerns": 10,
+  "n_disc": 0,
+  "n_scopes": 5,
+  "plan": 92.16
+ },
  "PRJ-004_W24_2026": {
   "actual": null,
   "n_activities": 0,
@@ -311,6 +335,14 @@
   "n_scopes": 4,
   "plan": 90.0
  },
+ "PRJ-004_W34_2026": {
+  "actual": 75.59,
+  "n_activities": 20,
+  "n_concerns": 3,
+  "n_disc": 0,
+  "n_scopes": 4,
+  "plan": 90.0
+ },
  "PRJ-005_W24_2026": {
   "actual": null,
   "n_activities": 0,
@@ -385,6 +417,14 @@
  },
  "PRJ-005_W33_2026": {
   "actual": 98.8,
+  "n_activities": 6,
+  "n_concerns": 0,
+  "n_disc": 0,
+  "n_scopes": 3,
+  "plan": 99.5
+ },
+ "PRJ-005_W34_2026": {
+  "actual": 99.27,
   "n_activities": 6,
   "n_concerns": 0,
   "n_disc": 0,
@@ -551,6 +591,14 @@
   "n_scopes": 5,
   "plan": 92.87
  },
+ "PRJ-007_W34_2026": {
+  "actual": 93.0,
+  "n_activities": 20,
+  "n_concerns": 6,
+  "n_disc": 0,
+  "n_scopes": 5,
+  "plan": 93.61
+ },
  "PRJ-008_W28_2026": {
   "actual": 33.51,
   "n_activities": 20,
@@ -558,6 +606,14 @@
   "n_disc": 0,
   "n_scopes": 4,
   "plan": 66.02
+ },
+ "PRJ-008_W34_2026": {
+  "actual": null,
+  "n_activities": 20,
+  "n_concerns": 20,
+  "n_disc": 0,
+  "n_scopes": 0,
+  "plan": null
  },
  "PRJ-009_W24_2026": {
   "actual": null,
@@ -663,6 +719,14 @@
   "n_scopes": 5,
   "plan": 46.75
  },
+ "PRJ-010_W34_2026": {
+  "actual": 52.47,
+  "n_activities": 16,
+  "n_concerns": 3,
+  "n_disc": 0,
+  "n_scopes": 5,
+  "plan": 48.97
+ },
  "PRJ-011_W24_2026": {
   "actual": null,
   "n_activities": 10,
@@ -727,6 +791,14 @@
   "n_scopes": 4,
   "plan": 80.0
  },
+ "PRJ-011_W34_2026": {
+  "actual": 76.72,
+  "n_activities": 19,
+  "n_concerns": 0,
+  "n_disc": 0,
+  "n_scopes": 4,
+  "plan": 81.99
+ },
  "PRJ-012_W27_2026": {
   "actual": 52.59,
   "n_activities": 14,
@@ -782,6 +854,14 @@
   "n_disc": 0,
   "n_scopes": 2,
   "plan": 73.96
+ },
+ "PRJ-012_W34_2026": {
+  "actual": 73.45,
+  "n_activities": 11,
+  "n_concerns": 3,
+  "n_disc": 0,
+  "n_scopes": 2,
+  "plan": 79.5
  },
  "PRJ-013_W24_2026": {
   "actual": null,
@@ -863,6 +943,14 @@
   "n_scopes": 0,
   "plan": 54.63
  },
+ "PRJ-013_W34_2026": {
+  "actual": 48.13,
+  "n_activities": 0,
+  "n_concerns": 1,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 56.24
+ },
  "PRJ-014_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -942,6 +1030,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 54.63
+ },
+ "PRJ-014_W34_2026": {
+  "actual": 48.03,
+  "n_activities": 4,
+  "n_concerns": 6,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 56.24
  },
  "PRJ-015_W24_2026": {
   "actual": null,
@@ -1023,6 +1119,14 @@
   "n_scopes": 0,
   "plan": 58.06
  },
+ "PRJ-015_W34_2026": {
+  "actual": 50.74,
+  "n_activities": 8,
+  "n_concerns": 0,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 59.43
+ },
  "PRJ-016_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -1102,6 +1206,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 48.62
+ },
+ "PRJ-016_W34_2026": {
+  "actual": 46.84,
+  "n_activities": 1,
+  "n_concerns": 3,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 50.25
  },
  "PRJ-017_W24_2026": {
   "actual": null,
@@ -1183,6 +1295,14 @@
   "n_scopes": 0,
   "plan": 40.31
  },
+ "PRJ-017_W34_2026": {
+  "actual": 41.6,
+  "n_activities": 0,
+  "n_concerns": 1,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 41.61
+ },
  "PRJ-018_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -1262,6 +1382,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 48.62
+ },
+ "PRJ-018_W34_2026": {
+  "actual": 45.0,
+  "n_activities": 0,
+  "n_concerns": 1,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 50.25
  },
  "PRJ-019_W24_2026": {
   "actual": null,
@@ -1343,6 +1471,14 @@
   "n_scopes": 0,
   "plan": 48.62
  },
+ "PRJ-019_W34_2026": {
+  "actual": 45.14,
+  "n_activities": 7,
+  "n_concerns": 0,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 50.25
+ },
  "PRJ-020_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -1422,6 +1558,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 54.63
+ },
+ "PRJ-020_W34_2026": {
+  "actual": 47.5,
+  "n_activities": 6,
+  "n_concerns": 0,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 56.24
  },
  "PRJ-021_W24_2026": {
   "actual": null,
@@ -1503,6 +1647,14 @@
   "n_scopes": 0,
   "plan": 48.61
  },
+ "PRJ-021_W34_2026": {
+  "actual": 46.96,
+  "n_activities": 2,
+  "n_concerns": 0,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 50.25
+ },
  "PRJ-022_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -1582,6 +1734,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 40.31
+ },
+ "PRJ-022_W34_2026": {
+  "actual": 43.43,
+  "n_activities": 2,
+  "n_concerns": 1,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 41.61
  },
  "PRJ-023_W24_2026": {
   "actual": null,
@@ -1663,6 +1823,14 @@
   "n_scopes": 0,
   "plan": 54.63
  },
+ "PRJ-023_W34_2026": {
+  "actual": 49.93,
+  "n_activities": 2,
+  "n_concerns": 3,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 56.24
+ },
  "PRJ-024_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -1742,6 +1910,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 58.06
+ },
+ "PRJ-024_W34_2026": {
+  "actual": 49.84,
+  "n_activities": 5,
+  "n_concerns": 5,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 59.43
  },
  "PRJ-025_W24_2026": {
   "actual": null,
@@ -1823,6 +1999,14 @@
   "n_scopes": 0,
   "plan": 4.95
  },
+ "PRJ-025_W34_2026": {
+  "actual": null,
+  "n_activities": 20,
+  "n_concerns": 0,
+  "n_disc": 0,
+  "n_scopes": 0,
+  "plan": null
+ },
  "PRJ-026_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -1895,6 +2079,14 @@
   "n_scopes": 0,
   "plan": 6.63
  },
+ "PRJ-026_W34_2026": {
+  "actual": 6.73,
+  "n_activities": 10,
+  "n_concerns": 0,
+  "n_disc": 0,
+  "n_scopes": 0,
+  "plan": 6.8
+ },
  "PRJ-027_W26_2026": {
   "actual": null,
   "n_activities": 0,
@@ -1958,5 +2150,13 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 1.11
+ },
+ "PRJ-027_W34_2026": {
+  "actual": 1.35,
+  "n_activities": 1,
+  "n_concerns": 0,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 1.18
  }
 }
