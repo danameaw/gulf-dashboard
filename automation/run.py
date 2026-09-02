@@ -923,8 +923,7 @@ def _build_html_body(week, year, found, missing, report_date=None):
   </td></tr>
 </table>
 <p style="margin:0 0 20px;font-size:12px;color:{_C_MUTED}">
-  Direct link: <a href="{DASHBOARD_URL}" style="color:#2d6a9f">{DASHBOARD_URL}</a><br>
-  The full week's figures are also attached as an Excel workbook.
+  Direct link: <a href="{DASHBOARD_URL}" style="color:#2d6a9f">{DASHBOARD_URL}</a>
 </p>
 
 <p style="margin:0 0 4px">Best Regards,</p>
@@ -948,7 +947,7 @@ def _ensure_outlook_running(wait_seconds=20):
         print(f"  [email] Could not check/launch Outlook: {e}")
 
 
-def send_email(week, year, results, missing_ids, xl_path, timeout=90,
+def send_email(week, year, results, missing_ids, timeout=90,
                report_date=None):
     found   = {k: v for k, v in results.items() if v['found']}
     missing = missing_ids
@@ -964,7 +963,6 @@ def send_email(week, year, results, missing_ids, xl_path, timeout=90,
         'to': EMAIL_TO,
         'subject': subject,
         'html_body': html_body,
-        'attachment': os.path.abspath(xl_path) if xl_path and os.path.exists(xl_path) else None,
         # Referenced by the footer as cid:<cid>. Omitted when the file is
         # absent, in which case the footer renders as text only.
         'inline_image': ({'path': os.path.abspath(EMAIL_LOGO),
@@ -1162,9 +1160,8 @@ def main():
     # Recorded after validation so this week is never its own baseline.
     save_history(record_run(history, results, week, year))
 
-    xl_path = os.path.join(EXCEL_DIR, f'Gulf_Dashboard_W{week}_{year}.xlsx')
     if not args.no_email:
-        send_email(week, year, results, missing, xl_path,
+        send_email(week, year, results, missing,
                    report_date=report_date)
     notify(week, year,
            sum(1 for r in results.values() if r['found']),
