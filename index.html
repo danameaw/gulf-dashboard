@@ -642,8 +642,8 @@ function calcStatus(plan, actual, prog) {
       Object.values(disc).forEach(dd => {
         if (dd.plan !== undefined && dd.actual !== undefined) {
           const v = dd.actual - dd.plan;
-          if (v <= -5) hasDiscDelay = true;
-          if (v >= 5)  hasDiscAhead = true;
+          if (v <= -2) hasDiscDelay = true;
+          if (v >= 2)  hasDiscAhead = true;
         }
       });
     }
@@ -653,8 +653,8 @@ function calcStatus(plan, actual, prog) {
           checkDisc(sc.disciplines);
         } else if (sc.plan !== undefined && sc.actual !== undefined) {
           const v = sc.actual - sc.plan;
-          if (v <= -5) hasDiscDelay = true;
-          if (v >= 5)  hasDiscAhead = true;
+          if (v <= -2) hasDiscDelay = true;
+          if (v >= 2)  hasDiscAhead = true;
         }
       });
     } else if (prog.disciplines) {
@@ -665,15 +665,15 @@ function calcStatus(plan, actual, prog) {
     // Fall back to overall if no discipline data
     if (prog.plan === null || prog.actual === null) return 'TBD';
     const diff = prog.actual - prog.plan;
-    if (diff <= -5) return 'Delay';
-    if (diff >= 5)  return 'Ahead';
+    if (diff <= -2) return 'Delay';
+    if (diff >= 2)  return 'Ahead';
     return 'On Track';
   }
   // Legacy fallback (no prog object)
   if (plan === null || actual === null) return 'TBD';
   const diff = actual - plan;
-  if (diff <= -5) return 'Delay';
-  if (diff >= 5)  return 'Ahead';
+  if (diff <= -2) return 'Delay';
+  if (diff >= 2)  return 'Ahead';
   return 'On Track';
 }
 
@@ -738,9 +738,9 @@ function renderSummary(filtered) {
 
   document.getElementById('summaryStrip').innerHTML = `
     <div class="stat-card stat-total"><div class="label">Total Projects</div><div class="value">${stats.total}</div><div class="sub">Filtered view</div></div>
-    <div class="stat-card stat-on-track"><div class="label">On Track</div><div class="value">${stats.onTrack}</div><div class="sub">Within ±5%</div></div>
-    <div class="stat-card stat-delay"><div class="label">Delay</div><div class="value">${stats.delay}</div><div class="sub">< -5% variance</div></div>
-    <div class="stat-card stat-ahead"><div class="label">Ahead</div><div class="value">${stats.ahead}</div><div class="sub">> +5% variance</div></div>
+    <div class="stat-card stat-on-track"><div class="label">On Track</div><div class="value">${stats.onTrack}</div><div class="sub">Within ±2%</div></div>
+    <div class="stat-card stat-delay"><div class="label">Delay</div><div class="value">${stats.delay}</div><div class="sub">< -2% variance</div></div>
+    <div class="stat-card stat-ahead"><div class="label">Ahead</div><div class="value">${stats.ahead}</div><div class="sub">> +2% variance</div></div>
     <div class="stat-card"><div class="label">TBD / No Data</div><div class="value" style="color:var(--text-muted)">${stats.tbd}</div><div class="sub">Pending import</div></div>
   `;
 }
@@ -1242,7 +1242,7 @@ function buildPrintContent() {
     const varColor = (plan, actual) => {
       if (plan === null || actual === null) return '';
       const v = actual - plan;
-      return v < -5 ? 'color:#c0392b;font-weight:600' : v > 5 ? 'color:#1e8449;font-weight:600' : '';
+      return v < -2 ? 'color:#c0392b;font-weight:600' : v > 2 ? 'color:#1e8449;font-weight:600' : '';
     };
     const statusBadge = s => {
       const c = s==='Delay'?'#ffe0e0;color:#c0392b' : s==='Ahead'?'#e0f5e0;color:#1e8449' : s==='On Track'?'#e8f0ff;color:#1a3c5e' : '#f0f0f0;color:#888';

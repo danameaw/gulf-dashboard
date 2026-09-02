@@ -2,7 +2,7 @@
 # Schedule: every Wednesday via Windows Task Scheduler
 # Usage: python run.py  (or python run.py --week 25 --year 2026)
 import sys, os, re, json, glob, shutil, subprocess, argparse, time
-from datetime import datetime
+from datetime import datetime, timedelta
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -12,7 +12,7 @@ from config import (BASE_REPORT_PATH, DASHBOARD_HTML, EXCEL_DIR,
                     MANUAL_OVERRIDES, REPORT_CADENCE, DEFAULT_CADENCE,
                     CADENCE_GRACE_WEEKS)
 from extract import extract_from_pdf
-from validate import (findings_html, format_findings, load_history,
+from validate import (format_findings, load_history,
                       project_history,
                       record_run, save_history, validate_run, FAIL)
 
@@ -449,72 +449,487 @@ def git_push(week, year):
 EMAIL_FROM   = "danaya.th@gulf.co.th"
 EMAIL_TO     = ["purachet.am@gulf.co.th", "chalong@gulf.co.th"]
 
-def _build_html_body(week, year, found, missing, report=None):
-    found_rows = ''.join(
-        f"<tr style='border-bottom:1px solid #e5e7eb'>"
-        f"<td style='padding:6px 12px;color:#374151'>{pid}</td>"
-        f"<td style='padding:6px 12px;color:#374151'>{PROJECT_NAMES.get(pid, pid)}</td></tr>"
-        for pid in sorted(found)
+# ── The dashboard's Summary view, mirrored into the email ─────────────────
+#
+# The email used to open with nothing but a count of updated projects, so
+# reading it told you the run had happened but not how anything was doing.
+# Everything below is a faithful capture of the dashboard's own Summary
+# instead - the same five stat cards renderSummary() draws, and the same
+# Project Progress Summary table renderTable() draws, in the same project
+# order, with the same colours, badges and delay tags.
+#
+# It is a mirror, deliberately: the status rule, the delay-tag threshold and
+# the row order are copied from index.html rather than reinvented, so the
+# email and the dashboard can never disagree. When index.html changes, the
+# matching constant here has to change with it.
+#
+# Outlook renders a subset of HTML/CSS - no flexbox, no grid, no <style>
+# blocks, no CSS variables - so the layout below is tables with literal
+# inline styles throughout, and the dashboard's :root colours are repeated
+# here as hex.
+
+# index.html :root
+_C_PRIMARY   = '#1a3c5e'
+_C_BORDER    = '#dde3ec'
+_C_MUTED     = '#6b7a99'
+_C_GREEN     = '#27ae60'
+_C_RED       = '#e74c3c'
+_C_AHEAD     = '#1abc9c'
+
+# .type-<Type>
+_TYPE_BADGE = {
+    'Solar':          ('#fff3cd', '#856404'),
+    'Wind':           ('#cce5ff', '#004085'),
+    'WTE':            ('#d4edda', '#155724'),
+    'Gas':            ('#e2d9f3', '#432874'),
+    'Hydro':          ('#ffe5d0', '#7d3c00'),
+    'DataCenter':     ('#d1f2eb', '#0e6655'),
+    'Infrastructure': ('#f0f0f0', '#555555'),
+}
+
+# .status-<Status>, plus renderTable()'s status icon
+_STATUS_BADGE = {
+    'On Track': ('#d4edda', '#155724', '&#10004;'),
+    'Delay':    ('#f8d7da', '#721c24', '&#9888;'),
+    'Ahead':    ('#d1f2eb', '#0e6655', '&#9650;'),
+    'TBD':      ('#f0f0f0', '#777777', '&ndash;'),
+}
+
+_PROJECT_ROW = re.compile(
+    r'id:"(PRJ-\d+)"\s*,\s*name:"([^"]*)"\s*,\s*type:"([^"]*)"\s*,'
+    r'\s*contract:"([^"]*)"')
+
+
+def _load_projects():
+    """
+    The dashboard's PROJECTS array, in file order - that order IS the table's
+    row order, so reading it keeps the email's rows in the same sequence as
+    the dashboard instead of re-sorting into something the reader would have
+    to re-map. index.html stays the single source of truth for Type and
+    Contract too. Returns [] on any read/parse failure; the caller then falls
+    back to PROJECT_NAMES so a miss degrades the table rather than breaking
+    the send.
+    """
+    try:
+        with open(DASHBOARD_HTML, encoding='utf-8') as f:
+            html = f.read()
+    except Exception as e:
+        print(f"  [email] could not read project list: {e}")
+        return []
+    return [{'id': pid, 'name': name, 'type': ptype, 'contract': contract}
+            for pid, name, ptype, contract in _PROJECT_ROW.findall(html)]
+
+
+# getDiscAbbr() / getScopeAbbr() in index.html
+_DISC_ABBR = {
+    'Engineering': 'ENG', 'Procurement': 'PRO', 'Construction': 'CON',
+    'Commissioning': 'COM', 'Con & Com': 'C&C', 'Civil': 'CIV',
+    'Electrical': 'EE', 'T&C': 'T&C',
+}
+_SCOPE_ABBR = [
+    (re.compile(r'C&E|GPD|GUE', re.I), 'C&E'),
+    (re.compile(r'Sub|Siemens', re.I), 'Sub'),
+    (re.compile(r'T/L|SCT|ENCOM|RSS', re.I), 'T/L'),
+    (re.compile(r'BOP|PCZ', re.I), 'BOP'),
+    (re.compile(r'TSA', re.I), 'TSA'),
+    (re.compile(r'CBOP', re.I), 'CBOP'),
+]
+
+
+def _disc_abbr(name):
+    return _DISC_ABBR.get(name, name[:3].upper())
+
+
+def _scope_abbr(name):
+    for pattern, abbr in _SCOPE_ABBR:
+        if pattern.search(name):
+            return abbr
+    return re.sub(r'\(.*\)', '', name).strip()[:6]
+
+
+def _pairs(entry):
+    """(plan, actual) when both are present, else None."""
+    if not isinstance(entry, dict):
+        return None
+    p, a = entry.get('plan'), entry.get('actual')
+    return None if p is None or a is None else (p, a)
+
+
+def _build_delay_tags(data):
+    """
+    buildDelayTags() from index.html: every scope/discipline running behind
+    by more than 1%, worst first. This is the dashboard's Overall Progress
+    column, and it is what explains a row whose overall variance is positive
+    yet whose status reads Delay - one discipline is dragging.
+
+    Note the threshold here is -1%, independent of the +/-2% that decides
+    status; that is how the dashboard behaves.
+    """
+    THRESHOLD = -1
+    tags = []
+
+    def add_from_disc(disc, prefix=''):
+        for dname, dd in (disc or {}).items():
+            pair = _pairs(dd)
+            if pair is None:
+                continue
+            v = pair[1] - pair[0]
+            if v < THRESHOLD:
+                label = (prefix + ' ' if prefix else '') + _disc_abbr(dname)
+                tags.append((label, v))
+
+    scopes = data.get('scopes') or {}
+    discs  = data.get('disciplines') or {}
+    if scopes:
+        for sname, sc in scopes.items():
+            if isinstance(sc, dict) and sc.get('disciplines'):
+                add_from_disc(sc['disciplines'], _scope_abbr(sname))
+            else:
+                pair = _pairs(sc)
+                if pair and pair[1] - pair[0] < THRESHOLD:
+                    tags.append((_scope_abbr(sname), pair[1] - pair[0]))
+    elif discs:
+        add_from_disc(discs)
+    else:
+        pair = _pairs(data)
+        if pair and pair[1] - pair[0] < THRESHOLD:
+            tags.append(('Overall', pair[1] - pair[0]))
+
+    return sorted(tags, key=lambda t: t[1])
+
+
+def _has_progress_data(data):
+    """hasProgressData() from index.html."""
+    if data.get('scopes'):
+        return True
+    if data.get('disciplines'):
+        return True
+    return data.get('plan') is not None and data.get('actual') is not None
+
+
+def _iter_variances(data):
+    """Every scope/discipline variance calcStatus() would consider."""
+    def from_disc(disc):
+        for dd in (disc or {}).values():
+            pair = _pairs(dd)
+            if pair:
+                yield pair[1] - pair[0]
+
+    scopes = data.get('scopes') or {}
+    if scopes:
+        for sc in scopes.values():
+            if isinstance(sc, dict) and sc.get('disciplines'):
+                yield from from_disc(sc['disciplines'])
+            else:
+                pair = _pairs(sc)
+                if pair:
+                    yield pair[1] - pair[0]
+    else:
+        yield from from_disc(data.get('disciplines'))
+
+
+def _status_of(data):
+    """
+    calcStatus() from index.html: any single scope or discipline 2% or more
+    behind makes the whole project 'Delay', 2% or more ahead makes it
+    'Ahead', and only when there is no breakdown at all does the overall
+    plan/actual decide.
+    """
+    variances = list(_iter_variances(data))
+    if variances:
+        if any(v <= -2 for v in variances):
+            return 'Delay'
+        if any(v >= 2 for v in variances):
+            return 'Ahead'
+    plan, actual = data.get('plan'), data.get('actual')
+    if plan is None or actual is None:
+        return 'TBD'
+    diff = actual - plan
+    if diff <= -2:
+        return 'Delay'
+    if diff >= 2:
+        return 'Ahead'
+    return 'On Track'
+
+
+# renderSummary()'s five cards, in the order the strip draws them
+_STAT_CARDS = [
+    ('Total Projects', _C_PRIMARY, 'Reported this week'),
+    ('On Track',       _C_GREEN,   'Within &plusmn;2%'),
+    ('Delay',          _C_RED,     '&lt; -2% variance'),
+    ('Ahead',          _C_AHEAD,   '&gt; +2% variance'),
+    ('TBD / No Data',  _C_MUTED,   'Pending import'),
+]
+
+
+def _summary_strip_html(statuses):
+    """The five stat cards, as one table row so Outlook lays them out."""
+    counts = {
+        'Total Projects': len(statuses),
+        'On Track':       statuses.count('On Track'),
+        'Delay':          statuses.count('Delay'),
+        'Ahead':          statuses.count('Ahead'),
+        'TBD / No Data':  statuses.count('TBD'),
+    }
+    cells = ''.join(
+        f"<td width='20%' valign='top' style='padding:0 6px 0 0'>"
+        f"<table cellspacing='0' cellpadding='0' style='width:100%;"
+        f"background:#ffffff;border:1px solid {_C_BORDER};"
+        f"border-radius:10px'><tr><td style='padding:14px 16px'>"
+        f"<div style='font-size:11px;color:{_C_MUTED};"
+        f"text-transform:uppercase;letter-spacing:0.5px'>{label}</div>"
+        f"<div style='font-size:26px;font-weight:700;color:{colour};"
+        f"line-height:1;padding:4px 0'>{counts[label]}</div>"
+        f"<div style='font-size:11px;color:{_C_MUTED}'>{caption}</div>"
+        f"</td></tr></table></td>"
+        for label, colour, caption in _STAT_CARDS
     )
-    missing_rows = ''.join(
-        f"<tr style='background:#fffbeb;border-bottom:1px solid #e5e7eb'>"
-        f"<td style='padding:6px 12px;color:#374151'>{pid}</td>"
-        f"<td style='padding:6px 12px;color:#374151'>{PROJECT_NAMES.get(pid, pid)}</td></tr>"
-        for pid in missing
-    ) if missing else (
-        "<tr><td colspan='2' style='padding:6px 12px;color:#059669'>All projects reported — none missing.</td></tr>"
+    return (f"<table cellspacing='0' cellpadding='0' style='width:100%;"
+            f"border-collapse:separate;margin-bottom:22px'><tr>{cells}</tr>"
+            f"</table>")
+
+
+def _progress_cell_html(data, no_report):
+    """The dashboard's Overall Progress column: its delay tags, verbatim."""
+    if no_report:
+        return f"<span style='color:{_C_MUTED};font-size:10px'>No data</span>"
+    tags = _build_delay_tags(data)
+    if not tags:
+        if not _has_progress_data(data):
+            return f"<span style='color:{_C_MUTED};font-size:10px'>No data</span>"
+        return (f"<span style='color:{_C_GREEN};font-size:10px;"
+                f"font-weight:700'>&#10004; All on track</span>")
+    return ''.join(
+        f"<span style='font-size:10px;font-weight:700;color:#ffffff;"
+        f"background:{_C_RED};border-radius:3px;padding:1px 5px;"
+        f"margin:0 3px 3px 0;display:inline-block;white-space:nowrap'>"
+        f"{label} {v:.1f}%</span>"
+        for label, v in tags
     )
+
+
+def _delayed_projects(projects, results, missing):
+    """
+    The rows the email actually lists: projects the dashboard marks Delay,
+    i.e. those with at least one scope or discipline behind plan. Anything
+    on track, ahead, or still awaiting a report is left out of the table -
+    the stat cards above it still count the full portfolio, so nothing is
+    hidden, it is only moved out of the reader's way.
+    """
+    out = []
+    for p in projects:
+        entry = results.get(p['id']) or {}
+        if p['id'] in missing or not entry.get('found'):
+            continue
+        data = entry.get('data') or {}
+        if _status_of(data) == 'Delay':
+            out.append((p, data))
+    return out
+
+
+def _progress_table_html(projects, results, missing):
+    """
+    renderTable(): every project, in the dashboard's own row order. A project
+    with nothing behind plan still gets its row and reads the way the
+    dashboard reads it - "All on track", or the No Report badge when its
+    report has not arrived.
+    """
+    rows = []
+    for idx, p in enumerate(projects, start=1):
+        pid       = p['id']
+        entry     = results.get(pid) or {}
+        data      = entry.get('data') or {}
+        no_report = pid in missing or not entry.get('found')
+        status    = 'TBD' if no_report else _status_of(data)
+        s_bg, s_fg, s_icon = _STATUS_BADGE[status]
+        t_bg, t_fg = _TYPE_BADGE.get(p['type'], ('#f0f0f0', '#555555'))
+
+        missing_badge = (
+            f"<span style='font-size:10px;font-weight:700;color:#ffffff;"
+            f"background:#f59e0b;border-radius:3px;padding:1px 6px;"
+            f"margin-left:6px;white-space:nowrap'>&#9888; No Report</span>"
+        ) if no_report else ''
+
+        rows.append(
+            f"<tr style='border-bottom:1px solid {_C_BORDER}'>"
+            f"<td style='padding:7px 10px;color:{_C_MUTED};font-size:11px'>{idx}</td>"
+            f"<td style='padding:7px 10px;color:{_C_MUTED};font-size:11px;"
+            f"white-space:nowrap'>{pid}</td>"
+            f"<td style='padding:7px 10px'>"
+            f"<span style='font-weight:700;color:{_C_PRIMARY};font-size:12px'>"
+            f"{p['name']}</span>{missing_badge}</td>"
+            f"<td style='padding:7px 10px'>"
+            f"<span style='background:{t_bg};color:{t_fg};font-size:10px;"
+            f"font-weight:700;text-transform:uppercase;letter-spacing:0.4px;"
+            f"padding:2px 8px;border-radius:20px;white-space:nowrap'>"
+            f"{p['type']}</span></td>"
+            f"<td style='padding:7px 10px'>"
+            f"<span style='background:#fff3e0;color:#e65100;"
+            f"border:1px solid #ffcc80;border-radius:4px;font-size:10px;"
+            f"padding:1px 6px;font-weight:700;white-space:nowrap'>"
+            f"{p['contract']}</span></td>"
+            f"<td style='padding:7px 10px'>{_progress_cell_html(data, no_report)}</td>"
+            f"<td style='padding:7px 10px;white-space:nowrap'>"
+            f"<span style='background:{s_bg};color:{s_fg};font-size:11px;"
+            f"font-weight:700;padding:3px 9px;border-radius:20px'>"
+            f"{s_icon} {status}</span></td>"
+            f"</tr>"
+        )
+
+    head = ''.join(
+        f"<th style='padding:9px 10px;text-align:left;color:#ffffff;"
+        f"font-weight:500;font-size:11px;white-space:nowrap'>{label}</th>"
+        for label in ('#', 'Project ID', 'Project Name', 'Type', 'Contract',
+                      'Overall Progress', 'Status')
+    )
+    return (f"<table cellspacing='0' cellpadding='0' style='width:100%;"
+            f"border-collapse:collapse;margin-bottom:24px;"
+            f"border:1px solid {_C_BORDER};border-radius:6px;"
+            f"overflow:hidden'>"
+            f"<tr style='background:{_C_PRIMARY}'>{head}</tr>"
+            f"{''.join(rows)}</table>")
+
+
+# The corporate e-mail footer. The logo is optional: drop a PNG at
+# automation/assets/gulf_logo.png and it is attached to the message and
+# referenced by Content-ID - Outlook strips data: URIs, so a CID attachment
+# is the only reliable way to show an image in a sent mail. With no file
+# present the footer renders as text alone rather than a broken-image icon.
+EMAIL_LOGO = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          'assets', 'gulf_logo.png')
+EMAIL_LOGO_CID = 'gulflogo'
+
+SIGNATURE_NAME    = 'Danaya Thataporn'
+SIGNATURE_TITLE   = 'Engineer II - Project Control'
+SIGNATURE_COMPANY = 'Gulf Development Public Company Limited'
+SIGNATURE_ADDRESS = ('87 Wireless Road, M Thai Tower 11th Floor, '
+                     'All Seasons Place, Lumpini, Pathumwan,')
+SIGNATURE_CONTACT = ('Bangkok 10330, Thailand &nbsp;|&nbsp; Tel: +662080-4458 '
+                     '&nbsp;|&nbsp; Fax: +66 2080-4455 &nbsp;|&nbsp; ')
+SIGNATURE_WEB     = 'www.gulf.co.th'
+
+
+def _signature_html():
+    """The footer block: optional logo cell on the left, details on the right."""
+    logo_cell = (
+        f"<td valign='middle' style='padding:0 18px 0 0'>"
+        f"<img src='cid:{EMAIL_LOGO_CID}' alt='GULF' height='44' "
+        f"style='display:block;border:0'></td>"
+    ) if os.path.exists(EMAIL_LOGO) else ''
+
+    return (
+        f"<table cellspacing='0' cellpadding='0' style='margin:0;"
+        f"border-collapse:collapse'><tr>{logo_cell}"
+        f"<td valign='middle' style='font-family:Segoe UI,Arial,sans-serif'>"
+        f"<div style='font-size:13px;color:#8c8c8c;padding-bottom:1px'>"
+        f"{SIGNATURE_NAME} &nbsp;|&nbsp; {SIGNATURE_TITLE}</div>"
+        f"<div style='font-size:13px;font-weight:700;color:#1e2535;"
+        f"padding-bottom:1px'>{SIGNATURE_COMPANY}</div>"
+        f"<div style='font-size:12px;color:#3f3f3f;line-height:1.5'>"
+        f"{SIGNATURE_ADDRESS}<br>{SIGNATURE_CONTACT}"
+        f"<a href='https://{SIGNATURE_WEB}' style='color:#3f3f3f'>"
+        f"{SIGNATURE_WEB}</a></div>"
+        f"</td></tr></table>"
+    )
+
+
+def _fmt_cutoff(report_date):
+    """
+    '2026-08-26' -> '29 Aug 2026': the data cut-off is the Saturday that
+    closes the reporting week, not the date on the week folder.
+
+    The folder is named for the day it was created - a Wednesday in practice -
+    while the reports inside it cover Saturday through Friday. So the cut-off
+    is the first Saturday on or after the folder date; a folder already dated
+    a Saturday keeps that same day rather than jumping a week ahead.
+
+    Falls back to the raw string, then to nothing, rather than guessing.
+    """
+    if not report_date:
+        return ''
+    try:
+        d = datetime.strptime(report_date, '%Y-%m-%d')
+    except (ValueError, TypeError):
+        return str(report_date)
+    return (d + timedelta(days=(5 - d.weekday()) % 7)).strftime('%d %b %Y')
+
+
+def _build_html_body(week, year, found, missing, report_date=None):
+    projects = _load_projects()
+    if not projects:
+        projects = [{'id': pid, 'name': PROJECT_NAMES.get(pid, pid),
+                     'type': 'Infrastructure', 'contract': '&mdash;'}
+                    for pid in sorted(set(found) | set(missing))]
+
+    results  = dict(found)
+    for pid in missing:
+        results.setdefault(pid, {'found': False, 'data': {}})
+
+    statuses = ['TBD' if (p['id'] in missing
+                          or not (results.get(p['id']) or {}).get('found'))
+                else _status_of(results[p['id']]['data'])
+                for p in projects if p['id'] in results]
+
+    delayed  = _delayed_projects(projects, results, missing)
+
+    missing_names = ', '.join(
+        (next((p['name'] for p in projects if p['id'] == pid), pid))
+        for pid in missing)
+    cutoff = _fmt_cutoff(report_date)
+    cutoff_line = (
+        f"<p style='margin:0 0 22px;font-size:12px;color:{_C_MUTED}'>"
+        f"Data cut-off: <b style='color:#1e2535'>{cutoff}</b> &nbsp;|&nbsp; "
+        f"Reporting week {week}/{year}</p>"
+    ) if cutoff else (
+        f"<p style='margin:0 0 22px;font-size:12px;color:{_C_MUTED}'>"
+        f"Reporting week {week}/{year}</p>"
+    )
+
     missing_note = (
-        f"<p style='margin:0 0 6px'>Please be advised that the following <b>{len(missing)} project(s)</b> "
-        f"have not yet submitted their weekly progress reports. "
-        f"Kindly ensure the relevant PDF files are uploaded to the ShareDrive at the earliest convenience.</p>"
+        f"<p style='margin:0 0 22px'>The <b>{len(missing)} project(s)</b> marked "
+        f"<span style='font-size:10px;font-weight:700;color:#ffffff;"
+        f"background:#f59e0b;border-radius:3px;padding:1px 6px'>"
+        f"&#9888; No Report</span> above &mdash; <b>{missing_names}</b> &mdash; "
+        f"have not yet submitted a weekly progress report. Kindly ensure the "
+        f"relevant PDF files are uploaded to the ShareDrive at the earliest "
+        f"convenience.</p>"
     ) if missing else ""
 
-    findings_block = findings_html(report) if report else ''
-
     return f"""
-<html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#111827;line-height:1.7;max-width:640px;margin:0 auto;padding:24px">
+<html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#1e2535;line-height:1.7;max-width:900px;margin:0 auto;padding:24px;background:#ffffff">
 <p style="margin:0 0 4px">Dear P'Tee and P'Hall,</p>
-<p style="margin:0 0 20px">
-  Please be informed that the <b>Gulf Engineering Dashboard — Week {week}/{year}</b>
-  has been successfully updated and is now available for review.
+<p style="margin:0 0 6px">
+  Please be informed that the <b>Gulf Engineering Dashboard &mdash; Week {week}/{year}</b>
+  has been updated. Below is the dashboard's Summary view as it currently stands.
 </p>
-<table cellspacing="0" cellpadding="0" style="background:#f3f4f6;border-radius:8px;padding:16px 20px;margin-bottom:24px;width:100%">
-  <tr><td colspan="2" style="font-size:12px;font-weight:600;letter-spacing:0.06em;color:#6b7280;padding-bottom:10px">SUMMARY</td></tr>
-  <tr>
-    <td style="padding:2px 0;color:#374151">Projects Updated</td>
-    <td style="padding:2px 0;color:#059669;font-weight:600;text-align:right">{len(found)} projects</td>
-  </tr>
-  <tr>
-    <td style="padding:2px 0;color:#374151">Reports Not Yet Received</td>
-    <td style="padding:2px 0;color:#d97706;font-weight:600;text-align:right">{len(missing)} projects</td>
-  </tr>
-</table>
-{findings_block}
-<p style="font-size:12px;font-weight:600;letter-spacing:0.06em;color:#6b7280;margin:0 0 8px">UPDATED PROJECTS</p>
-<table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:24px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">
-  <tr style="background:#1f3864">
-    <th style="padding:8px 12px;text-align:left;color:#fff;font-weight:500;font-size:12px;width:100px">Project ID</th>
-    <th style="padding:8px 12px;text-align:left;color:#fff;font-weight:500;font-size:12px">Project Name</th>
-  </tr>
-  {found_rows}
-</table>
-<p style="font-size:12px;font-weight:600;letter-spacing:0.06em;color:#6b7280;margin:0 0 8px">REPORTS NOT YET RECEIVED</p>
+{cutoff_line}
+
+{_summary_strip_html(statuses)}
+
+<p style="font-size:13px;font-weight:700;color:{_C_PRIMARY};margin:0 0 10px">Project Progress Summary</p>
+{_progress_table_html(projects, results, missing)}
+<p style="margin:0 0 22px;font-size:11px;color:{_C_MUTED}">
+  Overall Progress lists every scope or discipline running more than 1% behind
+  plan, worst first &mdash; so a project can read Delay while its overall figure
+  is on or ahead of plan. {len(delayed)} of {len(statuses)} project(s) have at
+  least one discipline behind; the rest show as on track or ahead.
+</p>
+
 {missing_note}
-<table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:24px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">
-  <tr style="background:#92400e">
-    <th style="padding:8px 12px;text-align:left;color:#fef3c7;font-weight:500;font-size:12px;width:100px">Project ID</th>
-    <th style="padding:8px 12px;text-align:left;color:#fef3c7;font-weight:500;font-size:12px">Project Name</th>
-  </tr>
-  {missing_rows}
+
+<table cellspacing="0" cellpadding="0" style="margin:0 0 20px">
+  <tr><td style="background:{_C_PRIMARY};border-radius:6px;padding:11px 22px">
+    <a href="{DASHBOARD_URL}" style="color:#ffffff;font-weight:600;text-decoration:none;font-size:13px">Open the full dashboard &rarr;</a>
+  </td></tr>
 </table>
-<p style="margin:0 0 20px">
-  The full dashboard is accessible via the link below:<br>
-  <a href="{DASHBOARD_URL}" style="color:#1d4ed8">{DASHBOARD_URL}</a>
+<p style="margin:0 0 20px;font-size:12px;color:{_C_MUTED}">
+  Direct link: <a href="{DASHBOARD_URL}" style="color:#2d6a9f">{DASHBOARD_URL}</a><br>
+  The full week's figures are also attached as an Excel workbook.
 </p>
+
 <p style="margin:0 0 4px">Best Regards,</p>
-<p style="margin:0 0 2px;font-weight:500">Danaya</p>
-<p style="margin:0;font-size:11px;color:#9ca3af">Gulf Engineering — Project Management &amp; Control</p>
+<p style="margin:0 0 18px;font-weight:500">{SIGNATURE_NAME}</p>
+<div style="border-top:1px solid #dde3ec;padding-top:14px">{_signature_html()}</div>
 </body></html>"""
 
 def _ensure_outlook_running(wait_seconds=20):
@@ -534,14 +949,14 @@ def _ensure_outlook_running(wait_seconds=20):
 
 
 def send_email(week, year, results, missing_ids, xl_path, timeout=90,
-               report=None):
+               report_date=None):
     found   = {k: v for k, v in results.items() if v['found']}
     missing = missing_ids
 
     subject   = (f"[Gulf Dashboard] W{week}/{year} Update — "
                  f"{len(found)} Projects Updated, {len(missing)} Reports Pending")
     html_body = _build_html_body(week, year, found, missing,
-                                report=report)
+                                report_date=report_date)
 
     _ensure_outlook_running()
 
@@ -550,6 +965,11 @@ def send_email(week, year, results, missing_ids, xl_path, timeout=90,
         'subject': subject,
         'html_body': html_body,
         'attachment': os.path.abspath(xl_path) if xl_path and os.path.exists(xl_path) else None,
+        # Referenced by the footer as cid:<cid>. Omitted when the file is
+        # absent, in which case the footer renders as text only.
+        'inline_image': ({'path': os.path.abspath(EMAIL_LOGO),
+                          'cid': EMAIL_LOGO_CID}
+                         if os.path.exists(EMAIL_LOGO) else None),
     }
     payload_path = os.path.join(os.path.dirname(__file__), '_email_payload.json')
     sender_script = os.path.join(os.path.dirname(__file__), '_send_outlook_mail.py')
@@ -744,7 +1164,8 @@ def main():
 
     xl_path = os.path.join(EXCEL_DIR, f'Gulf_Dashboard_W{week}_{year}.xlsx')
     if not args.no_email:
-        send_email(week, year, results, missing, xl_path, report=report)
+        send_email(week, year, results, missing, xl_path,
+                   report_date=report_date)
     notify(week, year,
            sum(1 for r in results.values() if r['found']),
            len(missing))
