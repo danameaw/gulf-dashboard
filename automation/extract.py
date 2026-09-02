@@ -1329,6 +1329,20 @@ _EXEC_CELL_BULLET = re.compile(r'^[\u2022\u25aa\u25a1\u2751\u274f\u27a2\u25cb\u2
 _EXEC_CELL_EMPTY = ('N/A', 'NA', 'N.A', '-', 'NONE')
 
 
+def _squash(s):
+    """
+    Lower-case and strip ALL whitespace.
+
+    The Executive Summary tables lose their intra-label spacing
+    unpredictably from one week to the next - the concern and highlight
+    labels lost theirs first ("Concernneedmanagement attention"), and in
+    W34/2026 "Site Progress" became "SiteProgress", which silently took
+    every Wind project's plan/actual down to null. Match labels through
+    this instead of against a literal spelling.
+    """
+    return ''.join(str(s).lower().split())
+
+
 def _exec_summary_row_items(pdf, row_key, header_keys,
                             require_site_progress=False, page_limit=10):
     """
@@ -1351,7 +1365,7 @@ def _exec_summary_row_items(pdf, row_key, header_keys,
         for page in doc.pages[:page_limit]:
             text = (page.extract_text() or '').lower()
             has_exec = 'executive summary' in text
-            has_site = 'site progress' in text
+            has_site = 'siteprogress' in _squash(text)
             if require_site_progress:
                 if not (has_exec and has_site):
                     continue
@@ -1518,7 +1532,8 @@ def _extract_wind_from_exec_summary(pdf):
     with pdfplumber.open(pdf) as doc:
         for page in doc.pages[:8]:
             text = page.extract_text() or ''
-            if 'executive summary' not in text.lower() or 'site progress' not in text.lower():
+            ts = _squash(text)
+            if 'executivesummary' not in ts or 'siteprogress' not in ts:
                 continue
             for tbl in page.extract_tables():
                 if not tbl:
@@ -1532,7 +1547,7 @@ def _extract_wind_from_exec_summary(pdf):
                     if header_row is None and any(
                             k in joined for k in ['pcz', 'siemens', 'goldwind', 'gold wind', 'tsa']):
                         header_row = row
-                    if 'site progress' in joined:
+                    if 'siteprogress' in _squash(joined):
                         site_progress_row = row
 
                 if header_row is None or site_progress_row is None:
@@ -1779,17 +1794,20 @@ def extract_progress_hydro_paklay(pdf, search_dir=None):
 # baked into the page's image content, so OCR misreads "Achieved" as
 # "Achived" fairly consistently — match both spellings.
 _PAKLAY_CHART_PAGE_TITLE = re.compile(r'construction\s+progress\s+curve', re.I)
-# As of W32/2026 the EPC dropped the "Accumulative ... up to <week>" wording
-# and now labels the boxes plainly ("Planned Progress = 5.34%"), which the
-# old regexes required and so silently returned nothing for two weeks running.
-# Everything that isn't load-bearing is optional now: the "Accumulative"
-# prefix, the "up to <week>" clause, and the spaces OCR drops between words
-# ("PlannedProgress = 4.95 %" is a real W33 read) or adds before the '%'.
+# The EPC keeps rewording these callouts: through W31/2026 they read
+# "Accumulative ... up to <week> =", at W32 they became plain
+# ("Planned Progress = 5.34%"), and at W34 they gained a new clause again
+# ("PlannedProgress till Aug Week 3 = 5.12 %"). Each rewording silently
+# returned nothing until someone noticed. So nothing between "progress" and
+# the '=' is spelled out any more - any short run of non-'=' text is allowed,
+# which covers "up to <week>", "till <week>" and the empty case alike. Also
+# tolerated: the "Accumulative" prefix, and the spaces OCR drops between
+# words ("PlannedProgress = 4.95 %" is a real W33 read) or adds before '%'.
 _PAKLAY_OCR_PLANNED  = re.compile(
-    r'(?:accumulative\s*)?planned\s*progress\s*(?:up\s*to[^=]{0,25})?=\s*'
+    r'(?:accumulative\s*)?planned\s*progress\s*[^=\n]{0,30}=\s*'
     r'(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)
 _PAKLAY_OCR_ACHIEVED = re.compile(
-    r'(?:accumulative\s*)?achi(?:e)?ved\s*progress\s*(?:up\s*to[^=]{0,25})?=\s*'
+    r'(?:accumulative\s*)?achi(?:e)?ved\s*progress\s*[^=\n]{0,30}=\s*'
     r'(\d{1,3}(?:\.\d{1,2})?)\s*%', re.I)
 
 

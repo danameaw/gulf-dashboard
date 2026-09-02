@@ -608,12 +608,12 @@
   "plan": 66.02
  },
  "PRJ-008_W34_2026": {
-  "actual": null,
+  "actual": 39.14,
   "n_activities": 20,
-  "n_concerns": 20,
+  "n_concerns": 0,
   "n_disc": 0,
-  "n_scopes": 0,
-  "plan": null
+  "n_scopes": 5,
+  "plan": 77.45
  },
  "PRJ-009_W24_2026": {
   "actual": null,
@@ -2000,12 +2000,12 @@
   "plan": 4.95
  },
  "PRJ-025_W34_2026": {
-  "actual": null,
+  "actual": 7.22,
   "n_activities": 20,
   "n_concerns": 0,
   "n_disc": 0,
   "n_scopes": 0,
-  "plan": null
+  "plan": 5.12
  },
  "PRJ-026_W24_2026": {
   "actual": null,

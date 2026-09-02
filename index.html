@@ -610,7 +610,7 @@ function saveData() {
 // (e.g. to today's date) whenever a manual data correction ships; on the
 // next load this drops the visitor's entire cached progressData so every
 // seedIfEmpty() call below re-applies fresh from this file.
-const SEED_VERSION = '2026-09-02.0832';
+const SEED_VERSION = '2026-09-02.0921';
 if (localStorage.getItem('gulfSeedVersion') !== SEED_VERSION) {
   progressData = {};
   localStorage.setItem('gulfSeedVersion', SEED_VERSION);
@@ -1808,7 +1808,7 @@ seedIfEmpty('PRJ-026_W34_2026', {
 
 // ── Pak Lay (PRJ-025) Week 34 — auto-extracted
 seedIfEmpty('PRJ-025_W34_2026', {
-  plan: null, actual: null,
+  plan: 5.12, actual: 7.22,
   concerns: [],
   activities: ['[EPC Hub Camp] S ite hardening(office) — 500 m2',
     '[EPC Hub Camp] Installation of reinforced stone cages(#3~#7) — 215 Pcs',
@@ -1912,47 +1912,35 @@ seedIfEmpty('PRJ-027_W34_2026', {
 
 // ── GULF AC8 (PRJ-008) Week 34 — auto-extracted
 seedIfEmpty('PRJ-008_W34_2026', {
-  plan: null, actual: null,
-  concerns: [' 1.Delay of SAO bridge and box convert construction ( 3 bridges and 2 box culverts)',
-    'Box culvert STA. 1+434 (West RW07) Box culvert STA. 2+704 (West RW01)',
-    'Bridge STA.2+950 (East RW17) Bridge STA.3+750 (West RW01)',
-    'Bridge STA.4+491 (East RW17)',
-    ' 2.Low production rate of rebar installation',
-    '- WTG11 Rebar binding 74 Days',
-    '- WTG12 Rebar binding 63 Days',
-    '- WTG14 Rebar binding 67 Days',
-    '- WTG04 Rebar binding 45 Days',
-    'Based on the current site arrangement, there is a drainage concern related to the Box Culvert area',
-    'at East Side RW17 Sta 0+500, which may be affect to the equipment/material laydown arrangement',
-    'from Silamas.',
-    'Box culvert',
-    ' 1.Request cooperation from Chief Executive of the',
-    'Non sawang SAO incase stagnant water from road',
-    'project. (Box culvert completed)',
-    ' 2.Unofficial Environmental & Social Complaints',
-    'Local residents are complaining about stagnant water from',
-    'road project',
-    '- West side 2 person (Box culvert completed)'],
-  activities: ['Clearing and grubbing RW1,RW2',
-    '2Continue Box culvert RW17 STA 0+500,1+845',
-    'Backfilling',
-    'V ditch RW17',
-    '- East : RW03',
-    '-East : RW9,RW15',
-    '- East : RW17 STA 4+600 to 5+300',
-    '- East : RW17 3+500 to 4+000',
-    'Rebar binding and formwork installation WTG11,WTG12,WTG04,WTG15,WTG07',
-    'Soil improvement WTG16,WTG17',
-    'Concrete foundation WTG12',
-    'Repairing and baclfilling WTG05,WTG13,WTG08,WTG6',
-    'Cable pulling feeder 1 RW07,RW01',
-    'Continue duct bank RW3,RW10',
-    '• Backfilling RCP RW6 21',
-    'Grouting vertical joint 3 rings',
-    'Assembly of concrete ring 3 rings',
-    'Quarter ring delivery 36 ea',
-    'Substation control building',
-    '- Masonry block ground floor'],
+  plan: 77.45, actual: 39.14,
+  scopes: {
+    'CBOP': { plan: 77.45, actual: 39.14 },
+    'TSA': { plan: 44.16, actual: 36.68 },
+    'Substation': { plan: 36.03, actual: 35.11 },
+    '115kV T/L': { plan: 20.0, actual: 81.59 },
+    'Terminal Substation': { plan: 56.1, actual: 54.71 }
+  },
+  concerns: [],
+  activities: ['[BOP(STECON)] Clearing and grubbing RW1,RW9',
+    '[BOP(STECON)] Selected A RW9,RW15',
+    '[BOP(STECON)] Subbase,Crushrock RW17',
+    '[BOP(STECON)] Rebar,FWinstallation WTG4,WTG11,WTG12,WTG14,WTG15',
+    '[BOP(STECON)] Repairing,Backfilling WTG5,WTG13,WTG8',
+    '[BOP(STECON)] Concrete cover casting WTG8,WTG13',
+    '[BOP(STECON)] Concrete pole installation RW17,RW7',
+    '[BOP(STECON)] Cable pulling feeder 1',
+    '[BOP(STECON)] Remove formwork WTG6',
+    '[TSA (GOLDWIND)] Assembly of quarter ring segment 3 rings',
+    '[TSA (GOLDWIND)] Grouting vertical joint 3 rings',
+    '[Plant Substation(SIEMENS)] Roof slab concrete casting and ground floor masonry work(Control building)',
+    '[Plant Substation(SIEMENS)] Wall SWYD cable trench concrete casting',
+    '[Plant Substation(SIEMENS)] Half fire wall concrete casting (Power transformer area)',
+    '[Plant Substation(SIEMENS)] STATCOM foundation rebar binding',
+    '[Transmission Line (SRICHONLATHORN)] Concrete foundation casting',
+    '[Transmission Line (SRICHONLATHORN)] Foundation installation',
+    '[Transmission Line (SRICHONLATHORN)] Column installation',
+    '[Transmission Line (SRICHONLATHORN)] Equipment and overhead installation',
+    '[Transmission Line (SRICHONLATHORN)] Cable pulling'],
 });
 
 // ── AL2 (Alpha 2) (PRJ-010) Week 34 — auto-extracted
