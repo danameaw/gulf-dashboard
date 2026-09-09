@@ -85,20 +85,23 @@ CADENCE_GRACE_WEEKS = {
 # A finished project stops filing weekly reports, and chasing it every week
 # for one trains people to ignore the missing-reports list. Two ways in:
 #
-#   COMPLETED_PROJECTS - declared by hand, with the week the project closed.
-#   Needed because a finished project's last figure rarely lands exactly on
-#   100: retention, punch-list items and rounding leave it short (SSE's final
-#   report read 99.85%).
-#
 #   AUTO_COMPLETE_AT_PCT - a project whose latest recorded actual reaches
-#   this is treated as finished with no config edit at all.
+#   this is finished, and no config edit is needed for it.
+#
+#   COMPLETED_PROJECTS - declared by hand, with the week the project closed.
+#   The escape hatch for a project that stops short of the threshold and is
+#   never going to file again.
+#
+# Deliberately empty: a project short of 100% keeps its place in the
+# missing-reports list, and that nag is what gets the site manager to file
+# the final report. Retiring it by hand would remove the only prompt. SSE
+# sits at 99.85% for exactly this reason - leave it listed until the closing
+# report lands.
 #
 # Either way the project stops counting as a missing report. It is still
 # extracted if a report does turn up, so a late final report is not lost.
-COMPLETED_PROJECTS = {
-    "PRJ-006": "W33/2026",   # SSE - closed at 99.85%, confirmed complete
-}
 AUTO_COMPLETE_AT_PCT = 100.0
+COMPLETED_PROJECTS = {}
 
 
 PROJECT_NAMES = {

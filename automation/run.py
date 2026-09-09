@@ -946,7 +946,7 @@ def _build_html_body(week, year, found, missing, report_date=None,
 
     return f"""
 <html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#1e2535;line-height:1.7;max-width:900px;margin:0 auto;padding:24px;background:#ffffff">
-<p style="margin:0 0 4px">Dear All,</p>
+<p style="margin:0 0 4px">Dear P'Tee and P'Hall,</p>
 <p style="margin:0 0 6px">
   Please be informed that the <b>Gulf Engineering Dashboard &mdash; Week {week}/{year}</b>
   has been updated. Below is the dashboard's Summary view as it currently stands.
