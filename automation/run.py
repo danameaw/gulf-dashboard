@@ -885,6 +885,27 @@ def _build_html_body(week, year, found, missing, report_date=None):
         f"Reporting week {week}/{year}</p>"
     )
 
+    action_block = (
+        f"<table cellspacing='0' cellpadding='0' style='width:100%;"
+        f"background:#f9fafb;border:1px solid {_C_BORDER};border-left:4px solid "
+        f"{_C_PRIMARY};border-radius:4px;margin:0 0 22px'><tr>"
+        f"<td style='padding:12px 16px'>"
+        f"<div style='font-size:12px;font-weight:700;color:{_C_PRIMARY};"
+        f"letter-spacing:0.03em;padding-bottom:4px'>FOR PROJECT TEAMS</div>"
+        f"<div style='font-size:12px;color:#3f3f3f;line-height:1.6'>"
+        f"{len(delayed)} project(s) below are marked "
+        f"<span style='background:#f8d7da;color:#721c24;font-size:10px;"
+        f"font-weight:700;padding:1px 7px;border-radius:20px'>Delay</span>. "
+        f"The scope or discipline behind plan is named against each one in the "
+        f"Overall Progress column. Please review your project and advise on "
+        f"recovery actions.<br>"
+        f"Week-by-week history, the full discipline breakdown, concerns and "
+        f"next-period activities are on the dashboard &mdash; "
+        f"<a href='{DASHBOARD_URL}' style='color:#2d6a9f;font-weight:600'>"
+        f"open it here</a>."
+        f"</div></td></tr></table>"
+    ) if delayed else ""
+
     missing_note = (
         f"<p style='margin:0 0 22px'>The <b>{len(missing)} project(s)</b> marked "
         f"<span style='font-size:10px;font-weight:700;color:#ffffff;"
@@ -897,12 +918,13 @@ def _build_html_body(week, year, found, missing, report_date=None):
 
     return f"""
 <html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#1e2535;line-height:1.7;max-width:900px;margin:0 auto;padding:24px;background:#ffffff">
-<p style="margin:0 0 4px">Dear P'Tee and P'Hall,</p>
+<p style="margin:0 0 4px">Dear All,</p>
 <p style="margin:0 0 6px">
   Please be informed that the <b>Gulf Engineering Dashboard &mdash; Week {week}/{year}</b>
   has been updated. Below is the dashboard's Summary view as it currently stands.
 </p>
 {cutoff_line}
+{action_block}
 
 {_summary_strip_html(statuses)}
 

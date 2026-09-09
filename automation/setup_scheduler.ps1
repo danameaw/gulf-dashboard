@@ -1,5 +1,12 @@
 # setup_scheduler.ps1
-# Run once (as Administrator) to schedule the automation every Wednesday at 9:00 AM
+# Run once to schedule the automation every Tuesday at 9:00 AM.
+#
+# Tuesday, not Wednesday: a week folder is created on Wednesday and the
+# reports land in it over the days that follow, so on Wednesday morning the
+# newest folder is the one that has just appeared and is still near-empty.
+# find_week_folder() always takes the newest, so a Wednesday run reads that
+# empty folder and reports almost every project missing. By Tuesday the
+# newest folder is the previous week's, complete.
 
 # Task Scheduler launches the action with CreateProcess, not through a shell, so
 # ">>" redirection in -Argument is passed straight to run.py as argv and argparse
@@ -13,7 +20,7 @@ $action  = New-ScheduledTaskAction `
     -WorkingDirectory $PSScriptRoot
 
 $trigger = New-ScheduledTaskTrigger `
-    -Weekly -DaysOfWeek Wednesday -At "09:00AM"
+    -Weekly -DaysOfWeek Tuesday -At "09:00AM"
 
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
@@ -28,5 +35,5 @@ Register-ScheduledTask `
     -Force
 
 Write-Host "Task Scheduler registered: GulfDashboard_WeeklyUpdate"
-Write-Host "Runs every Wednesday at 09:00 AM"
+Write-Host "Runs every Tuesday at 09:00 AM"
 Write-Host "Log file: $PSScriptRoot\run_log.txt"
