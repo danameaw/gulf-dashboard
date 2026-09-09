@@ -81,6 +81,27 @@ CADENCE_GRACE_WEEKS = {
 }
 
 
+# ── Guards against publishing a half-read week ────────────────────────────
+# On 2026-09-09 a run fired mid-week against a folder holding 2 of the ~30
+# reports, found 2 projects, recorded 24 as missing, and pushed that to the
+# live dashboard. --strict did not stop it: a project with no PDF is skipped
+# by the validation rules rather than failed, so a run that reads almost
+# nothing raises almost nothing to fail on. Hence two blunter guards.
+
+# Abort before writing anything if fewer than this share of the projects
+# expected to report actually did. A genuine week runs 90-100%; the bad run
+# was at 7%. Projects that are not due (monthly cadence, completed) are not
+# counted as expected. Override with --allow-low-coverage for the rare week
+# that really is that sparse.
+MIN_COVERAGE_PCT = 60
+
+# A week folder appears on Wednesday and fills over the days that follow, so
+# the newest folder is the emptiest. Ignore any folder younger than this when
+# picking "the latest week", which decouples the choice from the day the run
+# happens to fire. --week/--year still targets a folder directly.
+FOLDER_SETTLE_DAYS = 3
+
+
 # ── Completed projects ────────────────────────────────────────────────────
 # A finished project stops filing weekly reports, and chasing it every week
 # for one trains people to ignore the missing-reports list. Two ways in:

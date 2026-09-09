@@ -11,7 +11,8 @@ from config import (BASE_REPORT_PATH, DASHBOARD_HTML, EXCEL_DIR,
                     FOLDER_PROJECTS, PROJECT_KEYWORDS, PROJECT_NAMES,
                     MANUAL_OVERRIDES, REPORT_CADENCE, DEFAULT_CADENCE,
                     CADENCE_GRACE_WEEKS, COMPLETED_PROJECTS,
-                    AUTO_COMPLETE_AT_PCT)
+                    AUTO_COMPLETE_AT_PCT, MIN_COVERAGE_PCT,
+                    FOLDER_SETTLE_DAYS)
 from extract import extract_from_pdf
 from validate import (format_findings, load_history,
                       project_history,
@@ -33,11 +34,40 @@ def _parse_folder_date(name):
 
 
 def find_week_folder(year=None):
+    """
+    The latest week folder that has had time to fill.
+
+    A folder appears on Wednesday and the reports arrive over the days that
+    follow, so the newest one is the emptiest - taking it produced a Week 36
+    dashboard built from 2 of ~30 reports. Skip anything younger than
+    FOLDER_SETTLE_DAYS so the choice does not depend on which day the run
+    fires. A folder whose name will not parse has no age to judge and is
+    kept, since dropping it would silently ignore a real week.
+    """
     pattern = os.path.join(BASE_REPORT_PATH, r"[0-9]*_[0-9]*")
     folders = sorted(glob.glob(pattern))
     if not folders:
         raise FileNotFoundError(f"No week folders found in {BASE_REPORT_PATH}")
-    latest = folders[-1]
+
+    today  = datetime.now().date()
+    settled = []
+    for f in folders:
+        iso = _parse_folder_date(os.path.basename(f))
+        if iso is None:
+            settled.append(f)
+            continue
+        age = (today - datetime.strptime(iso, '%Y-%m-%d').date()).days
+        if age >= FOLDER_SETTLE_DAYS:
+            settled.append(f)
+        else:
+            print(f"  [skip] {os.path.basename(f)} is {age} day(s) old - "
+                  f"still filling")
+    if not settled:
+        raise FileNotFoundError(
+            f"Every week folder in {BASE_REPORT_PATH} is younger than "
+            f"{FOLDER_SETTLE_DAYS} days - nothing has had time to fill")
+
+    latest = settled[-1]
     name   = os.path.basename(latest)           # e.g. "25_260701"
     parts  = name.split('_')
     week   = int(parts[0])
@@ -1097,6 +1127,11 @@ def main():
     parser.add_argument('--strict', action='store_true',
                         help='Stop before updating any file if the data '
                              'checks report a FAIL')
+    parser.add_argument('--allow-low-coverage', action='store_true',
+                        help='Write files even though fewer than '
+                             'MIN_COVERAGE_PCT of the expected '
+                             'reports were read - for the rare week '
+                             'that really is that sparse')
     parser.add_argument('--no-push', action='store_true',
                         help='Update index.html/Excel locally but do not '
                              'commit or push (for reviewing a correction '
@@ -1200,6 +1235,24 @@ def main():
         print(f"\n  [strict] {report['counts'][FAIL]} FAIL finding(s) - "
               f"stopping before any file is written.")
         sys.exit(1)
+
+    # The coverage guard sits outside --strict on purpose. --strict only fails
+    # on findings, and a project with no PDF produces none - so the emptier
+    # the run, the quieter it is. This is the check that would have stopped
+    # the Week 36 publish.
+    expected = len(results) - len(not_due)
+    n_found  = sum(1 for r in results.values() if r['found'])
+    coverage = (100.0 * n_found / expected) if expected else 0.0
+    if coverage < MIN_COVERAGE_PCT and not args.allow_low_coverage:
+        print(f"\n  [abort] only {n_found}/{expected} expected reports read "
+              f"({coverage:.0f}%, floor is {MIN_COVERAGE_PCT}%) - "
+              f"nothing written.")
+        print("          A week folder that is still filling looks exactly "
+              "like this. Check the folder, or pass --allow-low-coverage if "
+              "the week really is this sparse.")
+        sys.exit(1)
+    print(f"  Coverage: {n_found}/{expected} expected reports "
+          f"({coverage:.0f}%)")
 
     # Update files
     print("\n  Updating dashboard...")
