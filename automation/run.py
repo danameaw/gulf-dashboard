@@ -10,7 +10,8 @@ from config import (BASE_REPORT_PATH, DASHBOARD_HTML, EXCEL_DIR,
                     GIT_REPO, DASHBOARD_URL,
                     FOLDER_PROJECTS, PROJECT_KEYWORDS, PROJECT_NAMES,
                     MANUAL_OVERRIDES, REPORT_CADENCE, DEFAULT_CADENCE,
-                    CADENCE_GRACE_WEEKS)
+                    CADENCE_GRACE_WEEKS, COMPLETED_PROJECTS,
+                    AUTO_COMPLETE_AT_PCT)
 from extract import extract_from_pdf
 from validate import (format_findings, load_history,
                       project_history,
@@ -102,6 +103,17 @@ def is_report_due(history, prj_id, week, year):
     A project with no history at all is treated as due - better to ask than
     to silently stop expecting a report.
     """
+    if prj_id in COMPLETED_PROJECTS:
+        return False, f'completed {COMPLETED_PROJECTS[prj_id]}'
+
+    # A project that has already reported its way to 100% is finished even if
+    # nobody has recorded it in COMPLETED_PROJECTS yet.
+    done = [r for r in project_history(history, prj_id, before=(year, week))
+            if r.get('actual') is not None
+            and r['actual'] >= AUTO_COMPLETE_AT_PCT]
+    if done:
+        return False, f"completed at {done[-1]['actual']}%"
+
     cadence = REPORT_CADENCE.get(prj_id, DEFAULT_CADENCE)
     if cadence == DEFAULT_CADENCE:
         return True, None
@@ -854,12 +866,20 @@ def _fmt_cutoff(report_date):
     return (d + timedelta(days=(5 - d.weekday()) % 7)).strftime('%d %b %Y')
 
 
-def _build_html_body(week, year, found, missing, report_date=None):
+def _build_html_body(week, year, found, missing, report_date=None,
+                     completed=()):
     projects = _load_projects()
     if not projects:
         projects = [{'id': pid, 'name': PROJECT_NAMES.get(pid, pid),
                      'type': 'Infrastructure', 'contract': '&mdash;'}
                     for pid in sorted(set(found) | set(missing))]
+
+    # A finished project is no longer tracked: it leaves the table and the
+    # stat cards entirely and is named once underneath, so the counts describe
+    # live work only.
+    completed = list(completed)
+    closed    = [p for p in projects if p['id'] in completed]
+    projects  = [p for p in projects if p['id'] not in completed]
 
     results  = dict(found)
     for pid in missing:
@@ -906,6 +926,14 @@ def _build_html_body(week, year, found, missing, report_date=None):
         f"</div></td></tr></table>"
     ) if delayed else ""
 
+    closed_note = (
+        "<p style='margin:0 0 22px;font-size:12px;color:%s'>No longer tracked: "
+        "%s &mdash; completed, so not counted above and not chased for weekly "
+        "reports.</p>" % (
+            _C_MUTED,
+            ', '.join(f"<b>{p['name']}</b>" for p in closed))
+    ) if closed else ""
+
     missing_note = (
         f"<p style='margin:0 0 22px'>The <b>{len(missing)} project(s)</b> marked "
         f"<span style='font-size:10px;font-weight:700;color:#ffffff;"
@@ -938,6 +966,7 @@ def _build_html_body(week, year, found, missing, report_date=None):
 </p>
 
 {missing_note}
+{closed_note}
 
 <table cellspacing="0" cellpadding="0" style="margin:0 0 20px">
   <tr><td style="background:{_C_PRIMARY};border-radius:6px;padding:11px 22px">
@@ -970,14 +999,15 @@ def _ensure_outlook_running(wait_seconds=20):
 
 
 def send_email(week, year, results, missing_ids, timeout=90,
-               report_date=None):
+               report_date=None, completed=()):
     found   = {k: v for k, v in results.items() if v['found']}
     missing = missing_ids
 
     subject   = (f"[Gulf Dashboard] W{week}/{year} Update — "
                  f"{len(found)} Projects Updated, {len(missing)} Reports Pending")
     html_body = _build_html_body(week, year, found, missing,
-                                report_date=report_date)
+                                report_date=report_date,
+                                completed=completed)
 
     _ensure_outlook_running()
 
@@ -1184,7 +1214,7 @@ def main():
 
     if not args.no_email:
         send_email(week, year, results, missing,
-                   report_date=report_date)
+                   report_date=report_date, completed=not_due)
     notify(week, year,
            sum(1 for r in results.values() if r['found']),
            len(missing))

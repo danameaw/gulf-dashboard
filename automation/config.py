@@ -81,6 +81,26 @@ CADENCE_GRACE_WEEKS = {
 }
 
 
+# ── Completed projects ────────────────────────────────────────────────────
+# A finished project stops filing weekly reports, and chasing it every week
+# for one trains people to ignore the missing-reports list. Two ways in:
+#
+#   COMPLETED_PROJECTS - declared by hand, with the week the project closed.
+#   Needed because a finished project's last figure rarely lands exactly on
+#   100: retention, punch-list items and rounding leave it short (SSE's final
+#   report read 99.85%).
+#
+#   AUTO_COMPLETE_AT_PCT - a project whose latest recorded actual reaches
+#   this is treated as finished with no config edit at all.
+#
+# Either way the project stops counting as a missing report. It is still
+# extracted if a report does turn up, so a late final report is not lost.
+COMPLETED_PROJECTS = {
+    "PRJ-006": "W33/2026",   # SSE - closed at 99.85%, confirmed complete
+}
+AUTO_COMPLETE_AT_PCT = 100.0
+
+
 PROJECT_NAMES = {
     "PRJ-001": "LNG Terminal (GMTP)",
     "PRJ-002": "GOE2-NWT3",

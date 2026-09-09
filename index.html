@@ -580,7 +580,7 @@ const PROJECTS = [
 // Progress data store: key = "projectId_week"
 // Each entry: { plan, actual, concerns:[], activities:[], disciplineData:{} }
 // ── AUTO: MISSING REPORTS ──
-const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","PRJ-027","PRJ-009","PRJ-010","PRJ-011"],"W26_2026":["PRJ-008","PRJ-009","PRJ-010","PRJ-011","PRJ-012"],"W27_2026":["PRJ-008"],"W28_2026":["PRJ-026"],"W29_2026":["PRJ-008"],"W30_2026":["PRJ-008"],"W31_2026":["PRJ-008"],"W32_2026":["PRJ-008","PRJ-009"],"W33_2026":["PRJ-008","PRJ-009","PRJ-010"],"W34_2026":["PRJ-006","PRJ-009"],"W35_2026":["PRJ-006","PRJ-009"]};
+const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","PRJ-027","PRJ-009","PRJ-010","PRJ-011"],"W26_2026":["PRJ-008","PRJ-009","PRJ-010","PRJ-011","PRJ-012"],"W27_2026":["PRJ-008"],"W28_2026":["PRJ-026"],"W29_2026":["PRJ-008"],"W30_2026":["PRJ-008"],"W31_2026":["PRJ-008"],"W32_2026":["PRJ-008","PRJ-009"],"W33_2026":["PRJ-008","PRJ-009","PRJ-010"],"W34_2026":["PRJ-006","PRJ-009"],"W35_2026":["PRJ-006","PRJ-009"],"W36_2026":["PRJ-001","PRJ-002","PRJ-003","PRJ-004","PRJ-013","PRJ-014","PRJ-015","PRJ-016","PRJ-017","PRJ-018","PRJ-019","PRJ-020","PRJ-021","PRJ-022","PRJ-023","PRJ-024","PRJ-025","PRJ-005","PRJ-006","PRJ-007","PRJ-027","PRJ-009","PRJ-010","PRJ-011"]};
 // ── END MISSING REPORTS ──
 
 // ── AUTO: REPORT DATES ──
@@ -588,7 +588,7 @@ const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","P
 // written by run.py. updateWeekLabel() below prefers this over the Jan-1 +
 // (week-1)*7-days approximation, which drifts from the actual report period
 // since this dashboard's week numbering isn't the ISO week number.
-const REPORT_DATES_BY_WEEK = {"W28_2026":"2026-07-15","W29_2026":"2026-07-22","W30_2026":"2026-07-29","W31_2026":"2026-08-05","W32_2026":"2026-08-12","W33_2026":"2026-08-19","W34_2026":"2026-08-26","W35_2026":"2026-09-02"};
+const REPORT_DATES_BY_WEEK = {"W28_2026":"2026-07-15","W29_2026":"2026-07-22","W30_2026":"2026-07-29","W31_2026":"2026-08-05","W32_2026":"2026-08-12","W33_2026":"2026-08-19","W34_2026":"2026-08-26","W35_2026":"2026-09-02","W36_2026":"2026-09-09"};
 // ── END REPORT DATES ──
 
 let progressData = JSON.parse(localStorage.getItem('gulfDashData') || '{}');
@@ -610,7 +610,7 @@ function saveData() {
 // (e.g. to today's date) whenever a manual data correction ships; on the
 // next load this drops the visitor's entire cached progressData so every
 // seedIfEmpty() call below re-applies fresh from this file.
-const SEED_VERSION = '2026-09-09.0932';
+const SEED_VERSION = '2026-09-09.1019';
 if (localStorage.getItem('gulfSeedVersion') !== SEED_VERSION) {
   progressData = {};
   localStorage.setItem('gulfSeedVersion', SEED_VERSION);
@@ -1407,6 +1407,64 @@ function seedIfEmpty(key, data) {
     progressData[key] = data;
   }
 }
+
+
+// ── Week 36/2026 — AUTO-GENERATED ──
+// ── GULF AC8 (PRJ-008) Week 36 — auto-extracted
+seedIfEmpty('PRJ-008_W36_2026', {
+  plan: 78.53, actual: 41.25,
+  scopes: {
+    'CBOP': { plan: 78.53, actual: 41.25 },
+    'TSA': { plan: 44.16, actual: 36.68 },
+    'Substation': { plan: 38.08, actual: 36.49 },
+    '115kV T/L': { plan: 28.0, actual: 88.3 },
+    'Terminal Substation': { plan: 63.72, actual: 65.88 }
+  },
+  concerns: [],
+  activities: ['[BOP(STECON)] Selected A RW9,RW15',
+    '[BOP(STECON)] Subbase,Crush rock RW12,RW14,RW15,RW17',
+    '[BOP(STECON)] Rebar,FW installation WTG4,WTG11,WTG7,WTG15',
+    '[BOP(STECON)] Repairing,Backfilling WTG5,WTG13,WTG8',
+    '[BOP(STECON)] Concrete pole installation RW1',
+    '[BOP(STECON)] Cable pulling feeder RW1 STA1+400',
+    '[BOP(STECON)] Remove formwork WTG6',
+    '[BOP(STECON)] Concrete foundation WTG12',
+    '[BOP(STECON)] Handover WTG8',
+    '[TSA (GOLDWIND)] Assembly of quarter ring segment 3 rings',
+    '[TSA (GOLDWIND)] Assembly quarter ring 6 rings',
+    '[TSA (GOLDWIND)] Joint inspection WTG08',
+    '[Plant Substation(SIEMENS)] Ground floor masonry work(Control building)',
+    '[Plant Substation(SIEMENS)] Wall SWYD cable trench concrete casting',
+    '[Plant Substation(SIEMENS)] Top fire wall concrete casting (Power transformer area)',
+    '[Plant Substation(SIEMENS)] STATCOM foundation work',
+    '[Plant Substation(SIEMENS)] Start crossroad drainage system',
+    '[Transmission Line (SRICHONLATHORN)] Concrete foundation casting',
+    '[Transmission Line (SRICHONLATHORN)] Foundation installation',
+    '[Transmission Line (SRICHONLATHORN)] Column installation'],
+});
+
+// ── GULF_Wayu (PRJ-012) Week 36 — auto-extracted
+seedIfEmpty('PRJ-012_W36_2026', {
+  plan: 83.03, actual: 74.56,
+  scopes: {
+    'CBOP': { plan: 83.03, actual: 74.56 },
+    'Substation': { plan: 2.53, actual: 0.49 }
+  },
+  concerns: ['[TSA (Goldwind)] The Aor.1 permit approval is currently behind schedule and does not align with the planned start date of the WTG foundation works on 1 June 2026.>>Done',
+    '[CBOP (PCZ)] Bridge and box culvert permit approval is pending. >>Done',
+    '[CBOP (PCZ)] The final COP document has not yet been approved, please expedite the approval process>>Done.'],
+  activities: ['[TSA (Goldwind)] Excavation work for WTG-02,WTG-04.',
+    '[TSA (Goldwind)] Piling work for WTG-07,WTG-12.',
+    '[TSA (Goldwind)] Soil improvement WTG-01,WTG-06,WTG-05.',
+    '[TSA (Goldwind)] Rebar installation work WTG-03.',
+    '[CBOP (PCZ)] Road work',
+    '[CBOP (PCZ)] Excavation earth ditch. Bridge and Box culvert',
+    '[CBOP (PCZ)] Bridge NO.05 concrete pouring top deck.',
+    '[CBOP (PCZ)] Bridge NO.06 preparation soil backfill.',
+    '[CBOP (PCZ)] Bridge NO.02A Preparation pile cut-off P3.',
+    '[CBOP (PCZ)] Bridge NO.10 Pile driving work P1,P4. Electrical',
+    '[CBOP (PCZ)] Concrete pole 33kV installation.'],
+});
 
 
 // ── Week 35/2026 — AUTO-GENERATED ──
@@ -21154,7 +21212,7 @@ saveData();
 
 // Init — always default to Week 24 / 2026 (seed data week)
 // ── AUTO: CURRENT WEEK ──
-currentWeek = 35; currentYear = 2026; saveData();
+currentWeek = 36; currentYear = 2026; saveData();
 // ── END CURRENT WEEK ──
 renderAll();
 // ── LNG Terminal (GMTP) (PRJ-001) Week 24 — auto-extracted
