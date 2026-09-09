@@ -407,4 +407,56 @@ Gulf Dashboard Weekly Automation
 
   Done! Dashboard URL: https://danameaw.github.io/gulf-dashboard/
 ============================================================
-^C^C
+^C^C============================================================
+Gulf Dashboard Weekly Automation
+============================================================
+  Week: 36/2026
+  Folder: C:\Users\danaya.th\Gulf\Engineering - Engineering Documents\00 Project Reports\2026\36_260909
+
+  [PRJ-001] LNG Terminal (GMTP) ... FOLDER NOT FOUND (GMTP)
+  [PRJ-002] GOE2-NWT3 ... FOLDER NOT FOUND (GSO2026)
+  [PRJ-003] GSPG-PTN ... FOLDER NOT FOUND (GSO2026)
+  [PRJ-004] GSPG-STN ... FOLDER NOT FOUND (GSO2026)
+  [PRJ-013] GCE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-014] GSE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-015] KKE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-016] MKP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-017] MPE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-018] PFP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-019] PKP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-020] PSD ... FOLDER NOT FOUND (iWTE)
+  [PRJ-021] PWW1 ... FOLDER NOT FOUND (iWTE)
+  [PRJ-022] PWW2 ... FOLDER NOT FOUND (iWTE)
+  [PRJ-023] TPP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-024] TSE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-026] Pak Beng ... NOT DUE — FOLDER NOT FOUND (Pak Beng) — monthly, last reported W35/2026 (1 week(s) ago)
+  [PRJ-025] Pak Lay ... FOLDER NOT FOUND (Pak Lay)
+  [PRJ-005] LNE ... FOLDER NOT FOUND (SOSB2026)
+  [PRJ-006] SSE ... FOLDER NOT FOUND (SOSB2026)
+  [PRJ-007] SDCE ... FOLDER NOT FOUND (SOSB2026)
+  [PRJ-027] TTT ... FOLDER NOT FOUND (TTT)
+  [PRJ-008] GULF AC8 ... OK → AC8 Construction Progress Weekly Report week No.55_ 29 Aug - 4 Sep 2026.pdf
+       concerns=0, activities=20, plan=78.53%, actual=41.25%, scopes=5
+  [PRJ-009] AL1 (Alpha 1) ... PDF NOT FOUND
+  [PRJ-010] AL2 (Alpha 2) ... PDF NOT FOUND
+  [PRJ-011] ECE ... PDF NOT FOUND
+  [PRJ-012] GULF_Wayu ... OK → WAYU Power Construction Progress Weekly Report No.60, date 29Aug-4Sep26.pdf
+       concerns=3, activities=11, plan=83.03%, actual=74.56%, scopes=2
+
+  Found:   2 projects
+  Missing: 24 projects: ['PRJ-001', 'PRJ-002', 'PRJ-003', 'PRJ-004', 'PRJ-013', 'PRJ-014', 'PRJ-015', 'PRJ-016', 'PRJ-017', 'PRJ-018', 'PRJ-019', 'PRJ-020', 'PRJ-021', 'PRJ-022', 'PRJ-023', 'PRJ-024', 'PRJ-025', 'PRJ-005', 'PRJ-006', 'PRJ-007', 'PRJ-027', 'PRJ-009', 'PRJ-010', 'PRJ-011']
+  Not due: 1 projects: ['PRJ-026']
+
+  Validation: 0 FAIL, 2 WARN across 1 project(s)
+  [PRJ-008] GULF AC8
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+     WARN variance-large: variance -37.28% exceeds 25% - confirm this is real
+
+  Updating dashboard...
+  ✓ SEED_VERSION 2026-09-09.0932 → 2026-09-09.1019 (forces client refresh)
+  ✓ index.html updated (Week 36/2026)
+  ✓ Excel saved: C:\Users\danaya.th\OneDrive - Gulf\Documents\GitHub\gulf-dashboard\Gulf_Dashboard_W36_2026.xlsx
+  ✓ Pushed to GitHub
+
+  Done! Dashboard URL: https://danameaw.github.io/gulf-dashboard/
+============================================================
