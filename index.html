@@ -580,7 +580,7 @@ const PROJECTS = [
 // Progress data store: key = "projectId_week"
 // Each entry: { plan, actual, concerns:[], activities:[], disciplineData:{} }
 // ── AUTO: MISSING REPORTS ──
-const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","PRJ-027","PRJ-009","PRJ-010","PRJ-011"],"W26_2026":["PRJ-008","PRJ-009","PRJ-010","PRJ-011","PRJ-012"],"W27_2026":["PRJ-008"],"W28_2026":["PRJ-026"],"W29_2026":["PRJ-008"],"W30_2026":["PRJ-008"],"W31_2026":["PRJ-008"],"W32_2026":["PRJ-008","PRJ-009"],"W33_2026":["PRJ-008","PRJ-009","PRJ-010"],"W34_2026":["PRJ-006","PRJ-009"],"W35_2026":["PRJ-006","PRJ-009"]};
+const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","PRJ-027","PRJ-009","PRJ-010","PRJ-011"],"W26_2026":["PRJ-008","PRJ-009","PRJ-010","PRJ-011","PRJ-012"],"W27_2026":["PRJ-008"],"W28_2026":["PRJ-026"],"W29_2026":["PRJ-008"],"W30_2026":["PRJ-008"],"W31_2026":["PRJ-008"],"W32_2026":["PRJ-008","PRJ-009"],"W33_2026":["PRJ-008","PRJ-009","PRJ-010"],"W34_2026":["PRJ-006","PRJ-009"],"W35_2026":["PRJ-006","PRJ-009"],"W36_2026":["PRJ-005","PRJ-006"]};
 // ── END MISSING REPORTS ──
 
 // ── AUTO: REPORT DATES ──
@@ -588,7 +588,7 @@ const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","P
 // written by run.py. updateWeekLabel() below prefers this over the Jan-1 +
 // (week-1)*7-days approximation, which drifts from the actual report period
 // since this dashboard's week numbering isn't the ISO week number.
-const REPORT_DATES_BY_WEEK = {"W28_2026":"2026-07-15","W29_2026":"2026-07-22","W30_2026":"2026-07-29","W31_2026":"2026-08-05","W32_2026":"2026-08-12","W33_2026":"2026-08-19","W34_2026":"2026-08-26","W35_2026":"2026-09-02"};
+const REPORT_DATES_BY_WEEK = {"W28_2026":"2026-07-15","W29_2026":"2026-07-22","W30_2026":"2026-07-29","W31_2026":"2026-08-05","W32_2026":"2026-08-12","W33_2026":"2026-08-19","W34_2026":"2026-08-26","W35_2026":"2026-09-02","W36_2026":"2026-09-09"};
 // ── END REPORT DATES ──
 
 let progressData = JSON.parse(localStorage.getItem('gulfDashData') || '{}');
@@ -610,7 +610,7 @@ function saveData() {
 // (e.g. to today's date) whenever a manual data correction ships; on the
 // next load this drops the visitor's entire cached progressData so every
 // seedIfEmpty() call below re-applies fresh from this file.
-const SEED_VERSION = '2026-09-09.0932';
+const SEED_VERSION = '2026-09-15.0909';
 if (localStorage.getItem('gulfSeedVersion') !== SEED_VERSION) {
   progressData = {};
   localStorage.setItem('gulfSeedVersion', SEED_VERSION);
@@ -1407,6 +1407,633 @@ function seedIfEmpty(key, data) {
     progressData[key] = data;
   }
 }
+
+
+// ── Week 36/2026 — AUTO-GENERATED ──
+// ── LNG Terminal (GMTP) (PRJ-001) Week 36 — auto-extracted
+seedIfEmpty('PRJ-001_W36_2026', {
+  plan: 30.14, actual: 33.91,
+  scopes: {
+    'LNG Tank Area': {
+      plan: 37.49, actual: 42.66,
+      disciplines: {
+        'Engineering': { plan: 84.04, actual: 88.31, wf: 3.41 },
+        'Procurement': { plan: 62.43, actual: 65.08, wf: 21.95 },
+        'Construction': { plan: 28.02, actual: 33.98, wf: 74.64 }
+      }
+    },
+    'BOP & Utility Area': {
+      plan: 32.69, actual: 36.59,
+      disciplines: {
+        'Engineering': { plan: 78.29, actual: 87.1, wf: 5.69 },
+        'Procurement': { plan: 35.14, actual: 38.23, wf: 63.06 },
+        'Construction': { plan: 19.44, actual: 24.07, wf: 31.25 }
+      }
+    },
+    'Marine Area': {
+      plan: 7.91, actual: 8.94,
+      disciplines: {
+        'Engineering': { plan: 82.32, actual: 85.71, wf: 7.26 },
+        'Construction': { plan: 2.08, actual: 2.93, wf: 92.74 }
+      }
+    }
+  },
+  disciplines: {
+      'Commissioning': { plan: 0.0, actual: 0.0 },
+      'Engineering': { plan: 79.7, actual: 87.13 },
+      'Procurement': { plan: 38.28, actual: 41.32 },
+      'Construction': { plan: 19.84, actual: 24.34 }
+    },
+  concerns: ['ISB Elevator — Application of elevator in instrument / substation building should be settled considering construction schedule.'],
+  activities: ['[LNG Tank] Tank 101: Installation DOKA (outer wall 8th) climbing form',
+    '[LNG Tank] Tank 101: Wall rebar pre-fabrication and installation work for outer wall 8th ‘',
+    '[LNG Tank] Tank 102: Dismantling (outer wall 6th) & Installation DOKA (outer wall 7th) climbing form',
+    '[LNG Tank] Tank 102: Wall rebar pre-fabrication and installation work for outer wall 7th',
+    '[LNG Tank] Tank 101: Roof Plate arrangement (Fit-up / Welding / Grinding / NDT)',
+    '[LNG Tank] Tank 101: Runway Beam Installation',
+    '[LNG Tank] Tank 101: Pad Plate Welding& Grinding',
+    '[LNG Tank] Tank 102: Purlin Welding & Grinding',
+    '[LNG Tank] Tank 102: Roof Plate arrangement (Installation)',
+    '[LNG Tank] Tank 102: Runway Beam Installation',
+    '[LNG Tank] Tank 102: Pad Plate Welding & Grinding',
+    '[LNG Tank] Shop Area: WN Laydown Area Organization / Unloading Materials',
+    '[LNG Tank] Shop Area: Compression Ring Fabrication (Fit-up / Welding)',
+    '[LNG Tank] Shop Area: Hanger Rod Fabrication (Cutting / Welding)',
+    '[LNG Tank] Shop Area: Structural Steel Fabrication (Drilling / Grinding / Welding',
+    '[BOP Area] UG Piping Work: Excavation and Backfill work',
+    '[BOP Area] UG Piping Work: Field Fusion Weld work',
+    '[BOP Area] UG Piping Work: Rebar and Formwork, Pouring Con’c for Valve Box base and wall',
+    '[BOP Area] UG Piping Work: GRP lamination work',
+    '[BOP Area] Piperack – B, C, D, E: Backfill for FDN'],
+});
+
+// ── GOE2-NWT3 (PRJ-002) Week 36 — auto-extracted
+seedIfEmpty('PRJ-002_W36_2026', {
+  plan: 100.0, actual: 66.42,
+  scopes: {
+    'GUE': {
+      plan: 100.0, actual: 66.42,
+      disciplines: {
+        'Construction': { plan: 100.0, actual: 66.42 }
+      }
+    },
+    'Siemens': { plan: 90.35, actual: 68.14 },
+    '115kV T/L': { plan: 99.41, actual: 80.08 },
+    'Comm/Fiber': { plan: 93.78, actual: 85.68 }
+  },
+  concerns: ['[PV Farm (GUE)] Expedite skilled worker & tools for install PV module.',
+    '[PV Farm (GUE)] Expedite worker & tools for crimped MC4 cable.',
+    '[Substation (SIEMENS)] Expedite delivery materials such as cable, steel door and painting materials.',
+    '[115kV Transmission Line (PEA, FEC)] Relocate water pipe along the road of Department of Rural Roads',
+    '[115kV Transmission Line (PEA, FEC)] Expedite add team for construct foundation.'],
+  activities: ['[PV Farm (GUE)] Install Mounting Structure 720 of 768 table, 10 Construction inspected 424 table, 55.21%.',
+    '[PV Farm (GUE)] Install PV Module 48,990 of 84,500 ea, inspected 172 table, 22.40%. 0 Jan',
+    '[PV Farm (GUE)] Install Inverter 143 of 149 nos, 95.97%.',
+    '[PV Farm (GUE)] Laying LV cable 21,877 of 30,050 m, 71.73%.',
+    '[PV Farm (GUE)] Laying MV cable 3,677 of 11,520 m, 31.92%.',
+    '[PV Farm (GUE)] SAT 23 of ea. 47 item, 51.06%.',
+    '[Substation (SIEMENS)] Substation & Control Building : Progress Execu Continued install cable ladder, install panel and individual test, wiring cable.',
+    '[Substation (SIEMENS)] Switchyard : Cable pulling.',
+    '[Substation (SIEMENS)] Office Building & Store Building : Continued plastering work.',
+    '[115kV Transmission Line (PEA, FEC)] Foundation 584 of 748 nos. tive Summa',
+    '[115kV Transmission Line (PEA, FEC)] Concrete pole 563 of 744 nos.',
+    '[115kV Transmission Line (PEA, FEC)] Top pole 519 of 744 nos.',
+    '[115kV Transmission Line (PEA, FEC)] Bore Pile 46 of 66 nos.',
+    '[115kV Transmission Line (PEA, FEC)] AAC 400 mm2 31,332 of 140,166 m.',
+    '[115kV Transmission Line (PEA, FEC)] OHGW 35 mm2 5,794 of 24,402 m.',
+    '[115kV Transmission Line (PEA, FEC)] XLPE CU 800 mm2 2,748 of 3,912 m.',
+    '[115kV Transmission Line (PEA, FEC)] CV 185 mm2 162 of 1,142 m.',
+    '[Communication / Fiber (กบศ, ITL)] Under review drawing by ry as EGAT.',
+    '[Communication / Fiber (กบศ, ITL)] Under revise drawing cross section of road.',
+    '[Communication / Fiber (กบศ, ITL)] PEA installed MUX Panel at GOE-NWT3.'],
+});
+
+// ── GSPG-PTN (PRJ-003) Week 36 — auto-extracted
+seedIfEmpty('PRJ-003_W36_2026', {
+  plan: 92.7, actual: 71.8,
+  scopes: {
+    'GUE': {
+      plan: 92.7, actual: 71.8,
+      disciplines: {
+        'Engineering': { plan: 100.0, actual: 99.76 },
+        'Procurement': { plan: 100.0, actual: 95.02 },
+        'Construction': { plan: 100.0, actual: 63.67 }
+      }
+    },
+    'Siemens': { plan: 97.4, actual: 75.87 },
+    '115kV T/L': { plan: 77.18, actual: 78.08 },
+    'Add Bay': { plan: 94.69, actual: 94.73 },
+    'Comm/Fiber': { plan: 97.73, actual: 92.13 }
+  },
+  concerns: ['[PV Farm (GUE)] Site Security Issue.',
+    '[PV Farm (GUE)] To expedite electrical work and fulfill the manpower increase commitment.',
+    '[PV Farm (GUE)] To expedite civil work for unit sub.',
+    '[PV Farm (GUE)] Commissioning work delayed due to construction area not being handed over.',
+    '[Substation (SIEMENS)] Site Security Issue preventing overtime work on holidays (Friday).',
+    '[Substation (SIEMENS)] To expedite Electrical work.',
+    '[Substation (SIEMENS)] To expedite civil work for the control building.',
+    '[Substation (SIEMENS)] To expedite area handover for other party.',
+    '[115kV Transmission line (PEA, FEC)] To expedite the delayed installation work.',
+    '[115kV Transmission line (PEA, FEC)] Some construction areas must be cleared/approved by local authorities before proceeding.',
+    '[Add Bay (PEA, FEC)] To expedite the delayed civil and Electrical work.',
+    '[Communication / Fiber (PEA, JANUS)] To expedite the delayed cable pulling work.',
+    '[Communication / Fiber (PEA, JANUS)] Some Construction area blocked by local community'],
+  activities: ['[PV Farm (GUE)] Civil : Plastering work, Concrete pouring and T10 Constru Roofbeam installation.',
+    '[PV Farm (GUE)] Electrical : PV mounting, PV Module, Underground cable and cable ladder 10 Jan installation.',
+    '[PV Farm (GUE)] Commissioning : IV Curve test, SAT Transformer and RMU.',
+    '[Substation (SIEMENS)] Civil : Exterior Plastering and Interior Painting - ction Progres Control Building.',
+    '[Substation (SIEMENS)] Electrical : Control Cable Termination, DC Charger panel Cable laying and Cable Termination, Conduit installation.',
+    '[Substation (SIEMENS)] Commissioning : Relay function test, SWG and battery function test.',
+    '[115kV Transmission line (PEA, FEC)] Monopole bored piles work and Foundation s Executive work.',
+    '[115kV Transmission line (PEA, FEC)] Civil work : Foundation work, Concrete pole installation and Install Manhole.',
+    '[115kV Transmission line (PEA, FEC)] Electrical work : Top pole installation, Cable splicing and Cable stringing.',
+    '[Add Bay (PEA, FEC)] Relay service setting test. Summary a',
+    '[Communication / Fiber (PEA, JANUS)] N/A s'],
+});
+
+// ── GSPG-STN (PRJ-004) Week 36 — auto-extracted
+seedIfEmpty('PRJ-004_W36_2026', {
+  plan: 90.0, actual: 77.85,
+  scopes: {
+    '115kV T/L': { plan: 92.9, actual: 84.36 },
+    'GUE': {
+      plan: 90.0, actual: 77.85,
+      disciplines: {
+        'Engineering': { plan: 100.0, actual: 99.76 },
+        'Procurement': { plan: 100.0, actual: 96.04 },
+        'Construction': { plan: 100.0, actual: 76.78 }
+      }
+    },
+    'Siemens': { plan: 95.17, actual: 77.05 },
+    'Comm/Fiber': { plan: 88.49, actual: 87.43 }
+  },
+  concerns: ['[PV Farm (GUE)] To expedite the secondary electrical work.',
+    '[Substation (SIEMENS)] To expedite the Civil works.',
+    '[115 kV Transmission line (PEA, FEC)] To expedite the mobilization of the additional manpower for the Civil and Electrical works.'],
+  activities: ['[PV Farm (GUE)] Civil work:',
+    '[PV Farm (GUE)] Unit substation: Stair work, Fire wall and finishing work.',
+    '[PV Farm (GUE)] Road work: Crushed stone leveling and compaction.',
+    '[PV Farm (GUE)] Fence work: Post and Wire CDR installation.',
+    '[PV Farm (GUE)] Electrical work:',
+    '[PV Farm (GUE)] PV mounting installation: 1,278/1,342 tables., (95.23%)',
+    '[PV Farm (GUE)] PV module installation: 120,082/126,750 panels., (94.74%)',
+    '[PV Farm (GUE)] PV inverter installation: 218/222 Nos., (98.20%)',
+    '[PV Farm (GUE)] DC cable installation: 388,995/402,880 m., (96.55%)',
+    '[PV Farm (GUE)] LV cable installation: 31,032/32,254 m., (96.21%)',
+    '[PV Farm (GUE)] MV cable installation: 18,840/18,840 m., (100.00%)',
+    '[PV Farm (GUE)] Pre-Commissioning work:',
+    '[PV Farm (GUE)] I-V Curve test at TS02-1.',
+    '[PV Farm (GUE)] ACCB SAT work: 15/22 Nos.,(68.18%)',
+    '[PV Farm (GUE)] RMU SAT work: 10/12 Nos.,(83.33%)',
+    '[Substation (SIEMENS)] Civil work:',
+    '[Substation (SIEMENS)] Control building: Wall paint and External wall plastering, Vinyl tile installation, Window installation and Ceiling work.',
+    '[Substation (SIEMENS)] Switchyard: Backfilling work.',
+    '[Substation (SIEMENS)] Drainage: Gutter and Manhole work.',
+    '[Substation (SIEMENS)] Fence: Foundation work.'],
+});
+
+// ── GCE (PRJ-013) Week 36 — auto-extracted
+seedIfEmpty('PRJ-013_W36_2026', {
+  plan: 59.33, actual: 50.49,
+  disciplines: {
+      'Engineering': { plan: 97.11, actual: 75.6 },
+      'Procurement': { plan: 89.91, actual: 85.15 },
+      'Construction': { plan: 34.17, actual: 22.18 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Opponent of the project to monitor working hours in accordance with the CoP.'],
+  activities: [],
+});
+
+// ── GSE (PRJ-014) Week 36 — auto-extracted
+seedIfEmpty('PRJ-014_W36_2026', {
+  plan: 59.33, actual: 50.41,
+  disciplines: {
+      'Engineering': { plan: 97.11, actual: 75.88 },
+      'Procurement': { plan: 89.91, actual: 85.15 },
+      'Construction': { plan: 34.17, actual: 21.92 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Detail drawing of Retention pond.',
+    'Detail drawing of foundation and architecture of BOP building',
+    'Architecture drawing for Main Building',
+    'Drawing of Oil Separator'],
+  activities: ['Pouring concrete Wall bunker EL.+8.00 to EL.+18.30',
+    'Boiler : Finished install left water wall and continue pre-fab work',
+    'FGT area: Install bag filter body and reaction tower shell.',
+    'STG :Pouring concrete for column, beam and slab for 2nd floor'],
+});
+
+// ── KKE (PRJ-015) Week 36 — auto-extracted
+seedIfEmpty('PRJ-015_W36_2026', {
+  plan: 62.51, actual: 53.89,
+  disciplines: {
+      'Engineering': { plan: 97.64, actual: 76.02 },
+      'Procurement': { plan: 93.1, actual: 86.01 },
+      'Construction': { plan: 38.75, actual: 29.71 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: [],
+  activities: ['Bunker building: Concrete pouring for Lift 5 Wall EL +12.45 m. to +16.90m. (Target 23 Sep 2026)',
+    'Tipping hall: Completion of concrete pouring for ground slab.',
+    'FGT: Completion of Spray Reaction Tower Installation (Target 30 Sep 2026)',
+    'STG & ECB: Completion of concrete pouring for flat slab (EL +0.25 m.) (Target 15 Sep 20026) Completion of concrete pouring for Slab floor3 +7.35 m (Target 16 Sep 2026)',
+    'Boiler Erection: Completion of water wall. (Target 18Sep 2026) Completion of Bag Filter House Installation (Target 30 Sep 2026)',
+    'BOP: Completion of foundation for fire water pump shelter BOP: Completion of ground slab for cooling tower (Target 12 Sep 226) BOP: Completion of ground slab for Demin water treatment (Target 17 Sep 226)',
+    'Manhole & Duct bank: Completion of Manhole for priority 1 (Target 30 Sep 2026)'],
+});
+
+// ── MKP (PRJ-016) Week 36 — auto-extracted
+seedIfEmpty('PRJ-016_W36_2026', {
+  plan: 53.58, actual: 49.72,
+  disciplines: {
+      'Engineering': { plan: 96.53, actual: 75.83 },
+      'Procurement': { plan: 85.9, actual: 82.6 },
+      'Construction': { plan: 23.92, actual: 22.73 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Welder shortage Welding quality need to improve',
+    'Fire fighting above ground drawing',
+    'Fire alarm system is under bidding process for long time'],
+  activities: ['Back energize'],
+});
+
+// ── MPE (PRJ-017) Week 36 — auto-extracted
+seedIfEmpty('PRJ-017_W36_2026', {
+  plan: 44.31, actual: 44.29,
+  disciplines: {
+      'Engineering': { plan: 95.13, actual: 75.54 },
+      'Procurement': { plan: 73.2, actual: 78.48 },
+      'Construction': { plan: 13.79, actual: 13.36 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['The BOP workers is insufficient for the workload'],
+  activities: [],
+});
+
+// ── PFP (PRJ-018) Week 36 — auto-extracted
+seedIfEmpty('PRJ-018_W36_2026', {
+  plan: 53.58, actual: 47.36,
+  disciplines: {
+      'Engineering': { plan: 96.53, actual: 75.67 },
+      'Procurement': { plan: 85.9, actual: 82.6 },
+      'Construction': { plan: 23.92, actual: 16.87 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: [],
+  activities: [],
+});
+
+// ── PKP (PRJ-019) Week 36 — auto-extracted
+seedIfEmpty('PRJ-019_W36_2026', {
+  plan: 53.57, actual: 47.57,
+  disciplines: {
+      'Engineering': { plan: 96.46, actual: 75.47 },
+      'Procurement': { plan: 85.9, actual: 83.6 },
+      'Construction': { plan: 23.92, actual: 17.46 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: [],
+  activities: ['Bunker Building: Pouring concrete Lift 2 EL (+1 to +5.45) ; Targeted date 20 Sep 26',
+    'Surrounding Area: Pouring Concrete Foundation',
+    'Boiler Island: CE : Pouring concrete slab , Pouring Concrete Reuse water pool ME : Completion of Boiler Drum Installation. on 27 Sep 26',
+    'STG & ECB: Pouring Concrete Column +3.75 Targeted date 19 Sep 26, Pouring Concrete Ground beam +0.25 Targeted date 19 Sep 26,Pouring Concrete Wall MF1,MF2',
+    'FGT: Pouring concrete Ground Slab',
+    'BOP: Cooling Tower - Foundation Work, Service & Fire Water Tank - Foundation Work'],
+});
+
+// ── PSD (PRJ-020) Week 36 — auto-extracted
+seedIfEmpty('PRJ-020_W36_2026', {
+  plan: 59.33, actual: 49.92,
+  disciplines: {
+      'Engineering': { plan: 96.92, actual: 75.66 },
+      'Procurement': { plan: 89.91, actual: 85.15 },
+      'Construction': { plan: 34.17, actual: 20.74 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: [],
+  activities: ['Bunker Building: Pouring Concrete +2.00 to +8.00 ; Target date 20-Sep-26 Surrounding Area Foundation Work Target date 24-Sep-26 Tipping Hall Pile Driving Target date 18-Oct-26',
+    'Boiler Island: CE: Backfill before slab work on ground (Z1-Z6),Pouring concrete Reuse water pool ME : Completion of Water wall Installation. ; Target Date 10 Oct 26',
+    'FGT : Pouring Concrete Slab +3.75',
+    'STG & ECB: Pouring Concrete Slab EL.+3.75 Target date 14-Sep-26,Rebar & Formwork Column +7.35 Transformer Foundation Work',
+    'BOP : Cooling Tower Pouring Concrete Column, Service & Fire Water Tank Asphalt Surface Fire Pump Shelter Foundation Work Demin Water Treatment Foundation Work'],
+});
+
+// ── PWW1 (PRJ-021) Week 36 — auto-extracted
+seedIfEmpty('PRJ-021_W36_2026', {
+  plan: 53.57, actual: 49.26,
+  disciplines: {
+      'Engineering': { plan: 96.46, actual: 76.23 },
+      'Procurement': { plan: 85.9, actual: 82.6 },
+      'Construction': { plan: 23.92, actual: 21.49 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Welder for Mechanical Work still not enough'],
+  activities: ['Completion of refuse bunker up to 35.55m elevation - Refuse Bunker',
+    'Work Foundation at Boiler, FGT, STG area'],
+});
+
+// ── PWW2 (PRJ-022) Week 36 — auto-extracted
+seedIfEmpty('PRJ-022_W36_2026', {
+  plan: 44.25, actual: 46.45,
+  disciplines: {
+      'Engineering': { plan: 94.48, actual: 75.65 },
+      'Procurement': { plan: 73.2, actual: 78.48 },
+      'Construction': { plan: 13.79, actual: 18.74 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Contractor for Retaining wall south side'],
+  activities: ['Work foundation at Bunker Building',
+    'Work Foundation at STG area, BOP Lot2'],
+});
+
+// ── TPP (PRJ-023) Week 36 — auto-extracted
+seedIfEmpty('PRJ-023_W36_2026', {
+  plan: 59.34, actual: 53.36,
+  disciplines: {
+      'Engineering': { plan: 97.11, actual: 75.59 },
+      'Procurement': { plan: 89.91, actual: 85.15 },
+      'Construction': { plan: 34.17, actual: 29.36 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Welder shortage Welding quality need to improve',
+    'Fire fighting above ground drawing',
+    'Fire alarm system is under bidding process for long time'],
+  activities: ['Back energize'],
+});
+
+// ── TSE (PRJ-024) Week 36 — auto-extracted
+seedIfEmpty('PRJ-024_W36_2026', {
+  plan: 62.51, actual: 52.03,
+  disciplines: {
+      'Engineering': { plan: 97.84, actual: 76.81 },
+      'Procurement': { plan: 93.1, actual: 86.01 },
+      'Construction': { plan: 38.75, actual: 24.86 },
+      'Commissioning': { plan: 0.0, actual: 0.0 }
+    },
+  concerns: ['Detail drawing of Retention pond.',
+    'Detail drawing of foundation and architecture of BOP building',
+    'Architecture drawing for Main Building',
+    'Drawing of Oil Separator'],
+  activities: ['Pouring concrete by slip from method From EL.+9.2 to +18.30 m.',
+    'Boiler: Finished installation water wall and start install superheater tube.',
+    'FGT: Install Bag filter body and finished reaction tower.',
+    'STG : Pre Cast beam Installation and Pouring concrete Slab at EL.+3.70 m. : Column for second floor at EL.+3.70 to EL.+7.30 m : Pre Cast beam Installation at EL.+3.70 m.'],
+});
+
+// ── Pak Beng (PRJ-026) Week 36 — auto-extracted
+seedIfEmpty('PRJ-026_W36_2026', {
+  plan: 7.15, actual: 7.17,
+  concerns: [],
+  activities: ['Right Bank Abutment Slope Protection at EL.364~379 — 0.1 Item (10.00%)',
+    'Slope Protection at EL.349~364m — 0.11 Item (11.00%)',
+    'Grid Beam Revegetation — 0.13 Item (13.00%)',
+    'Slope Protection at EL.342~357 — 0.2 Item (20.00%)',
+    'Grid Beam Revegetation — 0.05 Item (5.00%)',
+    'Drainage Channel Floor Slab — 90 m (4.52%)',
+    'Drainage Channel Side Wall — 100 m (5.02%)',
+    'No.1 Chute Floor Concrete — 46 m (31.23%)',
+    'No.1 Chute Side Wall Concrete — 46 m (31.23%)'],
+});
+
+// ── Pak Lay (PRJ-025) Week 36 — auto-extracted
+seedIfEmpty('PRJ-025_W36_2026', {
+  plan: 5.47, actual: 7.64,
+  concerns: [],
+  activities: ['[EPC Hub Camp] S ite hardening(office) — 500 m2',
+    '[EPC Hub Camp] Installation of reinforced stone cages(#3~#7) — 40 Pcs',
+    '[EPC Hub Camp] Site hardening(#2~#5) — 500 m2',
+    '[EPC Hub Camp] Portable house installation — 409 m2',
+    '[Construction Management Camp] Installation of wastewater treatment equipment — 0.1 Item',
+    '[Labour Camp] Transformer installation — 1 Item',
+    '[Labour Camp] Portable house installation (6 buildings) — 1188 m3',
+    '[Labour Camp] Site hardening — 305 m2',
+    '[Left Bank Aggregate & Batching System] Construction of slop berm drainage channel — 165 m',
+    '[Left Bank Aggregate & Batching System] Conveyor belt concrete pouring — 118 m3',
+    '[Left Bank Aggregate & Batching System] Substation foundation concrete pouring — 25 m3',
+    '[Left Bank Aggregate & Batching System] Concrete pouring in the drying workshop — 75 m3',
+    '[Left Bank Aggregate & Batching System] Construction of drainage channel for finished product silo — 260 m',
+    '[Left Bank Aggregate & Batching System] Portable house installation (substation ) — 300 m2',
+    '[Left Bank Aggregate & Batching System] Concrete pouring in the air compressor workshop — 40 m3',
+    '[Left Bank Aggregate & Batching System] #2 batching tower installation — 0.1 Item',
+    '[Left Bank Aggregate & Batching System] #2 Ice making tower installation — 0.25 Item',
+    '#7 Ash tanks installation — 0.2 Item',
+    '# 1 1~#27 installation of the belt conveyor — 0.4 Item',
+    'Electrical system installation — 0.2 Item'],
+});
+
+// ── SDCE (PRJ-007) Week 36 — auto-extracted
+seedIfEmpty('PRJ-007_W36_2026', {
+  plan: 94.69, actual: 94.32,
+  scopes: {
+    'GUE': {
+      plan: 94.69, actual: 94.32,
+      disciplines: {
+        'Construction': { plan: 98.64, actual: 98.19 }
+      }
+    },
+    'Siemens': { plan: 87.08, actual: 94.55 },
+    '115kV T/L': { plan: 98.62, actual: 93.97 },
+    'Add Bay': { plan: 100.0, actual: 99.1 },
+    'GIS Substation': { plan: 80.42, actual: 83.42 }
+  },
+  concerns: ['[PV farm (GPD)] GPD issued the Purchase Order to Antai on 3 Aug 2026. Follow up to ensure the mounting is delivered to site by 25 September 2026, so it does not impact the load rejection test.',
+    '[Transmission Line (PEA&TEC)] There is a shortage of teams for Terminate 115kV cables. Currently, there is only one team, but three teams are needed to ensure the AC withstand test can be performed without affecting the backfeed (October 1, 2026).',
+    '[GIS Substation (PEA&TCCL)] The fiber optic connection to PEAเพชรบุร1ี อาคาร 22kV scope (DEMCO) is scheduled for completion on 18/09/26. Any delay to this milestone will directly impact the SDCE testing schedule with EGAT PPA test, as the testing is dependent on this connection being in place.'],
+  activities: ['[PV farm (GPD)] Road work BESS area completed.',
+    '[PV farm (GPD)] Reinstate BESS area and TR station.',
+    '[PV farm (GPD)] ISO test and IV Curve test.',
+    '[PV farm (GPD)] Plant control loop test completed.',
+    '[PV farm (GPD)] Fire barrier installation at TR station completed.',
+    '[PV farm (GPD)] Lighting system test at TR station.',
+    '[PV farm (GPD)] Start BESS cold commissioning test by Sungrow.',
+    '[Substation (SIEMENS)] Concrete foundation for harmonic filter area.',
+    '[Substation (SIEMENS)] Vinyl tie installation.',
+    '[Substation (SIEMENS)] Relay function test with PEA completed.',
+    '[Substation (SIEMENS)] Start UMM meter calibration by EGAT.',
+    '[Substation (SIEMENS)] Plan to End to end PEA 14-16 Sep 26.',
+    '[Substation (SIEMENS)] SWGR for harmonic filter plan on site 6 Oct 26.',
+    '[Transmission Line (PEA&TEC)] Stringing AAC 400 Sq.mm. and OHGW completed.',
+    '[Transmission Line (PEA&TEC)] Terminate UG cable 115kV.',
+    '[Add Bay (PEA&TEC)] Revenue meter calibration and test by EGAT completed.',
+    '[GIS Substation (PEA&TCCL)] Duct bank to EGAT at PEA area.',
+    '[GIS Substation (PEA&TCCL)] External plastering work.',
+    '[GIS Substation (PEA&TCCL)] Start cable trench type B to SDCE.',
+    '[GIS Substation (PEA&TCCL)] GIS HV test completed.'],
+});
+
+// ── TTT (PRJ-027) Week 36 — auto-extracted
+seedIfEmpty('PRJ-027_W36_2026', {
+  plan: 2.25, actual: 2.39,
+  disciplines: {
+      'Engineering': { plan: 23.47, actual: 26.07, wf: 5.53 },
+      'Procurement': { plan: 0.0, actual: 0.0, wf: 40.48 },
+      'Construction': { plan: 0.17, actual: 0.17, wf: 49.5 },
+      'Commissioning': { plan: 0.0, actual: 0.0, wf: 4.49 }
+    },
+  concerns: [],
+  activities: ['To be later'],
+});
+
+// ── GULF AC8 (PRJ-008) Week 36 — auto-extracted
+seedIfEmpty('PRJ-008_W36_2026', {
+  plan: 79.85, actual: 42.26,
+  scopes: {
+    'CBOP': { plan: 79.85, actual: 42.26 },
+    'TSA': { plan: 49.98, actual: 41.85 },
+    'Substation': { plan: 43.59, actual: 37.71 },
+    '115kV T/L': { plan: 32.0, actual: 89.57 },
+    'Terminal Substation': { plan: 67.38, actual: 69.92 }
+  },
+  concerns: [],
+  activities: ['[BOP(STECON)] Clearing WTG1,WTG9,WTG10',
+    '[BOP(STECON)] Crush rock RW17',
+    '[BOP(STECON)] Rebar,FW installation WTG4,WTG11,WTG7,WTG15',
+    '[BOP(STECON)] Repairing,Backfilling WTG5,WTG13,WTG6',
+    '[BOP(STECON)] Cable pulling feeder RW1 STA1+400',
+    '[BOP(STECON)] Remove formwork WTG14',
+    '[BOP(STECON)] Concrete foundation WTG4',
+    '[BOP(STECON)] SAC 185 pulling RW6,RW7,RW17',
+    '[BOP(STECON)] Handover WTG8',
+    '[TSA (GOLDWIND)] Assembly of quarter ring segment 6 rings',
+    '[TSA (GOLDWIND)] Quarter rings grouting 10 rings',
+    '[TSA (GOLDWIND)] Joint inspection WTG08',
+    '[Plant Substation(SIEMENS)] Ground floor and first floor masonry work(Control building)',
+    '[Plant Substation(SIEMENS)] SWYD cable trench concrete casting',
+    '[Plant Substation(SIEMENS)] Fire wall repairing(Power transformer area)',
+    '[Plant Substation(SIEMENS)] STATCOM foundation work',
+    '[Plant Substation(SIEMENS)] Access road preparation for transformer',
+    '[Transmission Line (SRICHONLATHORN)] Concrete foundation casting',
+    '[Transmission Line (SRICHONLATHORN)] Foundation installation',
+    '[Transmission Line (SRICHONLATHORN)] Column installation'],
+});
+
+// ── AL1 (Alpha 1) (PRJ-009) Week 36 — auto-extracted
+seedIfEmpty('PRJ-009_W36_2026', {
+  plan: 41.01, actual: 36.09,
+  scopes: {
+    'CBOP': {
+      plan: 41.01, actual: 36.09,
+      disciplines: {
+        'Engineering': { plan: 100.0, actual: 89.8 },
+        'Procurement': { plan: 75.0, actual: 49.4 },
+        'Construction': { plan: 38.52, actual: 34.83 }
+      }
+    },
+    'Substation': {
+      plan: 1.5, actual: 0.33,
+      disciplines: {
+        'Construction': { plan: 2.4, actual: 0.52 },
+        'Commissioning': { plan: 0.0, actual: 0.0 }
+      }
+    },
+    'TSA': { plan: 29.95, actual: 31.82 },
+    '115kV T/L': { plan: 82.55, actual: 78.24 }
+  },
+  concerns: ['[Pre-NTP] Along road of route east: Remaining tree cutting Sta.1+000 to Sta.1+100.',
+    '[Transmission Line (ENCOM/SCT)] Highway no.41 and steel tower: Kindly expedite approval construction permit for Highway no.41 and conclude the decision steel tower construction, as these matters are significantly impacting the schedule.'],
+  activities: ['[BOP (PCZ/VAP)] Road excavation at east route Sta.0+400 to Sta.0+800.',
+    '[BOP (PCZ/VAP)] Backfill and Compaction for subgrade at east route Sta.0+195 to Sta.0+300.',
+    '[BOP (PCZ/VAP)] Remove formwork for box culvert.',
+    '[BOP (PCZ/VAP)] Survey setting out road work for route to substation.',
+    '[TSA (Goldwind)] Rebar cutting, bending for Foundation.',
+    '[TSA (Goldwind)] Rebars installation for WTG06, WTG08 Foundation.',
+    '[TSA (Goldwind)] Formwork installation for WTG06 FDN.',
+    '[TSA (Goldwind)] More excavation as 1st DCPT report for WTG03 Foundation.',
+    '[TSA (Goldwind)] More excavation as 2nd DCPT report for WTG02 Foundation.',
+    '[TSA (Goldwind)] Bearing plate of PT installation for WTG01 Foundation.',
+    '[TSA (Goldwind)] 3rd DCPT for WTG01 and 2nd DCPT for WTG03.',
+    '[Substation (SIEMENS)] Excavation for site preparation.',
+    '[Transmission Line (ENCOM/SCT)] Foundation excavation.',
+    '[Transmission Line (ENCOM/SCT)] Concrete pole installation.',
+    '[Transmission Line (ENCOM/SCT)] AAC 400 sq.m. cable pulling.',
+    '[Transmission Line (ENCOM/SCT)] Top equipment installation.'],
+});
+
+// ── AL2 (Alpha 2) (PRJ-010) Week 36 — auto-extracted
+seedIfEmpty('PRJ-010_W36_2026', {
+  plan: 55.88, actual: 58.48,
+  scopes: {
+    'CBOP': { plan: 55.88, actual: 58.48 },
+    'TSA': { plan: 29.23, actual: 26.5 },
+    '115kV T/L': { plan: 23.52, actual: 19.09 },
+    'Terminal Substation': { plan: 96.6, actual: 98.5 }
+  },
+  concerns: ['[CBOP (PCZ)] Requires an additional Soil and Rock Disposal Area with a capacity of approximately 19,500 cubic meters for Central A and Route to WTG.03',
+    '[TSA (GOLD WIND)] Requires an additional Soil and Rock Disposal Area with a capacity of approximately 69,810 cubic meters for WTG-02,03,04,05,07.',
+    '[T & L (ENCOM, INTERLINK)] Expedite and follow up the work permit install electrical pole at phetkasam road NO.4'],
+  activities: ['[CBOP (PCZ)] Subgrade = 18,925/18,925 (100.00%)',
+    '[CBOP (PCZ)] Subbase = 16,733/18,925 (88.42%)',
+    '[CBOP (PCZ)] Base course = 5,690/18,925(30.07%)',
+    '[CBOP (PCZ)] Pipe and Box culvert Ongoing = 11 Completed =10/37',
+    '[CBOP (PCZ)] 33 kV Pole (12.20) = 555/832(65.99%)',
+    '[TSA (GOLD WIND)] Excavation for Hardstand Ongoing = 11 Completed =3/14',
+    '[TSA (GOLD WIND)] Excavation for Foundation Ongoing = 7 Completed =7/14',
+    '[TSA (GOLD WIND)] Lean Concrete Completed =5/14',
+    '[TSA (GOLD WIND)] Rebar Ongoing = 3 Completed =2/14',
+    '[TSA (GOLD WIND)] Concrete Foundation Ongoing = 1 Completed =1/14',
+    '[Substation (SIEMENS)] Foundation Work for Control Building Completed =17/34',
+    '[T & L (ENCOM, INTERLINK)] Concrete FD = 293/439(66.74%)',
+    '[T & L (ENCOM, INTERLINK)] Concrete Pole=221/466(47.42%)',
+    '[Terminal Substation (กบศ, DEMCO)] Civil Work : 99.70%',
+    '[Terminal Substation (กบศ, DEMCO)] Electrical Work : 100.00 %',
+    '[Terminal Substation (กบศ, DEMCO)] Testing , Commissioning : 86.40%'],
+});
+
+// ── ECE (PRJ-011) Week 36 — auto-extracted
+seedIfEmpty('PRJ-011_W36_2026', {
+  plan: 88.1, actual: 80.22,
+  scopes: {
+    'CBOP': { plan: 88.1, actual: 80.22 },
+    'TSA': { plan: 44.26, actual: 45.49 },
+    'Substation': { plan: 21.68, actual: 12.55 },
+    '115kV T/L': { plan: 89.2, actual: 93.14 }
+  },
+  concerns: [],
+  activities: ['[CBOP (PCZ)] Continue to road base course compaction work.',
+    '[CBOP (PCZ)] Continue to excavation and installation for 33kV Pole.',
+    '[CBOP (PCZ)] Continue to slope erosion control work.',
+    '[CBOP (PCZ)] Continue to side ditch work.',
+    '[TSA (Goldwind)] Continue to excavation work at WTG8, WTG12.',
+    '[TSA (Goldwind)] Continue to rebar installation at WTG5, WTG6, WTG13,',
+    '[TSA (Goldwind)] Continue to soil backfilling at WTG1, WTG2.',
+    '[TSA (Goldwind)] Pouring concrete foundation at WTG-014',
+    '[TSA (Goldwind)] Pouring lean concrete at WTG-10.',
+    '[TSA (Goldwind)] Pouring lean concrete at WTG-15.',
+    '[Substation (SIEMENS)] Continue to site preparation at O&M building area.',
+    '[Substation (SIEMENS)] Pouring concrete equipment pedestal.',
+    '[Substation (SIEMENS)] Continue to rebar installation at transformer foundation.',
+    '[Substation (SIEMENS)] Start foundation work at control building.',
+    '[Transmission Line (ENCOM/RSS2016)] Continue to foundation work.',
+    '[Transmission Line (ENCOM/RSS2016)] Continue to top pole equipment installation.',
+    '[Transmission Line (ENCOM/RSS2016)] Continue to cable Stringing work.',
+    '[Transmission Line (ENCOM/RSS2016)] Continue to pole installation.'],
+});
+
+// ── GULF_Wayu (PRJ-012) Week 36 — auto-extracted
+seedIfEmpty('PRJ-012_W36_2026', {
+  plan: 86.01, actual: 75.87,
+  scopes: {
+    'CBOP': { plan: 86.01, actual: 75.87 },
+    'Substation': { plan: 3.02, actual: 1.41 }
+  },
+  concerns: ['[TSA (Goldwind)] The Aor.1 permit approval is currently behind schedule and does not align with the planned start date of the WTG foundation works on 1 June 2026.>>Done',
+    '[CBOP (PCZ)] Bridge and box culvert permit approval is pending. >>Done',
+    '[CBOP (PCZ)] The final COP document has not yet been approved, please expedite the approval process>>Done.'],
+  activities: ['[TSA (Goldwind)] Excavation work for WTG-02,WTG-04.',
+    '[TSA (Goldwind)] Piling work for WTG-07,WTG-12.',
+    '[TSA (Goldwind)] Soil improvement WTG-06,WTG-05.',
+    '[TSA (Goldwind)] Rebar installation work WTG-03,WTG-01.',
+    '[CBOP (PCZ)] Road work',
+    '[CBOP (PCZ)] . Bridge and Box culvert',
+    '[CBOP (PCZ)] Bridge NO.05 Rebar installation for the barrier.',
+    '[CBOP (PCZ)] Bridge NO.06 Rebar installation for the barrier.',
+    '[CBOP (PCZ)] Bridge NO.02A Preparation pile cut-off P3.',
+    '[CBOP (PCZ)] Bridge NO.10 Pile cut-off P1,P4. Electrical',
+    '[CBOP (PCZ)] Concrete pole 33kV installation.',
+    '[Substation (Siemens)] Control building',
+    '[Substation (Siemens)] First pile driving work.'],
+});
 
 
 // ── Week 35/2026 — AUTO-GENERATED ──
@@ -21154,7 +21781,7 @@ saveData();
 
 // Init — always default to Week 24 / 2026 (seed data week)
 // ── AUTO: CURRENT WEEK ──
-currentWeek = 35; currentYear = 2026; saveData();
+currentWeek = 36; currentYear = 2026; saveData();
 // ── END CURRENT WEEK ──
 renderAll();
 // ── LNG Terminal (GMTP) (PRJ-001) Week 24 — auto-extracted
