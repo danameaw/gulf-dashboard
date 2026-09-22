@@ -554,4 +554,192 @@ Gulf Dashboard Weekly Automation
 
   Done! Dashboard URL: https://danameaw.github.io/gulf-dashboard/
 ============================================================
-^C
+^C============================================================
+Gulf Dashboard Weekly Automation
+============================================================
+  Week: 37/2026
+  Folder: C:\Users\danaya.th\Gulf\Engineering - Engineering Documents\00 Project Reports\2026\37_260916
+
+  [PRJ-001] LNG Terminal (GMTP) ... OK → GMTP-PCC-PM-WR-058_EPC Weekly Report [LNG Terminal].pdf
+       concerns=1, activities=20, plan=30.85%, actual=35.05%, scopes=3
+  [PRJ-002] GOE2-NWT3 ... OK → Executive_GOE2-NWT3 Construction Progress Report_Week51_12-18 SEP 2026.pdf
+       concerns=6, activities=20, plan=100.0%, actual=67.85%, scopes=4
+  [PRJ-003] GSPG-PTN ... OK → Executive - GSPG-PTN Construction Progress Report_Week No.51  12-18 Sep 2026.pdf
+       concerns=11, activities=9, plan=94.2%, actual=71.65%, scopes=5
+  [PRJ-004] GSPG-STN ... OK → GSPG-STN Construction Progress Report_Week no.51_12-18 Sep 2026.pdf
+       concerns=5, activities=20, plan=94.38%, actual=80.1%, scopes=4
+  [PRJ-013] GCE ... OK → Project_GCE_Construction_weekly_report_12-18 Sep 2026 Rev.00.pdf
+       concerns=3, activities=2, plan=60.86%, actual=51.71%, discs=4
+  [PRJ-014] GSE ... OK → Project_GSE_Construction_weekly_report_13_19Sep2026 weekly 36 (1).pdf
+       concerns=4, activities=5, plan=60.85%, actual=51.54%, discs=4
+  [PRJ-015] KKE ... OK → Project_KKE_Construction_weekly_report_ 13 Sep-19 Sep 2026 Weekly 36_compressed.pdf
+       concerns=0, activities=12, plan=64.31%, actual=54.85%, discs=4
+  [PRJ-016] MKP ... OK → Project_MKP_Construction_weekly_report__13-19 Sep 26 Weekly 36.pdf
+       concerns=0, activities=1, plan=55.27%, actual=50.78%, discs=4
+  [PRJ-017] MPE ... OK → Project_MPE_Construction_weekly_report_12-18 Sep 2026 Rev.00.pdf
+       concerns=3, activities=0, plan=45.75%, actual=45.19%, discs=4
+  [PRJ-018] PFP ... OK → Project_PFP_Construction_weekly_report_12-18 Sep 2026 Rev.00.pdf
+       concerns=3, activities=0, plan=55.27%, actual=48.23%, discs=4
+  [PRJ-019] PKP ... OK → Project_PKP_Construction_weekly_report_ 13 Sep-19 Sep 2026 Weekly 36_compressed.pdf
+       concerns=0, activities=6, plan=55.26%, actual=48.34%, discs=4
+  [PRJ-020] PSD ... OK → Project_PSD_Construction_weekly_report_ 13 Sep-19 Sep 2026 Weekly 36_compressed.pdf
+       concerns=0, activities=5, plan=60.85%, actual=50.74%, discs=4
+  [PRJ-021] PWW1 ... OK → Project_PWW1_Construction_weekly_report 13 -19 September 2026 R1.pdf
+       concerns=2, activities=2, plan=55.26%, actual=50.17%, discs=4
+  [PRJ-022] PWW2 ... OK → Project_PWW2_Construction_weekly_report 13 - 19 September 2026.pdf
+       concerns=0, activities=2, plan=45.75%, actual=47.6%, discs=4
+  [PRJ-023] TPP ... OK → Project_TPP_Construction_weekly_report_13-19 Sep 26 Weekly 36.pdf
+       concerns=0, activities=1, plan=60.86%, actual=54.59%, discs=4
+  [PRJ-024] TSE ... OK → Project_TSE_Construction_weekly_report_13_19Sep2026 weekly 36 (2).pdf
+       concerns=3, activities=4, plan=64.31%, actual=52.94%, discs=4
+  [PRJ-026] Pak Beng ... OK → Pak Beng Hydroelectric Power Project Weekly Report 071.pdf
+       concerns=0, activities=9, plan=7.33%, actual=7.35%, discs=0
+  [PRJ-025] Pak Lay ... OK → PLHPP_Weekly Report No.67.pdf
+       concerns=0, activities=20, plan=5.67%, actual=7.73%, discs=0
+  [PRJ-005] LNE ... PDF NOT FOUND
+  [PRJ-006] SSE ... PDF NOT FOUND
+  [PRJ-007] SDCE ... OK → PBR8 (SDCE) Construction Progress Weekly Report No.51 date 12 - 18 Sep 2026.pdf
+       concerns=2, activities=20, plan=95.05%, actual=94.55%, scopes=5
+  [PRJ-027] TTT ... OK → CHANG-PM-WR-015-R0.pdf (+ manual override)
+       concerns=0, activities=1, plan=2.26%, actual=2.53%, discs=4
+  [PRJ-008] GULF AC8 ... OK → AC8 Construction Progress Weekly Report week No.57_ 12 Sep - 18 Sep 2026.pdf
+       concerns=0, activities=20, plan=81.07%, actual=43.29%, scopes=5
+  [PRJ-009] AL1 (Alpha 1) ... OK → ALPHA 1 Construction Progress Weekly Report  No.62 as of 12 September 2026 - 18 September  2026.pdf
+       concerns=2, activities=12, plan=42.59%, actual=36.7%, scopes=4
+  [PRJ-010] AL2 (Alpha 2) ... OK → Alpha 2 Construction Progress Weekly Report week No.85_12 Sep - 18 Sep 2026_0.pdf
+       concerns=1, activities=16, plan=57.88%, actual=60.97%, scopes=5
+  [PRJ-011] ECE ... OK → ECE Construction Progress Weekly Report No.62_Date 12 - 18 September 2026 R.0 1.pdf
+       concerns=0, activities=19, plan=90.13%, actual=84.69%, scopes=4
+  [PRJ-012] GULF_Wayu ... OK → WAYU Power Construction Progress Weekly Report No.62, date 12Sep-18Sep26.pdf
+       concerns=3, activities=12, plan=73.13%, actual=76.15%, scopes=2
+
+  Found:   25 projects
+  Missing: 2 projects: ['PRJ-005', 'PRJ-006']
+
+  Validation: 0 FAIL, 10 WARN across 8 project(s)
+  [PRJ-001] LNG Terminal (GMTP)
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-002] GOE2-NWT3
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+     WARN variance-large: variance -32.15% exceeds 25% - confirm this is real
+  [PRJ-004] GSPG-STN
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-020] PSD
+     WARN content-not-prose: 2 of 5 activities are table text rather than report content
+          → Bunker Building: Pouring Concrete +2.00 to +8.00 ; Target date 21-Sep-26 Surrounding Area Foundation Work Target date 30
+  [PRJ-024] TSE
+     WARN content-not-prose: 1 of 3 concerns are table text rather than report content
+          → 25 Jul -3.86 -0.54
+  [PRJ-025] Pak Lay
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-007] SDCE
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-008] GULF AC8
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+     WARN variance-large: variance -37.78% exceeds 25% - confirm this is real
+  Coverage: 25/27 expected reports (93%)
+
+  Updating dashboard...
+  ✓ SEED_VERSION 2026-09-15.0949 → 2026-09-21.2227 (forces client refresh)
+  ✓ index.html updated (Week 37/2026)
+  ✓ Excel saved: C:\Users\danaya.th\OneDrive - Gulf\Documents\GitHub\gulf-dashboard\Gulf_Dashboard_W37_2026.xlsx
+  ✓ Pushed to GitHub
+
+  Done! Dashboard URL: https://danameaw.github.io/gulf-dashboard/
+============================================================
+============================================================
+Gulf Dashboard Weekly Automation
+============================================================
+  Week: 37/2026
+  Folder: C:\Users\danaya.th\Gulf\Engineering - Engineering Documents\00 Project Reports\2026\37_260916
+
+  [PRJ-001] LNG Terminal (GMTP) ... OK → GMTP-PCC-PM-WR-058_EPC Weekly Report [LNG Terminal].pdf
+       concerns=1, activities=20, plan=30.85%, actual=35.05%, scopes=3
+  [PRJ-002] GOE2-NWT3 ... OK → Executive_GOE2-NWT3 Construction Progress Report_Week51_12-18 SEP 2026.pdf
+       concerns=6, activities=20, plan=100.0%, actual=67.85%, scopes=4
+  [PRJ-003] GSPG-PTN ... OK → Executive - GSPG-PTN Construction Progress Report_Week No.51  12-18 Sep 2026.pdf
+       concerns=11, activities=9, plan=94.2%, actual=71.65%, scopes=5
+  [PRJ-004] GSPG-STN ... OK → GSPG-STN Construction Progress Report_Week no.51_12-18 Sep 2026.pdf
+       concerns=5, activities=20, plan=94.38%, actual=80.1%, scopes=4
+  [PRJ-013] GCE ... OK → Project_GCE_Construction_weekly_report_12-18 Sep 2026 Rev.00.pdf
+       concerns=3, activities=2, plan=60.86%, actual=51.71%, discs=4
+  [PRJ-014] GSE ... OK → Project_GSE_Construction_weekly_report_13_19Sep2026 weekly 36 (1).pdf
+       concerns=4, activities=5, plan=60.85%, actual=51.54%, discs=4
+  [PRJ-015] KKE ... OK → Project_KKE_Construction_weekly_report_ 13 Sep-19 Sep 2026 Weekly 36_compressed.pdf
+       concerns=0, activities=12, plan=64.31%, actual=54.85%, discs=4
+  [PRJ-016] MKP ... OK → Project_MKP_Construction_weekly_report__13-19 Sep 26 Weekly 36.pdf
+       concerns=0, activities=1, plan=55.27%, actual=50.78%, discs=4
+  [PRJ-017] MPE ... OK → Project_MPE_Construction_weekly_report_12-18 Sep 2026 Rev.00.pdf
+       concerns=3, activities=0, plan=45.75%, actual=45.19%, discs=4
+  [PRJ-018] PFP ... OK → Project_PFP_Construction_weekly_report_12-18 Sep 2026 Rev.00.pdf
+       concerns=3, activities=0, plan=55.27%, actual=48.23%, discs=4
+  [PRJ-019] PKP ... OK → Project_PKP_Construction_weekly_report_ 13 Sep-19 Sep 2026 Weekly 36_compressed.pdf
+       concerns=0, activities=6, plan=55.26%, actual=48.34%, discs=4
+  [PRJ-020] PSD ... OK → Project_PSD_Construction_weekly_report_ 13 Sep-19 Sep 2026 Weekly 36_compressed.pdf
+       concerns=0, activities=5, plan=60.85%, actual=50.74%, discs=4
+  [PRJ-021] PWW1 ... OK → Project_PWW1_Construction_weekly_report 13 -19 September 2026 R1.pdf
+       concerns=2, activities=2, plan=55.26%, actual=50.17%, discs=4
+  [PRJ-022] PWW2 ... OK → Project_PWW2_Construction_weekly_report 13 - 19 September 2026.pdf
+       concerns=0, activities=2, plan=45.75%, actual=47.6%, discs=4
+  [PRJ-023] TPP ... OK → Project_TPP_Construction_weekly_report_13-19 Sep 26 Weekly 36.pdf
+       concerns=0, activities=1, plan=60.86%, actual=54.59%, discs=4
+  [PRJ-024] TSE ... OK → Project_TSE_Construction_weekly_report_13_19Sep2026 weekly 36 (2).pdf
+       concerns=3, activities=4, plan=64.31%, actual=52.94%, discs=4
+  [PRJ-026] Pak Beng ... OK → Pak Beng Hydroelectric Power Project Weekly Report 071.pdf
+       concerns=0, activities=9, plan=7.33%, actual=7.35%, discs=0
+  [PRJ-025] Pak Lay ... OK → PLHPP_Weekly Report No.67.pdf
+       concerns=0, activities=20, plan=5.67%, actual=7.73%, discs=0
+  [PRJ-005] LNE ... PDF NOT FOUND
+  [PRJ-006] SSE ... PDF NOT FOUND
+  [PRJ-007] SDCE ... OK → PBR8 (SDCE) Construction Progress Weekly Report No.51 date 12 - 18 Sep 2026.pdf
+       concerns=2, activities=20, plan=95.05%, actual=94.55%, scopes=5
+  [PRJ-027] TTT ... OK → CHANG-PM-WR-015-R0.pdf (+ manual override)
+       concerns=0, activities=1, plan=2.26%, actual=2.53%, discs=4
+  [PRJ-008] GULF AC8 ... OK → AC8 Construction Progress Weekly Report week No.57_ 12 Sep - 18 Sep 2026.pdf
+       concerns=0, activities=20, plan=81.07%, actual=43.29%, scopes=5
+  [PRJ-009] AL1 (Alpha 1) ... OK → ALPHA 1 Construction Progress Weekly Report  No.62 as of 12 September 2026 - 18 September  2026.pdf
+       concerns=2, activities=12, plan=42.59%, actual=36.7%, scopes=4
+  [PRJ-010] AL2 (Alpha 2) ... OK → Alpha 2 Construction Progress Weekly Report week No.85_12 Sep - 18 Sep 2026_0.pdf
+       concerns=1, activities=16, plan=57.88%, actual=60.97%, scopes=5
+  [PRJ-011] ECE ... OK → ECE Construction Progress Weekly Report No.62_Date 12 - 18 September 2026 R.0 1.pdf
+       concerns=0, activities=19, plan=90.13%, actual=84.69%, scopes=4
+  [PRJ-012] GULF_Wayu ... OK → WAYU Power Construction Progress Weekly Report No.62, date 12Sep-18Sep26.pdf
+       concerns=3, activities=12, plan=73.13%, actual=76.15%, scopes=2
+
+  Found:   25 projects
+  Missing: 2 projects: ['PRJ-005', 'PRJ-006']
+
+  Validation: 0 FAIL, 10 WARN across 8 project(s)
+  [PRJ-001] LNG Terminal (GMTP)
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-002] GOE2-NWT3
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+     WARN variance-large: variance -32.15% exceeds 25% - confirm this is real
+  [PRJ-004] GSPG-STN
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-020] PSD
+     WARN content-not-prose: 2 of 5 activities are table text rather than report content
+          → Bunker Building: Pouring Concrete +2.00 to +8.00 ; Target date 21-Sep-26 Surrounding Area Foundation Work Target date 30
+  [PRJ-024] TSE
+     WARN content-not-prose: 1 of 3 concerns are table text rather than report content
+          → 25 Jul -3.86 -0.54
+  [PRJ-025] Pak Lay
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-007] SDCE
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-008] GULF AC8
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+     WARN variance-large: variance -37.78% exceeds 25% - confirm this is real
+  Coverage: 25/27 expected reports (93%)
+
+  Updating dashboard...
+  ✓ SEED_VERSION 2026-09-21.2227 → 2026-09-22.0850 (forces client refresh)
+  ✓ index.html updated (Week 37/2026)
+  ✓ Excel saved: C:\Users\danaya.th\OneDrive - Gulf\Documents\GitHub\gulf-dashboard\Gulf_Dashboard_W37_2026.xlsx
+  [no-push] Skipping git commit/push.
+'outlook.exe' is not recognized as an internal or external command,
+operable program or batch file.
+  [OK] Email sent via Outlook to: purachet.am@gulf.co.th, chalong@gulf.co.th
+
+  Done! Dashboard URL: https://danameaw.github.io/gulf-dashboard/
+============================================================
