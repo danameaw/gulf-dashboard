@@ -1,5 +1,7 @@
 # ── config.py ── Gulf Dashboard Automation Configuration ──────────────────
 
+from datetime import date
+
 BASE_REPORT_PATH = r"C:\Users\danaya.th\Gulf\Engineering - Engineering Documents\00 Project Reports\2026"
 DASHBOARD_HTML   = r"C:\Users\danaya.th\OneDrive - Gulf\Documents\GitHub\gulf-dashboard\index.html"
 EXCEL_DIR        = r"C:\Users\danaya.th\OneDrive - Gulf\Documents\GitHub\gulf-dashboard"
@@ -153,4 +155,37 @@ PROJECT_NAMES = {
     "PRJ-025": "Pak Lay",
     "PRJ-026": "Pak Beng",
     "PRJ-027": "TTT",
+}
+
+
+# ── Thai public holidays ──────────────────────────────────────────────────
+# Used to exclude holidays that fall on a weekday from the "expected working
+# days" count behind the hours-filled % report (export_report.py --start/--end).
+# A holiday that falls on a weekend is not added back elsewhere, matching how
+# the office calendar actually works.
+#
+# Fixed-date holidays only. Movable Buddhist observances (Makha Bucha,
+# Visakha Bucha, Asalha Bucha / Buddhist Lent Day) shift every year and are
+# NOT included below - add them once the official dates for the year are
+# confirmed, or the hours-filled % will run slightly high for anyone who took
+# those days off. Update this dict at the start of each year from the
+# government/Bank of Thailand calendar.
+THAI_PUBLIC_HOLIDAYS = {
+    2026: [
+        date(2026, 1, 1),    # New Year's Day
+        date(2026, 4, 6),    # Chakri Memorial Day
+        date(2026, 4, 13),   # Songkran
+        date(2026, 4, 14),   # Songkran
+        date(2026, 4, 15),   # Songkran
+        date(2026, 5, 1),    # Labour Day
+        date(2026, 5, 4),    # Coronation Day
+        date(2026, 6, 3),    # HM Queen's Birthday
+        date(2026, 7, 28),   # HM King's Birthday
+        date(2026, 8, 12),   # HM Queen Mother's Birthday / Mother's Day
+        date(2026, 10, 13),  # Anniversary of the Passing of King Rama IX
+        date(2026, 10, 23),  # Chulalongkorn Day
+        date(2026, 12, 5),   # HM King Rama IX's Birthday / Father's Day
+        date(2026, 12, 10),  # Constitution Day
+        date(2026, 12, 31),  # New Year's Eve
+    ],
 }

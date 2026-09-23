@@ -7,6 +7,9 @@ Usage:
     python export_report.py                          # auto-detect latest xlsx
     python export_report.py --week 24 --year 2026   # specific week
     python export_report.py --xlsx path/to/file.xlsx # explicit file
+    python export_report.py --start 2026-09-01 --end 2026-09-30
+        # also adds an Hours Filled Compliance section, sourced from a
+        # "Timesheet" sheet (columns: Name, Date, Hours) in the workbook
 """
 
 import argparse
@@ -18,13 +21,15 @@ import re
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 try:
     import openpyxl
 except ImportError:
     print("ERROR: openpyxl is required. Install with: pip install openpyxl")
     sys.exit(1)
+
+from config import THAI_PUBLIC_HOLIDAYS
 
 
 # ── Excel helpers ──────────────────────────────────────────────────────────────
@@ -335,6 +340,111 @@ def parse_xlsx(xlsx_path: str, week: int | None, year: int | None) -> dict:
     }
 
 
+# ── Hours filled compliance ──────────────────────────────────────────────────
+
+def is_working_day(d: date) -> bool:
+    """Mon-Fri and not a Thai public holiday."""
+    if d.weekday() >= 5:
+        return False
+    return d not in THAI_PUBLIC_HOLIDAYS.get(d.year, [])
+
+
+def count_working_days(start: date, end: date) -> int:
+    total_days = (end - start).days + 1
+    return sum(1 for i in range(total_days) if is_working_day(start + timedelta(days=i)))
+
+
+def find_timesheet_sheet(wb):
+    """Find the 'Timesheet' sheet by name (case-insensitive), or None."""
+    for sheet_name in wb.sheetnames:
+        if sheet_name.strip().lower() == "timesheet":
+            return wb[sheet_name]
+    return None
+
+
+def parse_timesheet(xlsx_path: str, start: date, end: date) -> dict[str, float]:
+    """Sum logged Hours per Name from the 'Timesheet' sheet for dates within
+    [start, end]. Returns {} if the workbook has no such sheet."""
+    wb = openpyxl.load_workbook(xlsx_path, read_only=True, data_only=True)
+    ws = find_timesheet_sheet(wb)
+    if ws is None:
+        wb.close()
+        return {}
+
+    header_row = find_header_row(ws, keywords=("name", "date", "hours"))
+    headers = map_headers(ws, header_row)
+    name_col  = find_col(headers, "name", "employee", "employee name")
+    date_col  = find_col(headers, "date")
+    hours_col = find_col(headers, "hours", "hour", "hrs")
+
+    totals: dict[str, float] = {}
+    if name_col and date_col and hours_col:
+        for row in range(header_row + 1, ws.max_row + 1):
+            name      = cell_value(ws, row, name_col)
+            raw_date  = cell_value(ws, row, date_col)
+            raw_hours = cell_value(ws, row, hours_col)
+            if not name or raw_date is None or raw_hours is None:
+                continue
+
+            if isinstance(raw_date, datetime):
+                row_date = raw_date.date()
+            elif isinstance(raw_date, date):
+                row_date = raw_date
+            else:
+                row_date = None
+                for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y"):
+                    try:
+                        row_date = datetime.strptime(str(raw_date).strip(), fmt).date()
+                        break
+                    except ValueError:
+                        continue
+            if row_date is None or not (start <= row_date <= end):
+                continue
+
+            try:
+                hours = float(raw_hours)
+            except (TypeError, ValueError):
+                continue
+
+            name = str(name).strip()
+            totals[name] = totals.get(name, 0.0) + hours
+
+    wb.close()
+    return totals
+
+
+def build_hours_compliance(xlsx_path: str, start: date, end: date) -> dict | None:
+    """Build the >=90% / <90% hours-filled breakdown for [start, end].
+    Returns None if the workbook has no 'Timesheet' sheet."""
+    totals = parse_timesheet(xlsx_path, start, end)
+    if not totals:
+        return None
+
+    working_days   = count_working_days(start, end)
+    expected_hours = working_days * 8.0
+    threshold_pct  = 90
+
+    people = []
+    for name, hours in sorted(totals.items()):
+        pct = (hours / expected_hours * 100) if expected_hours else 0.0
+        people.append({
+            "name":           name,
+            "hours":          round(hours, 2),
+            "expected_hours": expected_hours,
+            "pct":            round(pct, 1),
+        })
+
+    return {
+        "start":            start.strftime("%Y-%m-%d"),
+        "end":              end.strftime("%Y-%m-%d"),
+        "working_days":     working_days,
+        "expected_hours":   expected_hours,
+        "threshold_pct":    threshold_pct,
+        "meets_threshold":  [p for p in people if p["pct"] >= threshold_pct],
+        "below_threshold":  [p for p in people if p["pct"] <  threshold_pct],
+    }
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def open_file(path: str):
@@ -356,6 +466,10 @@ def main():
     parser.add_argument("--xlsx",  type=str, default=None, help="Path to Excel file")
     parser.add_argument("--output", type=str, default=None, help="Output .docx path")
     parser.add_argument("--no-open", action="store_true", help="Don't open the output file")
+    parser.add_argument("--start", type=str, default=None,
+                         help="Period start date YYYY-MM-DD, adds Hours Filled Compliance section (requires --end)")
+    parser.add_argument("--end", type=str, default=None,
+                         help="Period end date YYYY-MM-DD, adds Hours Filled Compliance section (requires --start)")
     args = parser.parse_args()
 
     # Resolve paths
@@ -380,6 +494,32 @@ def main():
     print("Parsing Excel data...")
     data = parse_xlsx(xlsx_path, args.week, args.year)
     print(f"  Week {data['week']} / {data['year']}  —  {len(data['projects'])} projects")
+
+    # Hours filled compliance (optional; needs --start and --end together)
+    if args.start or args.end:
+        if not (args.start and args.end):
+            print("ERROR: --start and --end must be given together")
+            sys.exit(1)
+        try:
+            start_date = datetime.strptime(args.start, "%Y-%m-%d").date()
+            end_date   = datetime.strptime(args.end, "%Y-%m-%d").date()
+        except ValueError:
+            print("ERROR: --start/--end must be in YYYY-MM-DD format")
+            sys.exit(1)
+        if end_date < start_date:
+            print("ERROR: --end must not be before --start")
+            sys.exit(1)
+
+        hours_compliance = build_hours_compliance(xlsx_path, start_date, end_date)
+        if hours_compliance is None:
+            print("  No 'Timesheet' sheet found in workbook — skipping Hours Filled Compliance section.")
+        else:
+            data["hours_compliance"] = hours_compliance
+            print(f"  Hours filled compliance ({hours_compliance['start']} to {hours_compliance['end']}, "
+                  f"{hours_compliance['working_days']} working days, "
+                  f"{hours_compliance['expected_hours']:.0f}h expected): "
+                  f"{len(hours_compliance['meets_threshold'])} >= 90%, "
+                  f"{len(hours_compliance['below_threshold'])} < 90%")
 
     # Determine output path
     if args.output:

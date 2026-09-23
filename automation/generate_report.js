@@ -388,6 +388,134 @@ function buildItemSection(headerText, projects, key) {
   return content;
 }
 
+// ── Section 4 — Hours Filled Compliance ───────────────────────────────────────
+
+function buildHoursTable(people, fill) {
+  const COL_PERSON = 3500;
+  const COL_HOURS  = 1850;
+  const COL_EXP    = 1850;
+  const COL_PCT    = 1872;
+  // sum = 9072
+
+  const headerCell = (text, width) =>
+    new TableCell({
+      width: { size: width, type: WidthType.DXA },
+      shading: navyShading(),
+      borders: cellBorders(NAVY),
+      margins: { top: 80, bottom: 80, left: 120, right: 120 },
+      verticalAlign: VerticalAlign.CENTER,
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun({ text, bold: true, size: 20, color: WHITE, font: 'Calibri' })],
+        }),
+      ],
+    });
+
+  const dataCell = (text, width, align = AlignmentType.CENTER) =>
+    new TableCell({
+      width: { size: width, type: WidthType.DXA },
+      shading: clearShading(fill),
+      borders: cellBorders('CCCCCC'),
+      margins: { top: 80, bottom: 80, left: 120, right: 120 },
+      verticalAlign: VerticalAlign.CENTER,
+      children: [
+        new Paragraph({ alignment: align, children: [new TextRun({ text, size: 20, font: 'Calibri' })] }),
+      ],
+    });
+
+  const headerRow = new TableRow({
+    tableHeader: true,
+    children: [
+      headerCell('Name',            COL_PERSON),
+      headerCell('Hours Logged',    COL_HOURS),
+      headerCell('Expected Hours',  COL_EXP),
+      headerCell('% Filled',        COL_PCT),
+    ],
+  });
+
+  const dataRows = people.map(p => new TableRow({
+    children: [
+      dataCell(p.name, COL_PERSON, AlignmentType.LEFT),
+      dataCell(p.hours.toFixed(2), COL_HOURS),
+      dataCell(p.expected_hours.toFixed(2), COL_EXP),
+      dataCell(`${p.pct.toFixed(1)}%`, COL_PCT),
+    ],
+  }));
+
+  return new Table({
+    width: { size: CONTENT_W, type: WidthType.DXA },
+    columnWidths: [COL_PERSON, COL_HOURS, COL_EXP, COL_PCT],
+    rows: [headerRow, ...dataRows],
+  });
+}
+
+function buildHoursComplianceSection(hc) {
+  const content = [
+    sectionHeader('SECTION 4 — HOURS FILLED COMPLIANCE'),
+    new Paragraph({
+      spacing: { before: 0, after: 240 },
+      children: [
+        new TextRun({
+          text: `Period: ${hc.start} to ${hc.end}   |   Working days: ${hc.working_days}   |   `
+              + `Expected hours/person: ${hc.expected_hours.toFixed(2)}   |   Threshold: ${hc.threshold_pct}%`,
+          italics: true,
+          size: 20,
+          color: GRAY_TEXT,
+          font: 'Calibri',
+        }),
+      ],
+    }),
+    new Paragraph({
+      spacing: { before: 0, after: 120 },
+      children: [
+        new TextRun({
+          text: `>= ${hc.threshold_pct}% Filled  (${hc.meets_threshold.length})`,
+          bold: true,
+          size: 22,
+          color: NAVY,
+          font: 'Calibri',
+        }),
+      ],
+    }),
+  ];
+
+  if (hc.meets_threshold.length > 0) {
+    content.push(buildHoursTable(hc.meets_threshold, GREEN_ROW));
+  } else {
+    content.push(new Paragraph({
+      spacing: { before: 0, after: 240 },
+      children: [new TextRun({ text: 'No one met the threshold this period.', italics: true, size: 22, font: 'Calibri' })],
+    }));
+  }
+
+  content.push(
+    new Paragraph({
+      spacing: { before: 240, after: 120 },
+      children: [
+        new TextRun({
+          text: `< ${hc.threshold_pct}% Filled  (${hc.below_threshold.length})`,
+          bold: true,
+          size: 22,
+          color: NAVY,
+          font: 'Calibri',
+        }),
+      ],
+    })
+  );
+
+  if (hc.below_threshold.length > 0) {
+    content.push(buildHoursTable(hc.below_threshold, RED_ROW));
+  } else {
+    content.push(new Paragraph({
+      spacing: { before: 0, after: 240 },
+      children: [new TextRun({ text: 'Everyone met the threshold this period.', italics: true, size: 22, font: 'Calibri' })],
+    }));
+  }
+
+  return content;
+}
+
 // ── Footer ────────────────────────────────────────────────────────────────────
 
 function buildFooter() {
@@ -458,6 +586,7 @@ async function main() {
     ...buildSection1(projects),
     ...buildItemSection('SECTION 2 — CONCERNS', projects, 'concerns'),
     ...buildItemSection('SECTION 3 — NEXT PERIOD ACTIVITIES', projects, 'activities'),
+    ...(data.hours_compliance ? buildHoursComplianceSection(data.hours_compliance) : []),
   ];
 
   // Remove trailing page break if present
