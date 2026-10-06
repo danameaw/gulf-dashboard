@@ -836,4 +836,155 @@ Gulf Dashboard Weekly Automation
 
   Done! Dashboard URL: https://danameaw.github.io/gulf-dashboard/
 ============================================================
-^C^C
+^C^C============================================================
+Gulf Dashboard Weekly Automation
+============================================================
+  Week: 38/2026
+  Folder: C:\Users\danaya.th\Gulf\Engineering - Engineering Documents\00 Project Reports\2026\38_260923
+
+  [PRJ-001] LNG Terminal (GMTP) ... OK → GMTP-PCC-PM-WR-059_EPC Weekly Report [LNG Terminal].pdf
+       concerns=1, activities=20, plan=31.4%, actual=35.38%, scopes=3
+  [PRJ-002] GOE2-NWT3 ... PDF NOT FOUND
+  [PRJ-003] GSPG-PTN ... OK → Executive Summary - GSPG-PTN Construction Progress Report_Week No.52  19-25 Sep 2026.pdf
+       concerns=10, activities=10, plan=94.48%, actual=72.62%, scopes=5
+  [PRJ-004] GSPG-STN ... PDF NOT FOUND
+  [PRJ-013] GCE ... OK → Project_GCE_Construction_weekly_report_19-25 Sep 2026 Rev.00.pdf
+       concerns=3, activities=2, plan=62.37%, actual=52.43%, discs=4
+  [PRJ-014] GSE ... OK → Project_GSE_Construction_weekly_report_20_26ep2026 weekly 37.pdf
+       concerns=3, activities=4, plan=62.37%, actual=52.35%, discs=4
+  [PRJ-015] KKE ... OK → Project_KKE_Construction_weekly_report_ 20-26 Sep 2026 Weekly 37.pdf
+       concerns=0, activities=12, plan=66.02%, actual=56.11%, discs=4
+  [PRJ-016] MKP ... OK → Project_MKP_Construction_weekly_report__20-26 Sep 26 Weekly 37.pdf
+       concerns=1, activities=1, plan=56.68%, actual=51.93%, discs=4
+  [PRJ-017] MPE ... OK → Project_MPE_Construction_weekly_report_19-25 Sep 2026 Rev.00.pdf
+       concerns=2, activities=0, plan=46.98%, actual=45.83%, discs=4
+  [PRJ-018] PFP ... OK → Project_PFP_Construction_weekly_report_19-25 Sep 2026 Rev.00.pdf
+       concerns=3, activities=0, plan=56.68%, actual=49.1%, discs=4
+  [PRJ-019] PKP ... OK → Project_PKP_Construction_weekly_report_ 20-26 Sep 2026 Weekly 37.pdf
+       concerns=0, activities=7, plan=56.68%, actual=49.44%, discs=4
+  [PRJ-020] PSD ... OK → Project_PSD_Construction_weekly_report_ 20-26 Sep 2026 Weekly 37.pdf
+       concerns=5, activities=8, plan=62.37%, actual=51.42%, discs=4
+  [PRJ-021] PWW1 ... OK → Project_PWW1_Construction_weekly_report 20 - 26 September 2026.pdf
+       concerns=1, activities=2, plan=56.68%, actual=51.11%, discs=4
+  [PRJ-022] PWW2 ... OK → Project_PWW2_Construction_weekly_report 20 - 26 September 2026.pdf
+       concerns=0, activities=2, plan=46.98%, actual=48.42%, discs=4
+  [PRJ-023] TPP ... OK → Project_TPP_Construction_weekly_report_20-26 Sep 26 Weekly 37.pdf
+       concerns=6, activities=1, plan=62.37%, actual=55.33%, discs=4
+  [PRJ-024] TSE ... OK → Project_TSE_Construction_weekly_report_20_26Sep2026 weekly 37.pdf
+       concerns=3, activities=4, plan=66.02%, actual=54.57%, discs=4
+  [PRJ-026] Pak Beng ... OK → Pak Beng Hydroelectric Power Project Monthly Report 18.pdf
+       concerns=20, activities=0, plan=7.51%, actual=7.5%, discs=0
+  [PRJ-025] Pak Lay ... OK → PLHPP_Weekly Report No.68.pdf
+       concerns=0, activities=20, plan=5.81%, actual=7.78%, discs=0
+  [PRJ-005] LNE ... PDF NOT FOUND
+  [PRJ-006] SSE ... PDF NOT FOUND
+  [PRJ-007] SDCE ... OK → PBR8 (SDCE) Construction Progress Weekly Report No.52 date 19 - 25 Sep 2026.pdf
+       concerns=1, activities=20, plan=95.18%, actual=94.6%, scopes=4
+  [PRJ-027] TTT ... OK → CHANG-PM-WR-016-R0.pdf (+ manual override)
+       concerns=0, activities=1, plan=2.47%, actual=2.82%, discs=4
+  [PRJ-008] GULF AC8 ... PDF NOT FOUND
+  [PRJ-009] AL1 (Alpha 1) ... OK → ALPHA 1 Construction Progress Weekly Report  No.63 as of 19 September 2026 - 25 September  2026.pdf
+       concerns=1, activities=12, plan=44.24%, actual=37.28%, scopes=4
+  [PRJ-010] AL2 (Alpha 2) ... PDF NOT FOUND
+  [PRJ-011] ECE ... OK → ECE Construction Progress Weekly Report No.63_Date 19 - 25 September 2026 R.0.pdf
+       concerns=0, activities=20, plan=93.34%, actual=87.24%, scopes=4
+  [PRJ-012] GULF_Wayu ... PDF NOT FOUND
+
+  Found:   20 projects
+  Missing: 7 projects: ['PRJ-002', 'PRJ-004', 'PRJ-005', 'PRJ-006', 'PRJ-008', 'PRJ-010', 'PRJ-012']
+
+  Validation: 0 FAIL, 8 WARN across 6 project(s)
+  [PRJ-001] LNG Terminal (GMTP)
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-020] PSD
+     WARN content-not-prose: 1 of 5 concerns are table text rather than report content
+          → BOP : Cooling Tower Pouring Concrete Column Target Date 30- Sep-26, Concrete Wall Target Date 20-OCt-26 Service & Fire W
+     WARN content-not-prose: 1 of 8 activities are table text rather than report content
+          → BOP : Cooling Tower Pouring Concrete Column Target Date 30- Sep-26, Concrete Wall Target Date 20-OCt-26 Service & Fire W
+  [PRJ-026] Pak Beng
+     WARN content-not-prose: 6 of 20 concerns are table text rather than report content and the list is capped at 20, so real items may also be missing
+          → 39 PB-10540 左岸1#弃渣场排水渠及泄槽钢筋图 2 2027.10.30 2026.12.30
+  [PRJ-025] Pak Lay
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-007] SDCE
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+     WARN structure-shrank: 4 scopes now vs 5 last time
+  [PRJ-011] ECE
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  Coverage: 20/27 expected reports (74%)
+
+  Updating dashboard...
+  ✓ SEED_VERSION 2026-09-28.1706 → 2026-09-30.0912 (forces client refresh)
+  ✓ index.html updated (Week 38/2026)
+  ✓ Excel saved: C:\Users\danaya.th\OneDrive - Gulf\Documents\GitHub\gulf-dashboard\Gulf_Dashboard_W38_2026.xlsx
+  ✓ Pushed to GitHub
+
+  Done! Dashboard URL: https://danameaw.github.io/gulf-dashboard/
+============================================================
+============================================================
+Gulf Dashboard Weekly Automation
+============================================================
+  Week: 39/2026
+  Folder: C:\Users\danaya.th\Gulf\Engineering - Engineering Documents\00 Project Reports\2026\39_260930
+
+  [PRJ-001] LNG Terminal (GMTP) ... OK → GMTP-PCC-PM-WR-060_EPC Weekly Report [LNG Terminal].pdf
+  [gmtp matrix] Engineering -3.13: dropped, Var 92.33 does not match 95.46 - 7.26
+       concerns=1, activities=20, plan=31.95%, actual=36.27%, scopes=3
+  [PRJ-002] GOE2-NWT3 ... OK → Executive_GOE2-NWT3 Construction Progress Report_Week53_26 SEP-2 OCT 2026.pdf
+       concerns=5, activities=19, plan=100.0%, actual=78.08%, scopes=4
+  [PRJ-003] GSPG-PTN ... OK → Executive-GSPG-PTN Construction Progress Report_Week No.53_26 Sep-2 Oct 2026.pdf
+       concerns=9, activities=20, plan=95.27%, actual=73.49%, scopes=5
+  [PRJ-004] GSPG-STN ... PDF NOT FOUND
+  [PRJ-013] GCE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-014] GSE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-015] KKE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-016] MKP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-017] MPE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-018] PFP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-019] PKP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-020] PSD ... FOLDER NOT FOUND (iWTE)
+  [PRJ-021] PWW1 ... FOLDER NOT FOUND (iWTE)
+  [PRJ-022] PWW2 ... FOLDER NOT FOUND (iWTE)
+  [PRJ-023] TPP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-024] TSE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-026] Pak Beng ... OK → Pak Beng Hydroelectric Power Project Weekly Report 073.pdf
+       concerns=0, activities=7, plan=7.69%, actual=7.68%, discs=0
+  [PRJ-025] Pak Lay ... OK → PLHPP_Weekly Report No.69.pdf
+       concerns=0, activities=20, plan=5.99%, actual=7.97%, discs=0
+  [PRJ-005] LNE ... PDF NOT FOUND
+  [PRJ-006] SSE ... PDF NOT FOUND
+  [PRJ-007] SDCE ... OK → PBR8 (SDCE) Construction Progress Weekly Report No.53 date 26 Sep - 2 Oct 2026.pdf
+       concerns=13, activities=20, plan=95.81%, actual=95.27%, scopes=4
+  [PRJ-027] TTT ... OK → CHANG-PM-WR-017-R0.pdf (+ manual override)
+       concerns=0, activities=1, plan=2.62%, actual=3.55%, discs=4
+  [PRJ-008] GULF AC8 ... OK → AC8 Construction Progress Weekly Report week No.59_ 26 Sep - 2 Oct 2026.pdf
+       concerns=0, activities=20, plan=82.96%, actual=46.01%, scopes=5
+  [PRJ-009] AL1 (Alpha 1) ... OK → ALPHA 1 Construction Progress Weekly Report  No.64 as of 26 September 2026 - 02 October  2026.pdf
+       concerns=1, activities=13, plan=46.03%, actual=39.68%, scopes=4
+  [PRJ-010] AL2 (Alpha 2) ... OK → Alpha 2 Construction Progress Weekly Report week No.87_26 Sep - 2 Oct 2026_0.pdf
+       concerns=1, activities=17, plan=62.6%, actual=62.88%, scopes=5
+  [PRJ-011] ECE ... OK → ECE Construction Progress Weekly Report No.64_Date 26 September - 02 October 2026 R.0 1.pdf
+       concerns=0, activities=16, plan=98.42%, actual=94.16%, scopes=4
+  [PRJ-012] GULF_Wayu ... OK → WAYU Power Construction Progress Weekly Report No.64, date 26Sep-2Oct26.pdf
+       concerns=3, activities=14, plan=92.79%, actual=76.51%, scopes=2
+
+  Found:   12 projects
+  Missing: 15 projects: ['PRJ-004', 'PRJ-013', 'PRJ-014', 'PRJ-015', 'PRJ-016', 'PRJ-017', 'PRJ-018', 'PRJ-019', 'PRJ-020', 'PRJ-021', 'PRJ-022', 'PRJ-023', 'PRJ-024', 'PRJ-005', 'PRJ-006']
+
+  Validation: 0 FAIL, 7 WARN across 5 project(s)
+  [PRJ-001] LNG Terminal (GMTP)
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-003] GSPG-PTN
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-025] Pak Lay
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-007] SDCE
+     WARN content-not-prose: 1 of 13 concerns are table text rather than report content
+          → - 1 Sync : 15 Oct 2026
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-008] GULF AC8
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+     WARN variance-large: variance -36.95% exceeds 25% - confirm this is real
+
+  [abort] only 12/27 expected reports read (44%, floor is 60%) - nothing written.
+          A week folder that is still filling looks exactly like this. Check the folder, or pass --allow-low-coverage if the week really is this sparse.
