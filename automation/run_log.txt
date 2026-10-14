@@ -988,3 +988,62 @@ Gulf Dashboard Weekly Automation
 
   [abort] only 12/27 expected reports read (44%, floor is 60%) - nothing written.
           A week folder that is still filling looks exactly like this. Check the folder, or pass --allow-low-coverage if the week really is this sparse.
+============================================================
+Gulf Dashboard Weekly Automation
+============================================================
+  Week: 40/2026
+  Folder: C:\Users\danaya.th\Gulf\Engineering - Engineering Documents\00 Project Reports\2026\40_261007
+
+  [PRJ-001] LNG Terminal (GMTP) ... OK → GMTP-PCC-PM-WR-061_EPC Weekly Report [LNG Terminal].pdf
+  [gmtp matrix] Engineering -3.32: dropped, Var 92.78 does not match 96.1 - 7.26
+       concerns=1, activities=20, plan=32.3%, actual=36.86%, scopes=3
+  [PRJ-002] GOE2-NWT3 ... OK → Executive_GOE2-NWT3 Construction Progress Report_Week54_3-9 OCT 2026.pdf
+       concerns=5, activities=19, plan=100.0%, actual=79.61%, scopes=4
+  [PRJ-003] GSPG-PTN ... OK → Executive-GSPG-PTN Construction Progress Report_Week No.54_3-9 Oct 2026.pdf
+       concerns=9, activities=20, plan=95.28%, actual=74.08%, scopes=5
+  [PRJ-004] GSPG-STN ... PDF NOT FOUND
+  [PRJ-013] GCE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-014] GSE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-015] KKE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-016] MKP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-017] MPE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-018] PFP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-019] PKP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-020] PSD ... FOLDER NOT FOUND (iWTE)
+  [PRJ-021] PWW1 ... FOLDER NOT FOUND (iWTE)
+  [PRJ-022] PWW2 ... FOLDER NOT FOUND (iWTE)
+  [PRJ-023] TPP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-024] TSE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-026] Pak Beng ... NOT DUE — FOLDER NOT FOUND (Pak Beng) — monthly, last reported W39/2026 (1 week(s) ago)
+  [PRJ-025] Pak Lay ... OK → PLHPP_Weekly Report No.70.pdf
+       concerns=0, activities=20, plan=6.19%, actual=8.05%, discs=0
+  [PRJ-005] LNE ... FOLDER NOT FOUND (SOSB2026)
+  [PRJ-006] SSE ... FOLDER NOT FOUND (SOSB2026)
+  [PRJ-007] SDCE ... FOLDER NOT FOUND (SOSB2026)
+  [PRJ-027] TTT ... OK → CHANG-PM-WR-018-R0.pdf (+ manual override)
+       concerns=0, activities=1, plan=2.73%, actual=3.77%, discs=4
+  [PRJ-008] GULF AC8 ... OK → AC8 Construction Progress Weekly Report week No.60_ 3 Oct - 9 Oct 2026.pdf
+       concerns=0, activities=20, plan=83.58%, actual=51.4%, scopes=5
+  [PRJ-009] AL1 (Alpha 1) ... PDF NOT FOUND
+  [PRJ-010] AL2 (Alpha 2) ... PDF NOT FOUND
+  [PRJ-011] ECE ... OK → ECE Construction Progress Weekly Report No.65_Date 03 - 09 October 2026 R.0 1.pdf
+       concerns=0, activities=17, plan=98.63%, actual=96.2%, scopes=4
+  [PRJ-012] GULF_Wayu ... PDF NOT FOUND
+
+  Found:   7 projects
+  Missing: 19 projects: ['PRJ-004', 'PRJ-013', 'PRJ-014', 'PRJ-015', 'PRJ-016', 'PRJ-017', 'PRJ-018', 'PRJ-019', 'PRJ-020', 'PRJ-021', 'PRJ-022', 'PRJ-023', 'PRJ-024', 'PRJ-005', 'PRJ-006', 'PRJ-007', 'PRJ-009', 'PRJ-010', 'PRJ-012']
+  Not due: 1 projects: ['PRJ-026']
+
+  Validation: 0 FAIL, 5 WARN across 4 project(s)
+  [PRJ-001] LNG Terminal (GMTP)
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-003] GSPG-PTN
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-025] Pak Lay
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-008] GULF AC8
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+     WARN variance-large: variance -32.18% exceeds 25% - confirm this is real
+
+  [abort] only 7/26 expected reports read (27%, floor is 60%) - nothing written.
+          A week folder that is still filling looks exactly like this. Check the folder, or pass --allow-low-coverage if the week really is this sparse.

@@ -489,7 +489,7 @@ def git_push(week, year):
 
 # ── 7. Send Email via Outlook (local desktop app) ─────────────────────────
 EMAIL_FROM   = "danaya.th@gulf.co.th"
-EMAIL_TO     = ["purachet.am@gulf.co.th", "chalong@gulf.co.th"]
+EMAIL_TO     = ["chalong@gulf.co.th", "chatmongkol.ca@gulf.co.th"]
 
 # ── The dashboard's Summary view, mirrored into the email ─────────────────
 #
