@@ -119,6 +119,14 @@
   "n_scopes": 3,
   "plan": 31.95
  },
+ "PRJ-001_W40_2026": {
+  "actual": 36.86,
+  "n_activities": 20,
+  "n_concerns": 1,
+  "n_disc": 4,
+  "n_scopes": 3,
+  "plan": 32.3
+ },
  "PRJ-002_W24_2026": {
   "actual": null,
   "n_activities": 0,
@@ -233,6 +241,14 @@
  },
  "PRJ-002_W39_2026": {
   "actual": 78.08,
+  "n_activities": 19,
+  "n_concerns": 5,
+  "n_disc": 0,
+  "n_scopes": 4,
+  "plan": 100.0
+ },
+ "PRJ-002_W40_2026": {
+  "actual": 79.61,
   "n_activities": 19,
   "n_concerns": 5,
   "n_disc": 0,
@@ -366,6 +382,14 @@
   "n_disc": 0,
   "n_scopes": 5,
   "plan": 95.27
+ },
+ "PRJ-003_W40_2026": {
+  "actual": 74.08,
+  "n_activities": 20,
+  "n_concerns": 9,
+  "n_disc": 0,
+  "n_scopes": 5,
+  "plan": 95.28
  },
  "PRJ-004_W24_2026": {
   "actual": null,
@@ -839,6 +863,14 @@
   "n_scopes": 5,
   "plan": 82.96
  },
+ "PRJ-008_W40_2026": {
+  "actual": 51.4,
+  "n_activities": 20,
+  "n_concerns": 0,
+  "n_disc": 0,
+  "n_scopes": 5,
+  "plan": 83.58
+ },
  "PRJ-009_W24_2026": {
   "actual": null,
   "n_activities": 11,
@@ -1127,6 +1159,14 @@
   "n_scopes": 4,
   "plan": 98.42
  },
+ "PRJ-011_W40_2026": {
+  "actual": 96.2,
+  "n_activities": 17,
+  "n_concerns": 0,
+  "n_disc": 0,
+  "n_scopes": 4,
+  "plan": 98.63
+ },
  "PRJ-012_W27_2026": {
   "actual": 52.59,
   "n_activities": 14,
@@ -1351,6 +1391,14 @@
   "n_scopes": 0,
   "plan": 63.73
  },
+ "PRJ-013_W40_2026": {
+  "actual": 54.75,
+  "n_activities": 1,
+  "n_concerns": 3,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 65.43
+ },
  "PRJ-014_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -1478,6 +1526,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 63.73
+ },
+ "PRJ-014_W40_2026": {
+  "actual": 54.4,
+  "n_activities": 4,
+  "n_concerns": 3,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 65.43
  },
  "PRJ-015_W24_2026": {
   "actual": null,
@@ -1607,6 +1663,14 @@
   "n_scopes": 0,
   "plan": 67.92
  },
+ "PRJ-015_W40_2026": {
+  "actual": 58.38,
+  "n_activities": 12,
+  "n_concerns": 0,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 69.68
+ },
  "PRJ-016_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -1734,6 +1798,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 58.21
+ },
+ "PRJ-016_W40_2026": {
+  "actual": 54.19,
+  "n_activities": 1,
+  "n_concerns": 1,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 59.5
  },
  "PRJ-017_W24_2026": {
   "actual": null,
@@ -1863,6 +1935,14 @@
   "n_scopes": 0,
   "plan": 48.33
  },
+ "PRJ-017_W40_2026": {
+  "actual": 48.05,
+  "n_activities": 0,
+  "n_concerns": 2,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 49.5
+ },
  "PRJ-018_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -1990,6 +2070,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 58.21
+ },
+ "PRJ-018_W40_2026": {
+  "actual": 50.61,
+  "n_activities": 0,
+  "n_concerns": 3,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 59.5
  },
  "PRJ-019_W24_2026": {
   "actual": null,
@@ -2119,6 +2207,14 @@
   "n_scopes": 0,
   "plan": 58.21
  },
+ "PRJ-019_W40_2026": {
+  "actual": 51.34,
+  "n_activities": 7,
+  "n_concerns": 0,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 59.5
+ },
  "PRJ-020_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -2246,6 +2342,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 63.73
+ },
+ "PRJ-020_W40_2026": {
+  "actual": 53.46,
+  "n_activities": 9,
+  "n_concerns": 4,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 65.43
  },
  "PRJ-021_W24_2026": {
   "actual": null,
@@ -2375,6 +2479,14 @@
   "n_scopes": 0,
   "plan": 56.68
  },
+ "PRJ-021_W40_2026": {
+  "actual": 52.8,
+  "n_activities": 2,
+  "n_concerns": 1,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 59.5
+ },
  "PRJ-022_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -2502,6 +2614,14 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 46.98
+ },
+ "PRJ-022_W40_2026": {
+  "actual": 50.71,
+  "n_activities": 2,
+  "n_concerns": 0,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 49.5
  },
  "PRJ-023_W24_2026": {
   "actual": null,
@@ -2631,6 +2751,14 @@
   "n_scopes": 0,
   "plan": 63.73
  },
+ "PRJ-023_W40_2026": {
+  "actual": 57.73,
+  "n_activities": 1,
+  "n_concerns": 1,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 65.43
+ },
  "PRJ-024_W24_2026": {
   "actual": null,
   "n_activities": 20,
@@ -2759,6 +2887,14 @@
   "n_scopes": 0,
   "plan": 67.92
  },
+ "PRJ-024_W40_2026": {
+  "actual": 56.97,
+  "n_activities": 4,
+  "n_concerns": 3,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 69.68
+ },
  "PRJ-025_W24_2026": {
   "actual": null,
   "n_activities": 12,
@@ -2886,6 +3022,14 @@
   "n_disc": 0,
   "n_scopes": 0,
   "plan": 5.99
+ },
+ "PRJ-025_W40_2026": {
+  "actual": 8.05,
+  "n_activities": 20,
+  "n_concerns": 0,
+  "n_disc": 0,
+  "n_scopes": 0,
+  "plan": 6.19
  },
  "PRJ-026_W24_2026": {
   "actual": null,
@@ -3118,5 +3262,13 @@
   "n_disc": 4,
   "n_scopes": 0,
   "plan": 2.62
+ },
+ "PRJ-027_W40_2026": {
+  "actual": 3.77,
+  "n_activities": 1,
+  "n_concerns": 0,
+  "n_disc": 4,
+  "n_scopes": 0,
+  "plan": 2.73
  }
 }

@@ -115,16 +115,21 @@ FOLDER_SETTLE_DAYS = 3
 #   The escape hatch for a project that stops short of the threshold and is
 #   never going to file again.
 #
-# Deliberately empty: a project short of 100% keeps its place in the
-# missing-reports list, and that nag is what gets the site manager to file
-# the final report. Retiring it by hand would remove the only prompt. SSE
-# sits at 99.85% for exactly this reason - leave it listed until the closing
-# report lands.
+# Only list a project here once the owner confirms the work is finished: a
+# project short of 100% otherwise keeps its place in the missing-reports list,
+# and that nag is what gets the site manager to file the final report.
 #
 # Either way the project stops counting as a missing report. It is still
 # extracted if a report does turn up, so a late final report is not lost.
+# A project listed here that files no report is shown on the dashboard at
+# 100% plan / 100% actual for that week.
 AUTO_COMPLETE_AT_PCT = 100.0
-COMPLETED_PROJECTS = {}
+COMPLETED_PROJECTS = {
+    # Solar SOSB2026 - confirmed complete by the project owner, 2026-10-14
+    "PRJ-005": "W40/2026",   # LNE  (last report W35: 99.97%)
+    "PRJ-006": "W40/2026",   # SSE  (last report W33: 99.85%)
+    "PRJ-007": "W40/2026",   # SDCE (last report W39: 95.27%)
+}
 
 
 PROJECT_NAMES = {

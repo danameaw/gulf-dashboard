@@ -580,7 +580,7 @@ const PROJECTS = [
 // Progress data store: key = "projectId_week"
 // Each entry: { plan, actual, concerns:[], activities:[], disciplineData:{} }
 // ── AUTO: MISSING REPORTS ──
-const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","PRJ-027","PRJ-009","PRJ-010","PRJ-011"],"W26_2026":["PRJ-008","PRJ-009","PRJ-010","PRJ-011","PRJ-012"],"W27_2026":["PRJ-008"],"W28_2026":["PRJ-026"],"W29_2026":["PRJ-008"],"W30_2026":["PRJ-008"],"W31_2026":["PRJ-008"],"W32_2026":["PRJ-008","PRJ-009"],"W33_2026":["PRJ-008","PRJ-009","PRJ-010"],"W34_2026":["PRJ-006","PRJ-009"],"W35_2026":["PRJ-006","PRJ-009"],"W36_2026":["PRJ-005","PRJ-006"],"W37_2026":["PRJ-005","PRJ-006"],"W38_2026":["PRJ-002","PRJ-004","PRJ-005","PRJ-006","PRJ-008","PRJ-010","PRJ-012"],"W39_2026":["PRJ-005","PRJ-006"],"W40_2026":["PRJ-004","PRJ-005","PRJ-006","PRJ-007","PRJ-009","PRJ-010","PRJ-012"]};
+const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","PRJ-027","PRJ-009","PRJ-010","PRJ-011"],"W26_2026":["PRJ-008","PRJ-009","PRJ-010","PRJ-011","PRJ-012"],"W27_2026":["PRJ-008"],"W28_2026":["PRJ-026"],"W29_2026":["PRJ-008"],"W30_2026":["PRJ-008"],"W31_2026":["PRJ-008"],"W32_2026":["PRJ-008","PRJ-009"],"W33_2026":["PRJ-008","PRJ-009","PRJ-010"],"W34_2026":["PRJ-006","PRJ-009"],"W35_2026":["PRJ-006","PRJ-009"],"W36_2026":["PRJ-005","PRJ-006"],"W37_2026":["PRJ-005","PRJ-006"],"W38_2026":["PRJ-002","PRJ-004","PRJ-005","PRJ-006","PRJ-008","PRJ-010","PRJ-012"],"W39_2026":["PRJ-005","PRJ-006"],"W40_2026":["PRJ-004","PRJ-009","PRJ-010","PRJ-012"]};
 // ── END MISSING REPORTS ──
 
 // ── AUTO: REPORT DATES ──
@@ -610,7 +610,7 @@ function saveData() {
 // (e.g. to today's date) whenever a manual data correction ships; on the
 // next load this drops the visitor's entire cached progressData so every
 // seedIfEmpty() call below re-applies fresh from this file.
-const SEED_VERSION = '2026-10-14.0939';
+const SEED_VERSION = '2026-10-14.1047';
 if (localStorage.getItem('gulfSeedVersion') !== SEED_VERSION) {
   progressData = {};
   localStorage.setItem('gulfSeedVersion', SEED_VERSION);
@@ -1754,6 +1754,21 @@ seedIfEmpty('PRJ-024_W40_2026', {
     'STG : Column for second floor at EL.+3.70 to EL.+7.30 m : Pre Cast beam Installation at EL.+7.30 m. (TSE) Delay (%) Change Date (GSE) Delay (%) Change : Scaffolding, rebar, formwork installation and pouring concrete Slab EL.+7.30 Sep -11.83% -1.55 05 Sep -10.56 -1.12 : Pouring concrete wall of Cable trench in Electrical room Sep -13.89 -2.07 13 Sep -12.25 -1.69'],
 });
 
+// ── Pak Beng (PRJ-026) Week 40 — auto-extracted
+seedIfEmpty('PRJ-026_W40_2026', {
+  plan: 7.87, actual: 7.85,
+  concerns: [],
+  activities: ['Earth-rock Excavation — 7000 m³ (1.90%)',
+    'Right Bank Abutment Slope Support EL.364~379 — 0.06 Item (6.00%)',
+    'Slope Support EL.349~364m — 0.05 Item (5.00%)',
+    'Grid Beam Greening — 0.03 Item (3.00%)',
+    'Grid Beam Greening — 0.12 Item (12.00%)',
+    'Earth-rock Excavation — 30000 m³ (0.54%)',
+    'Earth-rock Filling — 70000 m³ (14.32%)',
+    'Right Bank No.1 Spoil Area Concrete of No.1 Chute Slab — 24.29 m (16.49%)',
+    'Concrete of No.1 Chute Side Wall — 24.29 m (16.49%)'],
+});
+
 // ── Pak Lay (PRJ-025) Week 40 — auto-extracted
 seedIfEmpty('PRJ-025_W40_2026', {
   plan: 6.19, actual: 8.05,
@@ -1778,6 +1793,27 @@ seedIfEmpty('PRJ-025_W40_2026', {
     '[Right Bank Dam Abutment] Grid beam subsoil covering — 800 m2',
     '[Disposal Yard] Drainage ditch stone cage stacking(Right bank) — 300 m',
     '[Disposal Yard] Site cleaning(Left bank) — 15000 m2'],
+});
+
+// ── LNE (PRJ-005) Week 40 — auto-extracted
+seedIfEmpty('PRJ-005_W40_2026', {
+  plan: 100.0, actual: 100.0,
+  concerns: [],
+  activities: ['Project completed'],
+});
+
+// ── SSE (PRJ-006) Week 40 — auto-extracted
+seedIfEmpty('PRJ-006_W40_2026', {
+  plan: 100.0, actual: 100.0,
+  concerns: [],
+  activities: ['Project completed'],
+});
+
+// ── SDCE (PRJ-007) Week 40 — auto-extracted
+seedIfEmpty('PRJ-007_W40_2026', {
+  plan: 100.0, actual: 100.0,
+  concerns: [],
+  activities: ['Project completed'],
 });
 
 // ── TTT (PRJ-027) Week 40 — auto-extracted
