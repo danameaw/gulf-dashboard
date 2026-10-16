@@ -12,7 +12,7 @@ from config import (BASE_REPORT_PATH, DASHBOARD_HTML, EXCEL_DIR,
                     MANUAL_OVERRIDES, REPORT_CADENCE, DEFAULT_CADENCE,
                     CADENCE_GRACE_WEEKS, COMPLETED_PROJECTS,
                     AUTO_COMPLETE_AT_PCT, MIN_COVERAGE_PCT,
-                    FOLDER_SETTLE_DAYS)
+                    FOLDER_SETTLE_DAYS, PROJECT_SCHEDULE)
 from extract import extract_from_pdf
 from validate import (format_findings, load_history,
                       project_history,
@@ -249,6 +249,60 @@ DATE_MARKER_START    = '// ── AUTO: REPORT DATES ──'
 DATE_MARKER_END      = '// ── END REPORT DATES ──'
 WEEK_MARKER_START    = '// ── AUTO: CURRENT WEEK ──'
 WEEK_MARKER_END      = '// ── END CURRENT WEEK ──'
+SCHED_MARKER_START   = '// ── AUTO: PROJECT SCHEDULE ──'
+SCHED_MARKER_END     = '// ── END PROJECT SCHEDULE ──'
+
+
+def _check_iso_date(value, where):
+    """A typo in a hand-edited date would otherwise reach the page as an
+    Invalid Date and quietly drop the project out of the COD check."""
+    if value is None:
+        return
+    try:
+        datetime.strptime(value, '%Y-%m-%d')
+    except (TypeError, ValueError):
+        raise SystemExit(f"  [error] config.PROJECT_SCHEDULE {where}: "
+                         f"{value!r} is not a YYYY-MM-DD date")
+
+
+def update_schedule_block(html):
+    """Copy PROJECT_SCHEDULE and COMPLETED_PROJECTS from config.py into
+    index.html, between the SCHEDULE markers, for the portfolio pages."""
+    schedule = {}
+    for prj_id, s in PROJECT_SCHEDULE.items():
+        _check_iso_date(s.get('scod'), f"{prj_id} scod")
+        _check_iso_date(s.get('forecast_cod'), f"{prj_id} forecast_cod")
+        milestones = []
+        for i, (d, name) in enumerate(s.get('milestones') or []):
+            _check_iso_date(d, f"{prj_id} milestone {i + 1}")
+            milestones.append({'date': d, 'name': name})
+        schedule[prj_id] = {'scod': s.get('scod'),
+                            'forecastCod': s.get('forecast_cod'),
+                            'milestones': milestones}
+    block = (
+        f"{SCHED_MARKER_START}\n"
+        f"// Written by run.py from config.PROJECT_SCHEDULE / COMPLETED_PROJECTS"
+        f" - edit config.py, not this block.\n"
+        f"const PROJECT_SCHEDULE = {json.dumps(schedule, ensure_ascii=False, separators=(',', ':'))};\n"
+        f"const COMPLETED_PROJECTS = {json.dumps(COMPLETED_PROJECTS, separators=(',', ':'))};\n"
+        f"{SCHED_MARKER_END}"
+    )
+    if SCHED_MARKER_START in html:
+        start = html.index(SCHED_MARKER_START)
+        end   = html.index(SCHED_MARKER_END) + len(SCHED_MARKER_END)
+        return html[:start] + block + html[end:]
+    # First run: place it after the report-dates block.
+    end = html.index(DATE_MARKER_END) + len(DATE_MARKER_END)
+    return html[:end] + '\n\n' + block + html[end:]
+
+
+def sync_schedule_only():
+    with open(DASHBOARD_HTML, encoding='utf-8') as f:
+        html = f.read()
+    html = update_schedule_block(html)
+    with open(DASHBOARD_HTML, 'w', encoding='utf-8') as f:
+        f.write(html)
+    print("  ✓ index.html schedule updated from config.PROJECT_SCHEDULE")
 
 def _find_seed_inject_point(html):
     """
@@ -412,6 +466,7 @@ def update_html(week, year, seeds_js, missing_ids, report_date=None):
             r'currentWeek\s*=\s*\d+;\s*currentYear\s*=\s*\d+;\s*saveData\(\);',
             week_js, html)
 
+    html = update_schedule_block(html)
     html = bump_seed_version(html)
 
     with open(DASHBOARD_HTML, 'w', encoding='utf-8') as f:
@@ -1136,7 +1191,15 @@ def main():
                         help='Update index.html/Excel locally but do not '
                              'commit or push (for reviewing a correction '
                              'before it goes live)')
+    parser.add_argument('--sync-schedule', action='store_true',
+                        help='Only copy SCOD / forecast COD / milestones '
+                             'from config.py into index.html, then stop '
+                             '(no extraction, commit or email)')
     args = parser.parse_args()
+
+    if args.sync_schedule:
+        sync_schedule_only()
+        return
 
     print("=" * 60)
     print("Gulf Dashboard Weekly Automation")

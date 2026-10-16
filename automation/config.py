@@ -132,6 +132,49 @@ COMPLETED_PROJECTS = {
 }
 
 
+# ── Schedule: SCOD, forecast COD, key milestones ──────────────────────────
+# Not in the weekly PDFs in any form the extractor can rely on, so kept here
+# by hand and copied into index.html on every run (or straight away with
+# `python run.py --sync-schedule`). Feeds the management portfolio pages.
+#
+#   scod          - contractual Scheduled Commercial Operation Date
+#   forecast_cod  - current forecast; a forecast later than SCOD turns the
+#                   project's health Red
+#   milestones    - upcoming key milestones, [("YYYY-MM-DD", "description")]
+#
+# Dates are "YYYY-MM-DD". Leave a value as None until it is confirmed - the
+# dashboard shows "Not set" rather than a guess.
+PROJECT_SCHEDULE = {
+    "PRJ-001": {"scod": None, "forecast_cod": None, "milestones": []},  # LNG (GMTP)
+    "PRJ-002": {"scod": None, "forecast_cod": None, "milestones": []},  # GOE2-NWT3
+    "PRJ-003": {"scod": None, "forecast_cod": None, "milestones": []},  # GSPG-PTN
+    "PRJ-004": {"scod": None, "forecast_cod": None, "milestones": []},  # GSPG-STN
+    "PRJ-005": {"scod": None, "forecast_cod": None, "milestones": []},  # LNE
+    "PRJ-006": {"scod": None, "forecast_cod": None, "milestones": []},  # SSE
+    "PRJ-007": {"scod": None, "forecast_cod": None, "milestones": []},  # SDCE
+    "PRJ-008": {"scod": None, "forecast_cod": None, "milestones": []},  # GULF AC8
+    "PRJ-009": {"scod": None, "forecast_cod": None, "milestones": []},  # Alpha 1
+    "PRJ-010": {"scod": None, "forecast_cod": None, "milestones": []},  # Alpha 2
+    "PRJ-011": {"scod": None, "forecast_cod": None, "milestones": []},  # ECE
+    "PRJ-012": {"scod": None, "forecast_cod": None, "milestones": []},  # Wayu
+    "PRJ-013": {"scod": None, "forecast_cod": None, "milestones": []},  # GCE
+    "PRJ-014": {"scod": None, "forecast_cod": None, "milestones": []},  # GSE
+    "PRJ-015": {"scod": None, "forecast_cod": None, "milestones": []},  # KKE
+    "PRJ-016": {"scod": None, "forecast_cod": None, "milestones": []},  # MKP
+    "PRJ-017": {"scod": None, "forecast_cod": None, "milestones": []},  # MPE
+    "PRJ-018": {"scod": None, "forecast_cod": None, "milestones": []},  # PFP
+    "PRJ-019": {"scod": None, "forecast_cod": None, "milestones": []},  # PKP
+    "PRJ-020": {"scod": None, "forecast_cod": None, "milestones": []},  # PSD
+    "PRJ-021": {"scod": None, "forecast_cod": None, "milestones": []},  # PWW1
+    "PRJ-022": {"scod": None, "forecast_cod": None, "milestones": []},  # PWW2
+    "PRJ-023": {"scod": None, "forecast_cod": None, "milestones": []},  # TPP
+    "PRJ-024": {"scod": None, "forecast_cod": None, "milestones": []},  # TSE
+    "PRJ-025": {"scod": None, "forecast_cod": None, "milestones": []},  # Pak Lay
+    "PRJ-026": {"scod": None, "forecast_cod": None, "milestones": []},  # Pak Beng
+    "PRJ-027": {"scod": None, "forecast_cod": None, "milestones": []},  # TTT
+}
+
+
 PROJECT_NAMES = {
     "PRJ-001": "LNG Terminal (GMTP)",
     "PRJ-002": "GOE2-NWT3",

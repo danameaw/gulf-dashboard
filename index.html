@@ -591,6 +591,12 @@ const MISSING_REPORTS_BY_WEEK = {"W24_2026":["PRJ-027"],"W25_2026":["PRJ-001","P
 const REPORT_DATES_BY_WEEK = {"W28_2026":"2026-07-15","W29_2026":"2026-07-22","W30_2026":"2026-07-29","W31_2026":"2026-08-05","W32_2026":"2026-08-12","W33_2026":"2026-08-19","W34_2026":"2026-08-26","W35_2026":"2026-09-02","W36_2026":"2026-09-09","W37_2026":"2026-09-16","W38_2026":"2026-09-23","W39_2026":"2026-09-30","W40_2026":"2026-10-07"};
 // ── END REPORT DATES ──
 
+// ── AUTO: PROJECT SCHEDULE ──
+// Written by run.py from config.PROJECT_SCHEDULE / COMPLETED_PROJECTS - edit config.py, not this block.
+const PROJECT_SCHEDULE = {"PRJ-001":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-002":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-003":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-004":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-005":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-006":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-007":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-008":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-009":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-010":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-011":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-012":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-013":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-014":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-015":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-016":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-017":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-018":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-019":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-020":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-021":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-022":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-023":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-024":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-025":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-026":{"scod":null,"forecastCod":null,"milestones":[]},"PRJ-027":{"scod":null,"forecastCod":null,"milestones":[]}};
+const COMPLETED_PROJECTS = {"PRJ-005":"W40/2026","PRJ-006":"W40/2026","PRJ-007":"W40/2026"};
+// ── END PROJECT SCHEDULE ──
+
 let progressData = JSON.parse(localStorage.getItem('gulfDashData') || '{}');
 
 let currentWeek = parseInt(localStorage.getItem('gulfWeek') || '1');

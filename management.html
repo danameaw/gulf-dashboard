@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gulf Management Portfolio</title>
+<!--
+  Management view: Portfolio Overview + one page per business category.
+  Holds no data of its own - it reads the project data straight out of
+  index.html (kept up to date by automation/run.py), so the two pages can
+  never disagree and the weekly run needs no change for this page.
+-->
+<style>
+  :root {
+    --primary: #1a3c5e;
+    --primary-light: #2d6a9f;
+    --accent: #f0a500;
+    --bg: #f4f6f9;
+    --border: #dde3ec;
+    --text: #1e2535;
+    --text-muted: #6b7a99;
+    --green: #27ae60;
+    --red: #e74c3c;
+    --orange: #f39c12;
+    --ahead: #1abc9c;
+    --solar: #f39c12;
+    --wind: #3498db;
+    --wte: #27ae60;
+    --gas: #9b59b6;
+    --hydro: #e67e22;
+    --datacenter: #1abc9c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }
+
+  .header {
+    background: var(--primary); color: white; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    height: 56px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: .3px; }
+  .header a { color: rgba(255,255,255,.85); font-size: 12px; text-decoration: none; white-space: nowrap; }
+  .header a:hover { color: white; text-decoration: underline; }
+
+  .toolbar { background: white; border-bottom: 1px solid var(--border); padding: 10px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .spacer { flex: 1; }
+  .btn { padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; height: 32px; display: flex; align-items: center; gap: 6px; }
+  .btn-outline { background: white; color: var(--primary); border: 1px solid var(--primary); }
+  .btn-outline:hover { background: var(--bg); }
+  .btn-success { background: var(--green); color: white; }
+  .btn-success:hover { background: #219a52; }
+  #weekLabel { font-weight: 600; color: var(--primary); min-width: 120px; text-align: center; font-size: 12px; }
+
+  .stat-card { background: white; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+  .stat-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+  .stat-card .value { font-size: 26px; font-weight: 700; line-height: 1; }
+  .stat-card .sub { font-size: 11px; color: var(--text-muted); }
+  .stat-total .value { color: var(--primary); }
+  .var-positive { color: var(--ahead); font-weight: 700; }
+  .var-negative { color: var(--red); font-weight: 700; }
+  .var-zero { color: var(--text-muted); }
+  .loading { text-align: center; padding: 60px; color: var(--text-muted); }
+
+  #print-area { display: none; }
+  @media print {
+    body > *:not(#print-area) { display: none !important; }
+    #print-area { display: block !important; }
+  }
+  .portfolio-controls { display: flex; }
+
+  /* ── VIEW TABS (management portfolio pages) ── */
+  .view-tabs {
+    background: #12304d;
+    display: flex; gap: 2px; padding: 0 24px;
+    overflow-x: auto;
+  }
+  .view-tab {
+    background: none; border: none; cursor: pointer;
+    color: rgba(255,255,255,.7);
+    font-size: 12px; font-weight: 600;
+    padding: 10px 14px; white-space: nowrap;
+    border-bottom: 3px solid transparent;
+  }
+  .view-tab:hover { color: white; }
+  .view-tab.active { color: white; border-bottom-color: var(--accent); }
+  .view-tab .tab-count { font-weight: 400; opacity: .7; margin-left: 4px; }
+
+  body.view-portfolio .detail-view,
+  body.view-portfolio .detail-controls { display: none !important; }
+  body:not(.view-portfolio) .portfolio-view,
+  body:not(.view-portfolio) .portfolio-controls { display: none !important; }
+  .detail-controls { display: contents; }
+
+  /* ── PORTFOLIO PAGE ── */
+  .portfolio-view { padding: 16px 24px 32px; }
+  .pf-page + .pf-page { margin-top: 32px; }
+  .pf-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pf-head h2 { font-size: 18px; color: var(--primary); }
+  .pf-head .pf-asof { font-size: 12px; color: var(--text-muted); }
+  .pf-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .pf-kpis .stat-card .value { font-size: 24px; }
+  .pf-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .pf-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+  .pf-card h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); margin-bottom: 10px; }
+  .pf-card .empty { color: var(--text-muted); font-size: 12px; }
+  .pf-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .pf-table th { background: #eef2f8; color: var(--text-muted); font-size: 11px; font-weight: 600; text-align: left; padding: 6px 8px; white-space: nowrap; }
+  .pf-table td { padding: 7px 8px; border-bottom: 1px solid #edf0f5; vertical-align: top; }
+  .pf-table tr:last-child td { border-bottom: none; }
+  .pf-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pf-table tr.clickable { cursor: pointer; }
+  .pf-table tr.clickable:hover td { background: #f0f4fb; }
+  .pf-muted { color: var(--text-muted); }
+  .pf-small { font-size: 11px; }
+
+  .health { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 11px; white-space: nowrap; }
+  .health-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .h-Red .health-dot    { background: var(--red); }
+  .h-Yellow .health-dot { background: #f1c40f; }
+  .h-Green .health-dot  { background: var(--green); }
+  .h-Complete .health-dot { background: var(--primary-light); }
+  .h-NoData .health-dot { background: #c3cad6; }
+  .h-Red { color: #a93226; } .h-Yellow { color: #9a7d0a; } .h-Green { color: #1e8449; }
+  .h-Complete { color: var(--primary-light); } .h-NoData { color: var(--text-muted); }
+
+  .cat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .cat-card { background: white; border: 1px solid var(--border); border-left: 4px solid var(--cat, var(--primary)); border-radius: 10px; padding: 12px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
+  .cat-card:hover { box-shadow: 0 2px 10px rgba(26,60,94,.12); }
+  .cat-card .cat-name { font-weight: 700; color: var(--primary); font-size: 14px; display: flex; justify-content: space-between; }
+  .cat-card .cat-name span { font-weight: 400; color: var(--text-muted); font-size: 12px; }
+  .cat-card .cat-prog { font-size: 11px; color: var(--text-muted); }
+  .health-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #edf0f5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .health-bar span { height: 100%; }
+  .health-bar .Red { background: var(--red); } .health-bar .Yellow { background: #f1c40f; }
+  .health-bar .Green { background: var(--green); } .health-bar .Complete { background: var(--primary-light); }
+  .health-bar .NoData { background: #c3cad6; }
+  .health-counts { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11px; }
+
+  .attn-item { padding: 8px 0; border-bottom: 1px solid #edf0f5; }
+  .attn-item:last-child { border-bottom: none; }
+  .attn-item .attn-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .attn-item .attn-name { font-weight: 700; color: var(--primary); }
+  .attn-item ul { margin: 4px 0 0 18px; font-size: 12px; line-height: 1.45; }
+  .attn-reasons { font-size: 11px; color: var(--text-muted); }
+  .pf-legend { font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+
+  @media (max-width: 900px) { .pf-grid2 { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) {
+    .portfolio-view { padding: 12px 16px 24px; }
+    .view-tabs { padding: 0 16px; }
+    .pf-table-wrap { overflow-x: auto; }
+  }
+
+  @page mgmt { size: A4 landscape; margin: 10mm; }
+  @media print {
+    #print-area .pf-page { page: mgmt; break-after: page; margin: 0; }
+    #print-area .pf-page:last-child { break-after: auto; }
+    #print-area .pf-card, #print-area .cat-card { break-inside: avoid; }
+    #print-area .pf-head h2 { font-size: 16px; }
+  }
+
+</style>
+</head>
+<body class="view-portfolio">
+
+<header class="header">
+  <h1>⚡ Gulf Management Portfolio</h1>
+  <a href="index.html">Detailed project dashboard ↗</a>
+</header>
+
+<nav class="view-tabs" id="viewTabs"></nav>
+
+<div class="toolbar">
+  <button class="btn btn-outline" onclick="changeWeek(-1)">◀ Prev</button>
+  <span id="weekLabel">Loading…</span>
+  <button class="btn btn-outline" onclick="changeWeek(1)">Next ▶</button>
+  <div class="spacer"></div>
+  <button class="btn btn-success portfolio-controls" onclick="printManagementPack()">🖨 Print Management Pack</button>
+</div>
+
+<div id="portfolioView" class="portfolio-view"><div class="loading">Loading project data…</div></div>
+
+<div id="print-area"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA - read from index.html
+// ══════════════════════════════════════════════
+let PROJECTS = [], MISSING_REPORTS_BY_WEEK = {}, REPORT_DATES_BY_WEEK = {},
+    PROJECT_SCHEDULE = {}, COMPLETED_PROJECTS = {}, progressData = {};
+let currentWeek = 1, currentYear = new Date().getFullYear();
+let latestWeek = null;
+
+function dataKey(projectId, week, year) {
+  return `${projectId}_W${week}_${year}`;
+}
+
+// index.html carries its data as plain JS: the constants block at the top of
+// its <script> (PROJECTS ... COMPLETED_PROJECTS) and the seedIfEmpty() calls
+// that follow the SEED DATA marker. Both are run here against stubs, so none
+// of index.html's page code (rendering, localStorage) comes along.
+async function loadDashboardData() {
+  const res = await fetch('index.html', { cache: 'no-store' });
+  if (!res.ok) throw new Error(`index.html: HTTP ${res.status}`);
+  const html = await res.text();
+
+  const constStart = html.indexOf('const PROJECTS = [');
+  const constEnd   = html.indexOf('let progressData', constStart);
+  const seedStart  = html.indexOf('// ── SEED DATA (pre-loaded from PDF reports) ──');
+  const seedEnd    = html.lastIndexOf('<\/script>');
+  if (constStart < 0 || constEnd < 0 || seedStart < 0 || seedEnd < seedStart) {
+    throw new Error('index.html layout not recognised (data markers missing)');
+  }
+
+  const body = `
+    let progressData = {};
+    let currentWeek = null, currentYear = null;
+    const saveData = () => {}, renderAll = () => {};
+    ${html.slice(constStart, constEnd)}
+    ${html.slice(seedStart, seedEnd)}
+    return {
+      PROJECTS, MISSING_REPORTS_BY_WEEK, REPORT_DATES_BY_WEEK, progressData,
+      currentWeek, currentYear,
+      PROJECT_SCHEDULE:   typeof PROJECT_SCHEDULE   !== 'undefined' ? PROJECT_SCHEDULE   : {},
+      COMPLETED_PROJECTS: typeof COMPLETED_PROJECTS !== 'undefined' ? COMPLETED_PROJECTS : {},
+    };`;
+  const d = new Function(body)();
+
+  PROJECTS = d.PROJECTS;
+  MISSING_REPORTS_BY_WEEK = d.MISSING_REPORTS_BY_WEEK;
+  REPORT_DATES_BY_WEEK = d.REPORT_DATES_BY_WEEK;
+  PROJECT_SCHEDULE = d.PROJECT_SCHEDULE;
+  COMPLETED_PROJECTS = d.COMPLETED_PROJECTS;
+  progressData = d.progressData;
+  if (d.currentWeek) {
+    currentWeek = d.currentWeek; currentYear = d.currentYear;
+    latestWeek = { week: d.currentWeek, year: d.currentYear };
+  }
+}
+
+// ══════════════════════════════════════════════
+//  WEEK NAVIGATION
+// ══════════════════════════════════════════════
+function changeWeek(dir) {
+  const next = shiftWeek(currentWeek, currentYear, dir);
+  currentWeek = next.week; currentYear = next.year;
+  renderAll();
+}
+
+function updateWeekLabel() {
+  const realDate = REPORT_DATES_BY_WEEK[`W${currentWeek}_${currentYear}`];
+  const isLatest = latestWeek && latestWeek.week === currentWeek && latestWeek.year === currentYear;
+  document.getElementById('weekLabel').textContent =
+    `Week ${currentWeek} / ${currentYear}${isLatest ? ' (latest)' : ''}`;
+}
+
+
+// ══════════════════════════════════════════════
+//  MANAGEMENT PORTFOLIO PAGES
+//  Page 1 = portfolio overview, then one page per business category.
+//  The detailed project table stays in index.html.
+// ══════════════════════════════════════════════
+const CATEGORIES = [
+  { key: 'Wind',       label: 'Wind',            color: 'var(--wind)' },
+  { key: 'Solar',      label: 'Solar',           color: 'var(--solar)' },
+  { key: 'WTE',        label: 'Waste-to-Energy', color: 'var(--wte)' },
+  { key: 'Hydro',      label: 'Hydropower',      color: 'var(--hydro)' },
+  { key: 'Gas',        label: 'Gas',             color: 'var(--gas)' },
+  { key: 'DataCenter', label: 'Data Center',     color: 'var(--datacenter)' },
+];
+
+// Health thresholds, in percentage points of actual minus plan (overall).
+// Yellow also catches a project whose overall looks fine but has one scope
+// or discipline badly behind - that is where an overall average hides trouble.
+const HEALTH_YELLOW_AT      = -5;  // overall variance at or below this → Yellow
+const HEALTH_RED_AT         = -10; // overall variance at or below this → Red
+const HEALTH_SUB_YELLOW_AT  = -5;  // any scope/discipline at or below this → Yellow
+// A missing report falls back to the latest week that has one, up to this far.
+const HEALTH_LOOKBACK_WEEKS = 8;
+
+const HEALTH_ORDER = ['Red', 'Yellow', 'Green', 'Complete', 'NoData'];
+const HEALTH_LABEL = { Red: 'Red', Yellow: 'Yellow', Green: 'Green', Complete: 'Complete', NoData: 'No data' };
+
+let currentView = (() => {
+  const h = location.hash.replace('#', '');
+  if (h === 'overview' || CATEGORIES.some(c => c.key === h)) return h;
+  try { return localStorage.getItem('gulfMgmtView') || 'overview'; } catch (e) { return 'overview'; }
+})();
+
+function setView(view) {
+  currentView = view;
+  try { localStorage.setItem('gulfMgmtView', view); } catch (e) {}
+  history.replaceState(null, '', '#' + view);
+  renderAll();
+  window.scrollTo(0, 0);
+}
+
+// The detailed table, concerns and discipline breakdown live in index.html.
+function openProjectDetail(projectId) {
+  window.open('index.html', '_blank');
+}
+
+function renderViewTabs() {
+  const tabs = [{ key: 'overview', label: 'Portfolio Overview' }]
+    .concat(CATEGORIES.map(c => ({ key: c.key, label: c.label,
+      n: PROJECTS.filter(p => p.type === c.key).length })))
+    ;
+  document.getElementById('viewTabs').innerHTML = tabs.map(t =>
+    `<button class="view-tab${t.key === currentView ? ' active' : ''}" onclick="setView('${t.key}')">` +
+    `${t.label}${t.n !== undefined ? `<span class="tab-count">${t.n}</span>` : ''}</button>`
+  ).join('');
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function fmtDate(iso) {
+  if (!iso) return null;
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function daysBetween(fromIso, toIso) {
+  return Math.round((new Date(toIso + 'T00:00:00') - new Date(fromIso + 'T00:00:00')) / 86400000);
+}
+
+function shiftWeek(week, year, delta) {
+  week += delta;
+  while (week < 1)  { week += 52; year--; }
+  while (week > 52) { week -= 52; year++; }
+  return { week, year };
+}
+
+// The report date for the week on screen - the reference point for
+// "upcoming" milestones.
+function currentReportIso() {
+  return REPORT_DATES_BY_WEEK[`W${currentWeek}_${currentYear}`] ||
+    new Date().toISOString().slice(0, 10);
+}
+
+// This week's progress, or - if the report is missing - the latest earlier
+// week that has one, so a late report does not blank a project off the
+// management pages. `stale` says which happened.
+function getLatestProgress(projectId) {
+  for (let i = 0; i <= HEALTH_LOOKBACK_WEEKS; i++) {
+    const { week, year } = shiftWeek(currentWeek, currentYear, -i);
+    const missing = MISSING_REPORTS_BY_WEEK[`W${week}_${year}`] || [];
+    const prog = progressData[dataKey(projectId, week, year)];
+    if (prog && !missing.includes(projectId) && prog.plan != null && prog.actual != null) {
+      return { prog, week, year, stale: i > 0 };
+    }
+  }
+  return null;
+}
+
+// Report concerns carry their own close-out marks (">>Done", "- Closed").
+// Management only needs the open ones.
+function openConcerns(prog) {
+  return (prog && prog.concerns || []).filter(c => {
+    const t = String(c).trim();
+    if (!t || /^(n\/?a|none|-|nil)\.?$/i.test(t)) return false;
+    return !/(>>|->|→|:|-|\()\s*(done|closed|completed?|resolved)\s*\)?\.?\s*$/i.test(t);
+  });
+}
+
+// Worst scope/discipline variance, for the Yellow "hidden delay" rule.
+function worstSubVariance(prog) {
+  let worst = null;
+  const consider = (label, o) => {
+    if (o && o.plan != null && o.actual != null) {
+      const v = o.actual - o.plan;
+      if (worst === null || v < worst.v) worst = { label, v };
+    }
+  };
+  Object.entries(prog.scopes || {}).forEach(([s, sc]) => {
+    const discs = sc.disciplines || {};
+    if (Object.keys(discs).length) Object.entries(discs).forEach(([d, dd]) => consider(`${s} / ${d}`, dd));
+    else consider(s, sc);
+  });
+  Object.entries(prog.disciplines || {}).forEach(([d, dd]) => consider(d, dd));
+  return worst;
+}
+
+function calcHealth(p) {
+  const sched = PROJECT_SCHEDULE[p.id] || {};
+  const latest = getLatestProgress(p.id);
+  const base = { project: p, sched, latest, reasons: [], concerns: [] };
+  if (COMPLETED_PROJECTS[p.id] || (latest && latest.prog.actual >= 100)) {
+    return { ...base, level: 'Complete', variance: null, reasons: ['Construction complete'] };
+  }
+  if (!latest) {
+    return { ...base, level: 'NoData', variance: null,
+             reasons: [`No progress reported in the last ${HEALTH_LOOKBACK_WEEKS} weeks`] };
+  }
+  const prog = latest.prog;
+  const v = prog.actual - prog.plan;
+  const reasons = [];
+  let level = 'Green';
+  const bump = to => { if (HEALTH_ORDER.indexOf(to) < HEALTH_ORDER.indexOf(level)) level = to; };
+
+  if (v <= HEALTH_RED_AT) { bump('Red'); reasons.push(`${v.toFixed(1)} pp behind plan overall`); }
+  else if (v <= HEALTH_YELLOW_AT) { bump('Yellow'); reasons.push(`${v.toFixed(1)} pp behind plan overall`); }
+
+  const worst = worstSubVariance(prog);
+  if (worst && worst.v <= HEALTH_SUB_YELLOW_AT && level === 'Green') {
+    bump('Yellow'); reasons.push(`${worst.label} ${worst.v.toFixed(1)} pp behind`);
+  }
+
+  if (sched.scod && sched.forecastCod) {
+    const slip = daysBetween(sched.scod, sched.forecastCod);
+    if (slip > 0) { bump('Red'); reasons.push(`Forecast COD ${slip} days after SCOD`); }
+  }
+  if (latest.stale) reasons.push(`No report this week - data as of W${latest.week}`);
+
+  return { ...base, level, variance: v, worst, reasons, concerns: openConcerns(prog) };
+}
+
+function healthBadge(level) {
+  return `<span class="health h-${level}"><span class="health-dot"></span>${HEALTH_LABEL[level]}</span>`;
+}
+
+function countHealth(rows) {
+  const c = { Red: 0, Yellow: 0, Green: 0, Complete: 0, NoData: 0 };
+  rows.forEach(r => c[r.level]++);
+  return c;
+}
+
+function healthBar(counts, total) {
+  if (!total) return '<div class="health-bar"></div>';
+  return `<div class="health-bar">${HEALTH_ORDER.map(l => counts[l]
+    ? `<span class="${l}" style="width:${(100 * counts[l] / total).toFixed(1)}%" title="${HEALTH_LABEL[l]}: ${counts[l]}"></span>` : ''
+  ).join('')}</div>`;
+}
+
+function healthCountsHtml(counts) {
+  return `<div class="health-counts">${HEALTH_ORDER.filter(l => counts[l]).map(l =>
+    `${healthBadge(l)}<b>${counts[l]}</b>`).join('')}</div>`;
+}
+
+// Unweighted mean of plan and actual across projects that have data. The
+// reports give no capacity or contract value to weight by, so the label on
+// the page says "average" rather than implying a portfolio S-curve.
+function avgProgress(rows) {
+  const withData = rows.filter(r => r.latest);
+  if (!withData.length) return null;
+  const n = withData.length;
+  return {
+    plan:   withData.reduce((s, r) => s + Math.min(r.latest.prog.plan, 100), 0) / n,
+    actual: withData.reduce((s, r) => s + Math.min(r.latest.prog.actual, 100), 0) / n,
+  };
+}
+
+function sortByConcern(rows) {
+  return rows.slice().sort((a, b) =>
+    HEALTH_ORDER.indexOf(a.level) - HEALTH_ORDER.indexOf(b.level) ||
+    (a.variance ?? 0) - (b.variance ?? 0));
+}
+
+function upcomingMilestones(rows, days) {
+  const from = currentReportIso();
+  const out = [];
+  rows.forEach(r => (r.sched.milestones || []).forEach(m => {
+    const d = daysBetween(from, m.date);
+    if (d >= 0 && (days == null || d <= days)) out.push({ ...m, inDays: d, project: r.project });
+  }));
+  return out.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function nextMilestone(r) {
+  return upcomingMilestones([r], null)[0] || null;
+}
+
+function variancePp(v) {
+  if (v == null) return '<span class="pf-muted">—</span>';
+  const cls = v <= HEALTH_YELLOW_AT ? 'var-negative' : v >= 2 ? 'var-positive' : 'var-zero';
+  return `<span class="${cls}">${v > 0 ? '+' : ''}${v.toFixed(1)}</span>`;
+}
+
+function codCell(iso) {
+  return iso ? fmtDate(iso) : '<span class="pf-muted pf-small">Not set</span>';
+}
+
+function codSlipCell(sched) {
+  if (!sched.scod || !sched.forecastCod) return '<span class="pf-muted">—</span>';
+  const d = daysBetween(sched.scod, sched.forecastCod);
+  if (d > 0) return `<span class="var-negative">+${d} d late</span>`;
+  if (d < 0) return `<span class="var-positive">${-d} d early</span>`;
+  return '<span class="var-zero">On SCOD</span>';
+}
+
+function pageHead(title) {
+  const realDate = REPORT_DATES_BY_WEEK[`W${currentWeek}_${currentYear}`];
+  return `<div class="pf-head"><h2>${title}</h2>
+    <span class="pf-asof">Report Week ${currentWeek}/${currentYear}${realDate ? ' · ' + fmtDate(realDate) : ''}</span></div>`;
+}
+
+function attentionList(rows, maxConcerns) {
+  const attn = sortByConcern(rows).filter(r => r.level === 'Red' || r.level === 'Yellow');
+  if (!attn.length) return '<div class="empty">No project is flagged Red or Yellow this week.</div>';
+  return attn.map(r => {
+    const cs = r.concerns.slice(0, maxConcerns);
+    const more = r.concerns.length - cs.length;
+    return `<div class="attn-item">
+      <div class="attn-head">${healthBadge(r.level)}
+        <span class="attn-name">${esc(r.project.name)}</span>
+        <span class="attn-reasons">${r.reasons.map(esc).join(' · ')}</span></div>
+      ${cs.length ? `<ul>${cs.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}
+      ${more > 0 ? `<div class="pf-muted pf-small" style="margin:2px 0 0 18px">+${more} more open concern${more > 1 ? 's' : ''}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function milestonesTable(items, showCategory) {
+  if (!items.length) {
+    return '<div class="empty">No upcoming milestones recorded. Add them to <code>PROJECT_SCHEDULE</code> in automation/config.py.</div>';
+  }
+  return `<table class="pf-table"><thead><tr><th>Date</th><th>Project</th>${showCategory ? '<th>Category</th>' : ''}<th>Milestone</th><th class="num">In</th></tr></thead><tbody>
+    ${items.map(m => `<tr><td style="white-space:nowrap">${fmtDate(m.date)}</td><td>${esc(m.project.name)}</td>
+      ${showCategory ? `<td>${esc((CATEGORIES.find(c => c.key === m.project.type) || {}).label || m.project.type)}</td>` : ''}
+      <td>${esc(m.name)}</td><td class="num">${m.inDays} d</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+const HEALTH_LEGEND = `<div class="pf-legend">
+  <b>Health:</b> Red = overall actual ≥ ${-HEALTH_RED_AT} pp behind plan, or forecast COD after SCOD.
+  Yellow = ${-HEALTH_YELLOW_AT}–${-HEALTH_RED_AT} pp behind overall, or any scope/discipline ≥ ${-HEALTH_SUB_YELLOW_AT} pp behind.
+  Green = otherwise. A missing report uses the latest week that has one (flagged "data as of").
+</div>`;
+
+function buildOverviewPage() {
+  const rows = PROJECTS.map(calcHealth);
+  const counts = countHealth(rows);
+  const missing = MISSING_REPORTS_BY_WEEK[`W${currentWeek}_${currentYear}`] || [];
+  const expected = PROJECTS.filter(p => !COMPLETED_PROJECTS[p.id]).length;
+  const avg = avgProgress(rows.filter(r => r.level !== 'Complete'));
+
+  const kpis = `<div class="pf-kpis">
+    <div class="stat-card stat-total"><div class="label">Projects</div><div class="value">${rows.length}</div><div class="sub">${CATEGORIES.filter(c => rows.some(r => r.project.type === c.key)).length} business categories</div></div>
+    <div class="stat-card"><div class="label">Red</div><div class="value" style="color:var(--red)">${counts.Red}</div><div class="sub">Immediate attention</div></div>
+    <div class="stat-card"><div class="label">Yellow</div><div class="value" style="color:#c9a40a">${counts.Yellow}</div><div class="sub">Watch</div></div>
+    <div class="stat-card"><div class="label">Green</div><div class="value" style="color:var(--green)">${counts.Green}</div><div class="sub">On track</div></div>
+    <div class="stat-card"><div class="label">Complete</div><div class="value" style="color:var(--primary-light)">${counts.Complete}</div><div class="sub">Construction finished</div></div>
+    <div class="stat-card"><div class="label">Avg progress</div><div class="value" style="color:var(--primary)">${avg ? avg.actual.toFixed(1) + '%' : '—'}</div><div class="sub">${avg ? `vs ${avg.plan.toFixed(1)}% plan · ongoing projects` : 'No data'}</div></div>
+    <div class="stat-card"><div class="label">Reports in</div><div class="value" style="color:var(--primary)">${expected - missing.length}/${expected}</div><div class="sub">${missing.length ? missing.length + ' missing this week' : 'All received'}</div></div>
+  </div>`;
+
+  const catCards = `<div class="cat-cards">${CATEGORIES.map(c => {
+    const cr = rows.filter(r => r.project.type === c.key);
+    const cc = countHealth(cr);
+    const ca = avgProgress(cr.filter(r => r.level !== 'Complete'));
+    return `<div class="cat-card" style="--cat:${c.color}" onclick="setView('${c.key}')">
+      <div class="cat-name">${c.label}<span>${cr.length} project${cr.length === 1 ? '' : 's'}</span></div>
+      ${cr.length ? healthBar(cc, cr.length) + healthCountsHtml(cc) : '<div class="pf-muted pf-small">No projects in this category yet</div>'}
+      ${ca ? `<div class="cat-prog">Avg actual ${ca.actual.toFixed(1)}% vs plan ${ca.plan.toFixed(1)}% (${variancePp(ca.actual - ca.plan)} pp)</div>` : ''}
+    </div>`;
+  }).join('')}</div>`;
+
+  const attnRows = sortByConcern(rows).filter(r => r.level === 'Red' || r.level === 'Yellow');
+  const attnTable = attnRows.length ? `<div class="pf-table-wrap"><table class="pf-table"><thead><tr>
+      <th>Project</th><th>Category</th><th>Health</th><th class="num">Plan %</th><th class="num">Actual %</th><th class="num">Var (pp)</th><th>Why flagged</th><th>Top open concern</th></tr></thead><tbody>
+    ${attnRows.map(r => `<tr class="clickable" onclick="setView('${r.project.type}')">
+      <td><b>${esc(r.project.name)}</b></td>
+      <td>${esc((CATEGORIES.find(c => c.key === r.project.type) || {}).label || r.project.type)}</td>
+      <td>${healthBadge(r.level)}</td>
+      <td class="num">${r.latest.prog.plan.toFixed(1)}</td><td class="num">${r.latest.prog.actual.toFixed(1)}</td>
+      <td class="num">${variancePp(r.variance)}</td>
+      <td class="pf-small">${r.reasons.map(esc).join('<br>')}</td>
+      <td class="pf-small">${r.concerns.length ? esc(r.concerns[0]) : '<span class="pf-muted">None recorded</span>'}</td>
+    </tr>`).join('')}
+    </tbody></table></div>` : '<div class="empty">No project is flagged Red or Yellow this week.</div>';
+
+  const missingNames = missing.map(id => (PROJECTS.find(p => p.id === id) || { name: id }).name);
+
+  return `<section class="pf-page">
+    ${pageHead('GES Portfolio Overview')}
+    ${kpis}
+    <div class="pf-card"><h3>Health by business category</h3>${catCards}</div>
+    <div class="pf-card"><h3>Projects requiring management attention</h3>${attnTable}</div>
+    <div class="pf-grid2">
+      <div class="pf-card"><h3>Major milestones - next 60 days</h3>${milestonesTable(upcomingMilestones(rows, 60), true)}</div>
+      <div class="pf-card"><h3>Reporting</h3>
+        ${missingNames.length ? `<div style="font-size:12px;margin-bottom:6px"><b>No report this week:</b> ${missingNames.map(esc).join(', ')}</div>` : '<div style="font-size:12px;margin-bottom:6px">All expected reports received.</div>'}
+        ${HEALTH_LEGEND}
+      </div>
+    </div>
+  </section>`;
+}
+
+function buildCategoryPage(catKey) {
+  const cat = CATEGORIES.find(c => c.key === catKey);
+  const rows = sortByConcern(PROJECTS.filter(p => p.type === catKey).map(calcHealth));
+  const title = `${cat.label} Portfolio`;
+  if (!rows.length) {
+    return `<section class="pf-page">${pageHead(title)}
+      <div class="pf-card"><div class="empty">No ${cat.label} projects are in the dashboard yet. They will appear here once added to PROJECTS in index.html and to config.py.</div></div>
+    </section>`;
+  }
+  const counts = countHealth(rows);
+  const avg = avgProgress(rows.filter(r => r.level !== 'Complete'));
+  const nOpen = rows.reduce((s, r) => s + r.concerns.length, 0);
+
+  const kpis = `<div class="pf-kpis">
+    <div class="stat-card stat-total"><div class="label">Projects</div><div class="value">${rows.length}</div><div class="sub">${healthBar(counts, rows.length)}</div></div>
+    <div class="stat-card"><div class="label">Red / Yellow</div><div class="value"><span style="color:var(--red)">${counts.Red}</span> / <span style="color:#c9a40a">${counts.Yellow}</span></div><div class="sub">${counts.Green} green · ${counts.Complete} complete</div></div>
+    <div class="stat-card"><div class="label">Avg plan</div><div class="value" style="color:var(--primary)">${avg ? avg.plan.toFixed(1) + '%' : '—'}</div><div class="sub">Ongoing projects</div></div>
+    <div class="stat-card"><div class="label">Avg actual</div><div class="value" style="color:var(--primary)">${avg ? avg.actual.toFixed(1) + '%' : '—'}</div><div class="sub">${avg ? variancePp(avg.actual - avg.plan) + ' pp vs plan' : ''}</div></div>
+    <div class="stat-card"><div class="label">Open concerns</div><div class="value" style="color:${nOpen ? 'var(--red)' : 'var(--text-muted)'}">${nOpen}</div><div class="sub">From latest reports</div></div>
+  </div>`;
+
+  const table = `<div class="pf-table-wrap"><table class="pf-table"><thead><tr>
+      <th>Project</th><th>Health</th><th class="num">Plan %</th><th class="num">Actual %</th><th class="num">Var (pp)</th>
+      <th>SCOD</th><th>Forecast COD</th><th>COD vs SCOD</th><th>Next milestone</th><th>Data</th></tr></thead><tbody>
+    ${rows.map(r => {
+      const nm = nextMilestone(r);
+      const pr = r.latest && r.latest.prog;
+      return `<tr class="clickable" onclick="openProjectDetail('${r.project.id}')" title="Open project detail">
+        <td><b>${esc(r.project.name)}</b><div class="pf-muted pf-small">${r.project.id} · ${esc(r.project.contract)}</div></td>
+        <td>${healthBadge(r.level)}</td>
+        <td class="num">${pr ? pr.plan.toFixed(1) : '—'}</td>
+        <td class="num">${pr ? pr.actual.toFixed(1) : '—'}</td>
+        <td class="num">${variancePp(r.variance)}</td>
+        <td style="white-space:nowrap">${codCell(r.sched.scod)}</td>
+        <td style="white-space:nowrap">${codCell(r.sched.forecastCod)}</td>
+        <td style="white-space:nowrap">${codSlipCell(r.sched)}</td>
+        <td class="pf-small">${nm ? `${fmtDate(nm.date)} - ${esc(nm.name)}` : '<span class="pf-muted">—</span>'}</td>
+        <td class="pf-small">${r.latest ? (r.latest.stale ? `<span style="color:var(--orange);font-weight:700">W${r.latest.week} (late)</span>` : `W${r.latest.week}`) : '<span class="pf-muted">—</span>'}</td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div>`;
+
+  return `<section class="pf-page">
+    ${pageHead(title)}
+    ${kpis}
+    <div class="pf-card"><h3>Project status</h3>${table}</div>
+    <div class="pf-grid2">
+      <div class="pf-card"><h3>Key concerns &amp; areas requiring attention</h3>${attentionList(rows, 3)}</div>
+      <div class="pf-card"><h3>Major upcoming milestones</h3>${milestonesTable(upcomingMilestones(rows, null).slice(0, 8), false)}
+        <div style="margin-top:10px">${HEALTH_LEGEND}</div></div>
+    </div>
+  </section>`;
+}
+
+// One page per section, landscape, for the management meeting pack.
+function printManagementPack() {
+  document.getElementById('print-area').innerHTML =
+    buildOverviewPage() + CATEGORIES.map(c => buildCategoryPage(c.key)).join('');
+  setTimeout(() => window.print(), 200);
+}
+
+function renderAll() {
+  updateWeekLabel();
+  renderViewTabs();
+  document.getElementById('portfolioView').innerHTML =
+    currentView === 'overview' ? buildOverviewPage() : buildCategoryPage(currentView);
+}
+
+loadDashboardData()
+  .then(renderAll)
+  .catch(err => {
+    console.error(err);
+    document.getElementById('portfolioView').innerHTML =
+      `<div class="loading">Could not load project data from index.html (${esc(err.message)}).<br>` +
+      `Open this page from the published site or a local web server, not as a file.</div>`;
+  });
+</script>
+</body>
+</html>
