@@ -1047,3 +1047,67 @@ Gulf Dashboard Weekly Automation
 
   [abort] only 7/26 expected reports read (27%, floor is 60%) - nothing written.
           A week folder that is still filling looks exactly like this. Check the folder, or pass --allow-low-coverage if the week really is this sparse.
+============================================================
+Gulf Dashboard Weekly Automation
+============================================================
+  Week: 41/2026
+  Folder: C:\Users\danaya.th\Gulf\Engineering - Engineering Documents\00 Project Reports\2026\41_261014
+
+  [PRJ-001] LNG Terminal (GMTP) ... OK → GMTP-PCC-PM-WR-062_EPC Weekly Report [LNG Terminal].pdf
+       concerns=1, activities=20, plan=32.8%, actual=37.36%, scopes=3
+  [PRJ-002] GOE2-NWT3 ... OK → Executive_GOE2-NWT3 Construction Progress Report_Week55_10-16 OCT 2026.pdf
+       concerns=5, activities=20, plan=100.0%, actual=79.82%, scopes=4
+  [PRJ-003] GSPG-PTN ... OK → Executive-GSPG-GSPG-PTN Construction Progress Report_Week No.55_10-16 Oct 2026.pdf
+       concerns=7, activities=20, plan=95.78%, actual=75.51%, scopes=5
+  [PRJ-004] GSPG-STN ... PDF NOT FOUND
+  [PRJ-013] GCE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-014] GSE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-015] KKE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-016] MKP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-017] MPE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-018] PFP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-019] PKP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-020] PSD ... FOLDER NOT FOUND (iWTE)
+  [PRJ-021] PWW1 ... FOLDER NOT FOUND (iWTE)
+  [PRJ-022] PWW2 ... FOLDER NOT FOUND (iWTE)
+  [PRJ-023] TPP ... FOLDER NOT FOUND (iWTE)
+  [PRJ-024] TSE ... FOLDER NOT FOUND (iWTE)
+  [PRJ-026] Pak Beng ... OK → Pak Beng Hydroelectric Power Project Weekly Report 075.pdf
+       concerns=0, activities=7, plan=8.05%, actual=8.03%, discs=0
+  [PRJ-025] Pak Lay ... OK → PLHPP_Weekly Report No.71.pdf
+       concerns=0, activities=20, plan=6.36%, actual=8.18%, discs=0
+  [PRJ-005] LNE ... NOT DUE — FOLDER NOT FOUND (SOSB2026) — completed W40/2026
+  [PRJ-006] SSE ... NOT DUE — FOLDER NOT FOUND (SOSB2026) — completed W40/2026
+  [PRJ-007] SDCE ... NOT DUE — FOLDER NOT FOUND (SOSB2026) — completed W40/2026
+  [PRJ-027] TTT ... OK → CHANG-PM-WR-019-R0.pdf (+ manual override)
+       concerns=0, activities=1, plan=2.73%, actual=3.92%, discs=4
+  [PRJ-008] GULF AC8 ... OK → AC8 Construction Progress Weekly Report week No.61_ 10 Oct - 16 Oct 2026.pdf
+       concerns=0, activities=20, plan=84.12%, actual=53.88%, scopes=5
+  [PRJ-009] AL1 (Alpha 1) ... PDF NOT FOUND
+  [PRJ-010] AL2 (Alpha 2) ... PDF NOT FOUND
+  [PRJ-011] ECE ... OK → ECE Construction Progress Weekly Report No.66_Date 10 - 16 October 2026 R.0.pdf
+       concerns=0, activities=16, plan=98.8%, actual=95.5%, scopes=4
+  [PRJ-012] GULF_Wayu ... OK → WAYU Power Construction Progress Weekly Report No.66, date 10Oct-16Oct26.pdf
+       concerns=3, activities=14, plan=94.09%, actual=77.15%, scopes=2
+
+  Found:   9 projects
+  Missing: 15 projects: ['PRJ-004', 'PRJ-013', 'PRJ-014', 'PRJ-015', 'PRJ-016', 'PRJ-017', 'PRJ-018', 'PRJ-019', 'PRJ-020', 'PRJ-021', 'PRJ-022', 'PRJ-023', 'PRJ-024', 'PRJ-009', 'PRJ-010']
+  Not due: 3 projects: ['PRJ-005', 'PRJ-006', 'PRJ-007']
+
+  Validation: 0 FAIL, 7 WARN across 6 project(s)
+  [PRJ-001] LNG Terminal (GMTP)
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-002] GOE2-NWT3
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-003] GSPG-PTN
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-025] Pak Lay
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+  [PRJ-008] GULF AC8
+     WARN content-truncated: activities stopped at the 20-item cap - anything past that was dropped
+     WARN variance-large: variance -30.24% exceeds 25% - confirm this is real
+  [PRJ-011] ECE
+     WARN actual-went-backwards: cumulative actual fell 0.70% (96.2% -> 95.5%) - a misread, or a re-baseline worth noting
+
+  [abort] only 9/24 expected reports read (38%, floor is 60%) - nothing written.
+          A week folder that is still filling looks exactly like this. Check the folder, or pass --allow-low-coverage if the week really is this sparse.
