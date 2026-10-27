@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gulf Delay Recovery</title>
+<!--
+  Delay Recovery view (DRAFT for management review).
+  Turns "who is late" into "why, for how long, and who must act":
+  root-cause Pareto, recovery outlook (pace / trend / escalation), concern
+  aging, and a per-project recovery sheet whose action columns are left for
+  the project teams to fill.
+  Like management.html it holds no project data of its own - it reads the
+  data straight out of index.html, so the weekly run needs no change.
+-->
+<style>
+  :root {
+    --primary: #1a3c5e;
+    --primary-light: #2d6a9f;
+    --accent: #f0a500;
+    --bg: #f4f6f9;
+    --border: #dde3ec;
+    --text: #1e2535;
+    --text-muted: #6b7a99;
+    --green: #27ae60;
+    --red: #e74c3c;
+    --orange: #f39c12;
+    --ahead: #1abc9c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }
+
+  .header {
+    background: var(--primary); color: white; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    height: 56px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: .3px; }
+  .header nav { display: flex; gap: 16px; }
+  .header a { color: rgba(255,255,255,.85); font-size: 12px; text-decoration: none; white-space: nowrap; }
+  .header a:hover { color: white; text-decoration: underline; }
+
+  .draft-banner { background: #fff6e0; border-bottom: 1px solid #f0d58a; color: #7a5a00; padding: 8px 24px; font-size: 12px; }
+  .draft-banner b { color: #5c4300; }
+
+  .toolbar { background: white; border-bottom: 1px solid var(--border); padding: 10px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .spacer { flex: 1; }
+  .btn { padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; height: 32px; display: flex; align-items: center; gap: 6px; }
+  .btn-outline { background: white; color: var(--primary); border: 1px solid var(--primary); }
+  .btn-outline:hover { background: var(--bg); }
+  .btn-success { background: var(--green); color: white; }
+  .btn-success:hover { background: #219a52; }
+  #weekLabel { font-weight: 600; color: var(--primary); min-width: 120px; text-align: center; font-size: 12px; }
+
+  .page { padding: 16px 24px 32px; }
+  .pf-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pf-head h2 { font-size: 18px; color: var(--primary); }
+  .pf-head .pf-asof { font-size: 12px; color: var(--text-muted); }
+
+  .stat-card { background: white; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+  .stat-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+  .stat-card .value { font-size: 24px; font-weight: 700; line-height: 1; }
+  .stat-card .sub { font-size: 11px; color: var(--text-muted); }
+  .pf-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+
+  .pf-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+  .pf-card h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); margin-bottom: 4px; }
+  .pf-card .card-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+  .pf-card .empty { color: var(--text-muted); font-size: 12px; }
+  .pf-table-wrap { overflow-x: auto; }
+  .pf-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .pf-table th { background: #eef2f8; color: var(--text-muted); font-size: 11px; font-weight: 600; text-align: left; padding: 6px 8px; white-space: nowrap; }
+  .pf-table td { padding: 7px 8px; border-bottom: 1px solid #edf0f5; vertical-align: top; }
+  .pf-table tr:last-child td { border-bottom: none; }
+  .pf-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pf-muted { color: var(--text-muted); }
+  .pf-small { font-size: 11px; }
+  .nowrap { white-space: nowrap; }
+  .var-positive { color: var(--ahead); font-weight: 700; }
+  .var-negative { color: var(--red); font-weight: 700; }
+  .var-zero { color: var(--text-muted); }
+  .loading { text-align: center; padding: 60px; color: var(--text-muted); }
+
+  .health { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 11px; white-space: nowrap; }
+  .health-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .h-Red .health-dot { background: var(--red); } .h-Yellow .health-dot { background: #f1c40f; }
+  .h-Red { color: #a93226; } .h-Yellow { color: #9a7d0a; }
+
+  .chip { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .chip-cat { background: #eef2f8; color: var(--primary); }
+  .chip-stuck { background: #f8d7da; color: #721c24; }
+  .chip-aging { background: #fff3cd; color: #856404; }
+  .chip-new { background: #e3f4ea; color: #1e8449; }
+  .chip-noplan { background: #f8d7da; color: #721c24; }
+  .esc-Management { background: #721c24; color: white; }
+  .esc-Director { background: #f8d7da; color: #721c24; }
+  .esc-PM { background: #fff3cd; color: #856404; }
+
+  .pareto-bar { height: 14px; background: var(--primary-light); border-radius: 3px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pareto-cell { width: 28%; min-width: 120px; }
+  .lever { font-size: 11px; line-height: 1.45; }
+
+  .proj-sheet { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+  .proj-sheet-head { background: #f7f9fc; padding: 8px 12px; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  .proj-sheet-head .name { font-weight: 700; color: var(--primary); font-size: 13px; }
+  .tbd { color: #b0b8c8; font-style: italic; }
+
+  .how { font-size: 12px; line-height: 1.6; }
+  .how ol { margin: 6px 0 0 20px; }
+  .pf-legend { font-size: 11px; color: var(--text-muted); line-height: 1.6; margin-top: 8px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 1000px) { .grid2 { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) {
+    .page { padding: 12px 16px 24px; }
+    .header, .toolbar, .draft-banner { padding-left: 16px; padding-right: 16px; }
+    .header nav { display: none; }
+  }
+
+  @page { size: A4 landscape; margin: 10mm; }
+  @media print {
+    .header, .toolbar { display: none !important; }
+    body { background: white; }
+    .pf-card, .proj-sheet { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>⚡ Gulf Delay Recovery</h1>
+  <nav>
+    <a href="management.html">Management portfolio ↗</a>
+    <a href="index.html">Detailed project dashboard ↗</a>
+  </nav>
+</header>
+
+<div class="draft-banner">
+  <b>DRAFT for management review.</b> Root causes, concern age, pace and escalation are computed from the weekly reports already on the dashboard.
+  The <i>Recovery action / Owner / Due</i> columns are empty on purpose: they are what we propose the project teams fill in each week.
+</div>
+
+<div class="toolbar">
+  <button class="btn btn-outline" onclick="changeWeek(-1)">◀ Prev</button>
+  <span id="weekLabel">Loading…</span>
+  <button class="btn btn-outline" onclick="changeWeek(1)">Next ▶</button>
+  <div class="spacer"></div>
+  <button class="btn btn-success" onclick="window.print()">🖨 Print</button>
+</div>
+
+<div id="view" class="page"><div class="loading">Loading project data…</div></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA - read from index.html (same loader as management.html)
+// ══════════════════════════════════════════════
+let PROJECTS = [], MISSING_REPORTS_BY_WEEK = {}, REPORT_DATES_BY_WEEK = {},
+    PROJECT_SCHEDULE = {}, COMPLETED_PROJECTS = {}, progressData = {};
+let currentWeek = 1, currentYear = new Date().getFullYear();
+let latestWeek = null;
+
+function dataKey(projectId, week, year) {
+  return `${projectId}_W${week}_${year}`;
+}
+
+async function loadDashboardData() {
+  const res = await fetch('index.html', { cache: 'no-store' });
+  if (!res.ok) throw new Error(`index.html: HTTP ${res.status}`);
+  const html = await res.text();
+
+  const constStart = html.indexOf('const PROJECTS = [');
+  const constEnd   = html.indexOf('let progressData', constStart);
+  const seedStart  = html.indexOf('// ── SEED DATA (pre-loaded from PDF reports) ──');
+  const seedEnd    = html.lastIndexOf('<\/script>');
+  if (constStart < 0 || constEnd < 0 || seedStart < 0 || seedEnd < seedStart) {
+    throw new Error('index.html layout not recognised (data markers missing)');
+  }
+
+  const body = `
+    let progressData = {};
+    let currentWeek = null, currentYear = null;
+    const saveData = () => {}, renderAll = () => {};
+    ${html.slice(constStart, constEnd)}
+    ${html.slice(seedStart, seedEnd)}
+    return {
+      PROJECTS, MISSING_REPORTS_BY_WEEK, REPORT_DATES_BY_WEEK, progressData,
+      currentWeek, currentYear,
+      PROJECT_SCHEDULE:   typeof PROJECT_SCHEDULE   !== 'undefined' ? PROJECT_SCHEDULE   : {},
+      COMPLETED_PROJECTS: typeof COMPLETED_PROJECTS !== 'undefined' ? COMPLETED_PROJECTS : {},
+    };`;
+  const d = new Function(body)();
+
+  PROJECTS = d.PROJECTS;
+  MISSING_REPORTS_BY_WEEK = d.MISSING_REPORTS_BY_WEEK;
+  REPORT_DATES_BY_WEEK = d.REPORT_DATES_BY_WEEK;
+  PROJECT_SCHEDULE = d.PROJECT_SCHEDULE;
+  COMPLETED_PROJECTS = d.COMPLETED_PROJECTS;
+  progressData = d.progressData;
+  if (d.currentWeek) {
+    currentWeek = d.currentWeek; currentYear = d.currentYear;
+    latestWeek = { week: d.currentWeek, year: d.currentYear };
+  }
+}
+
+// ══════════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════════
+// Same health thresholds as management.html, so both pages flag the same projects.
+const HEALTH_YELLOW_AT     = -5;
+const HEALTH_RED_AT        = -10;
+const HEALTH_SUB_YELLOW_AT = -5;
+const HEALTH_LOOKBACK_WEEKS = 8;
+
+const PACE_WINDOW_WEEKS  = 4;   // pace and trend compare against ~this many weeks back
+const TREND_FLAT_PP      = 1;   // variance change smaller than this reads as "flat"
+const HISTORY_WEEKS      = 26;  // how far back concern age and "behind plan" look
+const CONCERN_AGING_WKS  = 4;   // open this long → "aging"
+const CONCERN_STUCK_WKS  = 8;   // open this long → "stuck", escalate
+const ESC_DIRECTOR_WKS   = 3;   // consecutive Red reports before Director level
+const ESC_MGMT_WKS       = 5;   // consecutive Red reports before Management level
+
+// Root-cause categories, matched on keywords in the concern text. First match
+// wins, so the more specific causes come first. "lever" is the usual way the
+// cause gets unblocked and who can pull it - a starting point for discussion.
+const ROOT_CAUSES = [
+  { key: 'permit',   label: 'Permits & approvals',
+    re: /permit|approv|licen[cs]e|authorit|\baor\b|\beia\b|regulat|\bcop\b/i,
+    lever: 'Owner-level follow-up with the authority; Gulf permitting / government-relations team to own the date.' },
+  { key: 'access',   label: 'Site access, handover & security',
+    re: /(area|site)[^.]*hand(ed)?\s*over|handover of (the )?(area|site)|site access|\bland\b|security|right of way|encroach|villager|community/i,
+    lever: 'Owner decision on area handover or access; agree a handover sequence with all contractors.' },
+  { key: 'design',   label: 'Design & drawings',
+    re: /drawing|design|shop dwg|\bdwg\b|specification|calculation|document/i,
+    lever: 'Fix a drawing-approval turnaround (e.g. 5 working days) and a design-freeze date; track submittals weekly.' },
+  { key: 'procure',  label: 'Procurement & material delivery',
+    re: /\bpos?\b|purchase|procure|material|deliver|supplier|vendor|equipment|machine|shipment|fabricat/i,
+    lever: 'Expedite POs; require a delivery schedule per critical item; consider alternative vendors or air freight.' },
+  { key: 'manpower', label: 'Contractor performance & manpower',
+    re: /manpower|worker|labou?r|skilled|crew|\bteam\b|overtime|productivity|subcontract|mobili[sz]|expedite[^.]*work|delay(ed)? from schedule|behind schedule|petty cash|cash ?flow/i,
+    lever: 'Require a manpower histogram vs plan; written recovery commitment (extra crew / shifts); contractual notice if missed.' },
+  { key: 'weather',  label: 'Weather',
+    re: /rain|flood|weather|storm|monsoon|wind speed|typhoon/i,
+    lever: 'Re-sequence to dry-weather work, dewatering and weather contingency; claim only demonstrated lost days.' },
+  { key: 'interface',label: 'Grid & third-party interface',
+    re: /\bpea\b|\begat\b|\bmea\b|grid|transmission|interface|other party|utility|\bscod\b/i,
+    lever: 'Gulf-level coordination with PEA / EGAT / other parties; joint interface schedule.' },
+];
+const OTHER_CAUSE = { key: 'other', label: 'Other / unclassified',
+  lever: 'Review case by case at the weekly meeting.' };
+
+// Where the project teams' recovery actions would go once the process is
+// agreed. Keyed by project id, one entry per action:
+//   "PRJ-013": [{ issue: "...", action: "...", owner: "...", due: "YYYY-MM-DD", status: "On track" }]
+// Empty on purpose for this draft - nothing here is invented.
+const RECOVERY_ACTIONS = {};
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function fmtDate(iso) {
+  if (!iso) return null;
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function fmtMonth(date) {
+  return date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+}
+function daysBetween(fromIso, toIso) {
+  return Math.round((new Date(toIso + 'T00:00:00') - new Date(fromIso + 'T00:00:00')) / 86400000);
+}
+function shiftWeek(week, year, delta) {
+  week += delta;
+  while (week < 1)  { week += 52; year--; }
+  while (week > 52) { week -= 52; year++; }
+  return { week, year };
+}
+function currentReportIso() {
+  return REPORT_DATES_BY_WEEK[`W${currentWeek}_${currentYear}`] ||
+    new Date().toISOString().slice(0, 10);
+}
+function variancePp(v) {
+  if (v == null) return '<span class="pf-muted">—</span>';
+  const cls = v <= HEALTH_YELLOW_AT ? 'var-negative' : v >= 2 ? 'var-positive' : 'var-zero';
+  return `<span class="${cls}">${v > 0 ? '+' : ''}${v.toFixed(1)}</span>`;
+}
+
+// A week's usable report for a project, or null (missing / no figures).
+function reportAt(projectId, week, year) {
+  const missing = MISSING_REPORTS_BY_WEEK[`W${week}_${year}`] || [];
+  const prog = progressData[dataKey(projectId, week, year)];
+  if (!prog || missing.includes(projectId)) return null;
+  return prog;
+}
+function hasFigures(prog) {
+  return prog && prog.plan != null && prog.actual != null;
+}
+
+// Latest report with figures, looking back from `offset` weeks before the
+// week on screen - same fallback as management.html.
+function getLatestProgress(projectId, offset = 0, lookback = HEALTH_LOOKBACK_WEEKS) {
+  for (let i = offset; i <= offset + lookback; i++) {
+    const { week, year } = shiftWeek(currentWeek, currentYear, -i);
+    const prog = reportAt(projectId, week, year);
+    if (hasFigures(prog)) return { prog, week, year, ago: i, stale: i > 0 };
+  }
+  return null;
+}
+
+function openConcerns(prog) {
+  return (prog && prog.concerns || []).filter(c => {
+    const t = String(c).trim();
+    if (!t || /^(n\/?a|none|-|nil)\.?$/i.test(t)) return false;
+    return !/(>>|->|→|:|-|\()\s*(done|closed|completed?|resolved)\s*\)?\.?\s*$/i.test(t);
+  });
+}
+
+function worstSubVariance(prog) {
+  let worst = null;
+  const consider = (label, o) => {
+    if (o && o.plan != null && o.actual != null) {
+      const v = o.actual - o.plan;
+      if (worst === null || v < worst.v) worst = { label, v };
+    }
+  };
+  Object.entries(prog.scopes || {}).forEach(([s, sc]) => {
+    const discs = sc.disciplines || {};
+    if (Object.keys(discs).length) Object.entries(discs).forEach(([d, dd]) => consider(`${s} / ${d}`, dd));
+    else consider(s, sc);
+  });
+  Object.entries(prog.disciplines || {}).forEach(([d, dd]) => consider(d, dd));
+  return worst;
+}
+
+function levelOf(prog, sched) {
+  const v = prog.actual - prog.plan;
+  if (v <= HEALTH_RED_AT) return 'Red';
+  if (sched && sched.scod && sched.forecastCod && daysBetween(sched.scod, sched.forecastCod) > 0) return 'Red';
+  if (v <= HEALTH_YELLOW_AT) return 'Yellow';
+  const worst = worstSubVariance(prog);
+  if (worst && worst.v <= HEALTH_SUB_YELLOW_AT) return 'Yellow';
+  return 'Green';
+}
+
+function healthBadge(level) {
+  return `<span class="health h-${level}"><span class="health-dot"></span>${level}</span>`;
+}
+
+// ══════════════════════════════════════════════
+//  ROOT CAUSE + CONCERN AGE
+// ══════════════════════════════════════════════
+function classify(text) {
+  const t = String(text).replace(/^\[[^\]]*\]\s*/, '');  // drop the "[Scope (Contractor)]" prefix
+  return ROOT_CAUSES.find(c => c.re.test(t)) || OTHER_CAUSE;
+}
+
+function concernTokens(text) {
+  return new Set(String(text).toLowerCase()
+    .replace(/(>>|->|→).*$/, '')
+    .replace(/[^a-z0-9฀-๿]+/g, ' ')
+    .split(' ').filter(w => w.length > 2));
+}
+// Reports re-word a concern slightly from week to week; treat as the same
+// concern when most of the words match.
+function sameConcern(a, b) {
+  if (!a.size || !b.size) return false;
+  let both = 0;
+  a.forEach(w => { if (b.has(w)) both++; });
+  return both / (a.size + b.size - both) >= 0.7;
+}
+
+// How many weeks this concern has been in the reports without a break.
+// A missing report (or one whose concern list came out empty) is skipped, not
+// treated as "closed", for up to two weeks in a row.
+function concernAge(projectId, text) {
+  const tok = concernTokens(text);
+  let firstAgo = 0, gaps = 0, capped = true;
+  for (let i = 1; i <= HISTORY_WEEKS; i++) {
+    const { week, year } = shiftWeek(currentWeek, currentYear, -i);
+    const prog = reportAt(projectId, week, year);
+    const list = prog ? (prog.concerns || []) : [];
+    if (!list.length) {
+      if (++gaps > 2) { capped = false; break; }
+      continue;
+    }
+    gaps = 0;
+    if (list.some(c => sameConcern(tok, concernTokens(c)))) firstAgo = i;
+    else { capped = false; break; }
+  }
+  const first = shiftWeek(currentWeek, currentYear, -firstAgo);
+  return { weeks: firstAgo + 1, since: first, atHistoryStart: capped && firstAgo > 0 };
+}
+
+function ageChip(age) {
+  const label = `${age.atHistoryStart ? '≥ ' : ''}${age.weeks} wk${age.weeks === 1 ? '' : 's'}`;
+  if (age.weeks >= CONCERN_STUCK_WKS) return `<span class="chip chip-stuck">${label} · stuck</span>`;
+  if (age.weeks >= CONCERN_AGING_WKS) return `<span class="chip chip-aging">${label}</span>`;
+  if (age.weeks === 1) return `<span class="chip chip-new">New</span>`;
+  return `<span class="chip chip-cat">${label}</span>`;
+}
+
+// ══════════════════════════════════════════════
+//  RECOVERY OUTLOOK (pace, trend, escalation)
+// ══════════════════════════════════════════════
+function outlook(p) {
+  const sched = PROJECT_SCHEDULE[p.id] || {};
+  const latest = getLatestProgress(p.id);
+  if (!latest) return null;
+  if (COMPLETED_PROJECTS[p.id] || latest.prog.actual >= 100) return null;
+  const prog = latest.prog;
+  const level = levelOf(prog, sched);
+  const v = prog.actual - prog.plan;
+
+  // Pace over the last ~4 weeks of reports.
+  const then = getLatestProgress(p.id, latest.ago + PACE_WINDOW_WEEKS, 4);
+  let pace = null;
+  if (then) {
+    const span = then.ago - latest.ago;
+    pace = {
+      span,
+      actual: (prog.actual - then.prog.actual) / span,
+      plan:   (prog.plan   - then.prog.plan)   / span,
+      trend:  v - (then.prog.actual - then.prog.plan),
+    };
+  }
+
+  // Time behind plan: how many weeks ago the plan stood where actual is now.
+  // If no week in the history gets there, say "more than" the oldest week we have.
+  let behind = null, oldestAgo = null;
+  for (let i = latest.ago + 1; i <= HISTORY_WEEKS; i++) {
+    const { week, year } = shiftWeek(currentWeek, currentYear, -i);
+    const r = reportAt(p.id, week, year);
+    if (!hasFigures(r)) continue;
+    oldestAgo = i;
+    if (r.plan <= prog.actual) { behind = { weeks: i - latest.ago }; break; }
+  }
+  if (!behind && v < 0 && oldestAgo) behind = { weeks: oldestAgo - latest.ago, more: true };
+
+  // Finish date at the current pace, and the pace SCOD needs (if SCOD is set).
+  const reportIso = REPORT_DATES_BY_WEEK[`W${latest.week}_${latest.year}`] || currentReportIso();
+  let finish = null;
+  if (pace && pace.actual > 0.05) {
+    const wks = (100 - prog.actual) / pace.actual;
+    finish = new Date(new Date(reportIso + 'T00:00:00').getTime() + wks * 7 * 86400000);
+  }
+  let needed = null;
+  if (sched.scod) {
+    const wksLeft = daysBetween(reportIso, sched.scod) / 7;
+    needed = wksLeft > 0 ? (100 - prog.actual) / wksLeft : Infinity;
+  }
+
+  // Consecutive Red reports, newest first; missing weeks are skipped.
+  let redStreak = 0;
+  for (let i = latest.ago; i <= HISTORY_WEEKS; i++) {
+    const { week, year } = shiftWeek(currentWeek, currentYear, -i);
+    const r = reportAt(p.id, week, year);
+    if (!hasFigures(r)) continue;
+    if (levelOf(r, sched) === 'Red') redStreak++; else break;
+  }
+
+  const concerns = openConcerns(prog).map(text => ({
+    text, cause: classify(text), age: concernAge(p.id, text),
+  }));
+  const stuck = concerns.filter(c => c.age.weeks >= CONCERN_STUCK_WKS).length;
+
+  let escalate = null;
+  if (level === 'Red') {
+    escalate = redStreak >= ESC_MGMT_WKS ? 'Management'
+             : (redStreak >= ESC_DIRECTOR_WKS || stuck) ? 'Director' : 'PM';
+  } else if (level === 'Yellow') {
+    escalate = stuck ? 'Director' : 'PM';
+  }
+
+  return { project: p, sched, latest, level, variance: v, pace, behind, finish, needed,
+           redStreak, concerns, stuck, escalate };
+}
+
+const ESC_LABEL = { Management: 'Management', Director: 'Director', PM: 'Project Manager' };
+function escChip(e) {
+  return e ? `<span class="chip esc-${e}">${ESC_LABEL[e]}</span>` : '<span class="pf-muted">—</span>';
+}
+
+function trendCell(pace) {
+  if (!pace) return '<span class="pf-muted">—</span>';
+  const t = pace.trend;
+  if (t <= -TREND_FLAT_PP) return `<span class="var-negative">▼ Worsening</span><div class="pf-muted pf-small">${t.toFixed(1)} pp in ${pace.span} wks</div>`;
+  if (t >= TREND_FLAT_PP)  return `<span class="var-positive">▲ Recovering</span><div class="pf-muted pf-small">+${t.toFixed(1)} pp in ${pace.span} wks</div>`;
+  return `<span class="var-zero">► Flat</span><div class="pf-muted pf-small">${t >= 0 ? '+' : ''}${t.toFixed(1)} pp in ${pace.span} wks</div>`;
+}
+
+function paceCell(o) {
+  const pc = o.pace;
+  if (!pc) return '<span class="pf-muted">—</span>';
+  const planDone = o.latest.prog.plan >= 100;
+  const ratio = !planDone && pc.plan > 0.05 ? pc.actual / pc.plan : null;
+  const ratioHtml = ratio == null ? '<span class="pf-muted">plan already at 100%</span>'
+    : `<span class="${ratio < 0.9 ? 'var-negative' : ratio >= 1.05 ? 'var-positive' : 'var-zero'}">${Math.round(ratio * 100)}% of plan pace</span>`;
+  return `${pc.actual.toFixed(2)} vs ${pc.plan.toFixed(2)} pp/wk<div class="pf-small">${ratioHtml}</div>`;
+}
+
+function neededCell(o) {
+  if (o.needed == null) return '<span class="pf-muted pf-small">SCOD not set</span>';
+  if (!isFinite(o.needed)) return '<span class="var-negative">SCOD passed</span>';
+  const x = o.pace && o.pace.actual > 0.05 ? o.needed / o.pace.actual : null;
+  return `${o.needed.toFixed(2)} pp/wk${x ? `<div class="pf-small ${x > 1.1 ? 'var-negative' : 'var-zero'}">×${x.toFixed(1)} current pace</div>` : ''}`;
+}
+
+// ══════════════════════════════════════════════
+//  PAGE
+// ══════════════════════════════════════════════
+function buildPage() {
+  const all = PROJECTS.map(outlook).filter(Boolean);
+  const flagged = all.filter(o => o.level === 'Red' || o.level === 'Yellow')
+    .sort((a, b) => (a.level === b.level ? 0 : a.level === 'Red' ? -1 : 1) || a.variance - b.variance);
+
+  const allConcerns = flagged.flatMap(o => o.concerns.map(c => ({ ...c, project: o.project })));
+  const nAging = allConcerns.filter(c => c.age.weeks >= CONCERN_AGING_WKS).length;
+  const nStuck = allConcerns.filter(c => c.age.weeks >= CONCERN_STUCK_WKS).length;
+  const nWorse = flagged.filter(o => o.pace && o.pace.trend <= -TREND_FLAT_PP).length;
+  const nMgmt  = flagged.filter(o => o.escalate === 'Management').length;
+  const nPlans = flagged.filter(o => (RECOVERY_ACTIONS[o.project.id] || []).length).length;
+  const noConcern = flagged.filter(o => !o.concerns.length);
+
+  const realDate = REPORT_DATES_BY_WEEK[`W${currentWeek}_${currentYear}`];
+  const head = `<div class="pf-head"><h2>Delay Recovery - what is behind, why, and who must act</h2>
+    <span class="pf-asof">Report Week ${currentWeek}/${currentYear}${realDate ? ' · ' + fmtDate(realDate) : ''}</span></div>`;
+
+  const kpis = `<div class="pf-kpis">
+    <div class="stat-card"><div class="label">Delayed projects</div><div class="value" style="color:var(--red)">${flagged.length}</div><div class="sub">${flagged.filter(o => o.level === 'Red').length} red · ${flagged.filter(o => o.level === 'Yellow').length} yellow</div></div>
+    <div class="stat-card"><div class="label">Still slipping</div><div class="value" style="color:${nWorse ? 'var(--red)' : 'var(--text-muted)'}">${nWorse}</div><div class="sub">Gap grew ≥ ${TREND_FLAT_PP} pp in ~${PACE_WINDOW_WEEKS} wks</div></div>
+    <div class="stat-card"><div class="label">Open concerns</div><div class="value" style="color:var(--primary)">${allConcerns.length}</div><div class="sub">On delayed projects</div></div>
+    <div class="stat-card"><div class="label">Aging ≥ ${CONCERN_AGING_WKS} wks</div><div class="value" style="color:${nAging ? '#c9a40a' : 'var(--text-muted)'}">${nAging}</div><div class="sub">${nStuck} stuck ≥ ${CONCERN_STUCK_WKS} wks</div></div>
+    <div class="stat-card"><div class="label">Needs management</div><div class="value" style="color:${nMgmt ? '#721c24' : 'var(--text-muted)'}">${nMgmt}</div><div class="sub">Red ${ESC_MGMT_WKS}+ reports in a row</div></div>
+    <div class="stat-card"><div class="label">With recovery plan</div><div class="value" style="color:${nPlans < flagged.length ? 'var(--red)' : 'var(--green)'}">${nPlans}/${flagged.length}</div><div class="sub">Action + owner + due date</div></div>
+  </div>`;
+
+  // ── Root-cause Pareto ──
+  const byCause = {};
+  allConcerns.forEach(c => {
+    const k = c.cause.key;
+    (byCause[k] = byCause[k] || { cause: c.cause, n: 0, stuck: 0, projects: new Set() });
+    byCause[k].n++; byCause[k].projects.add(c.project.name);
+    if (c.age.weeks >= CONCERN_STUCK_WKS) byCause[k].stuck++;
+  });
+  const causes = Object.values(byCause).sort((a, b) => b.n - a.n);
+  const maxN = causes.length ? causes[0].n : 1;
+  let cum = 0;
+  const pareto = causes.length ? `<div class="pf-table-wrap"><table class="pf-table"><thead><tr>
+      <th>Root cause</th><th class="pareto-cell">Open concerns</th><th class="num">Cum %</th><th>Projects affected</th><th>Usual lever - who can unblock it</th></tr></thead><tbody>
+    ${causes.map(c => {
+      cum += c.n;
+      return `<tr><td><b>${esc(c.cause.label)}</b></td>
+        <td class="pareto-cell"><div style="display:flex;align-items:center;gap:8px">
+          <div class="pareto-bar" style="width:${(100 * c.n / maxN).toFixed(0)}%"></div><b>${c.n}</b></div>
+          ${c.stuck ? `<div class="pf-small" style="color:#721c24">${c.stuck} stuck ≥ ${CONCERN_STUCK_WKS} wks</div>` : ''}</td>
+        <td class="num">${Math.round(100 * cum / allConcerns.length)}%</td>
+        <td class="pf-small">${[...c.projects].map(esc).join(', ')}</td>
+        <td class="lever">${esc(c.cause.lever)}</td></tr>`;
+    }).join('')}
+    </tbody></table></div>` : '<div class="empty">No open concerns on delayed projects this week.</div>';
+
+  // ── Recovery outlook ──
+  const outlookTable = flagged.length ? `<div class="pf-table-wrap"><table class="pf-table"><thead><tr>
+      <th>Project</th><th>Health</th><th class="num">Var (pp)</th><th>Trend</th><th class="num">Behind plan by</th>
+      <th>Pace: actual vs plan</th><th>Finish at current pace</th><th>Pace needed for SCOD</th><th class="num">Red streak</th><th>Escalate to</th></tr></thead><tbody>
+    ${flagged.map(o => `<tr>
+      <td><b>${esc(o.project.name)}</b><div class="pf-muted pf-small">${o.project.id}${o.latest.stale ? ` · <span style="color:var(--orange);font-weight:700">data W${o.latest.week}</span>` : ''}</div></td>
+      <td>${healthBadge(o.level)}</td>
+      <td class="num">${variancePp(o.variance)}</td>
+      <td class="nowrap">${trendCell(o.pace)}</td>
+      <td class="num">${o.behind ? `${o.behind.more ? '> ' : '≈ '}${o.behind.weeks} wks` : '<span class="pf-muted">—</span>'}</td>
+      <td class="nowrap">${paceCell(o)}</td>
+      <td class="nowrap">${o.finish ? fmtMonth(o.finish) : '<span class="pf-muted">—</span>'}</td>
+      <td class="nowrap">${neededCell(o)}</td>
+      <td class="num">${o.redStreak ? o.redStreak + ' wks' : '<span class="pf-muted">—</span>'}</td>
+      <td>${escChip(o.escalate)}</td>
+    </tr>`).join('')}
+    </tbody></table></div>
+    <div class="pf-legend">
+      <b>Behind plan by</b> = how many weeks ago the plan stood where actual is now (approximate; a re-baselined plan distorts it).
+      <b>Pace</b> = average progress per week over the last ~${PACE_WINDOW_WEEKS} weekly reports.
+      <b>Finish at current pace</b> = straight-line projection to 100% - a warning signal, not a forecast.
+      <b>Pace needed for SCOD</b> needs SCOD dates in <code>automation/config.py</code> (none are set yet).
+      <b>Escalate to</b>: Red ${ESC_MGMT_WKS}+ reports in a row → Management; Red ${ESC_DIRECTOR_WKS}+ in a row or any concern stuck ≥ ${CONCERN_STUCK_WKS} wks → Director; otherwise Project Manager.
+    </div>` : '<div class="empty">No project is flagged Red or Yellow this week.</div>';
+
+  // ── Per-project recovery sheets ──
+  const sheets = flagged.map(o => {
+    const actions = RECOVERY_ACTIONS[o.project.id] || [];
+    const rows = o.concerns.slice().sort((a, b) => b.age.weeks - a.age.weeks);
+    const tbd = '<span class="tbd">to be provided by project team</span>';
+    return `<div class="proj-sheet">
+      <div class="proj-sheet-head">
+        <span class="name">${esc(o.project.name)}</span>${healthBadge(o.level)}
+        <span class="pf-small">Var ${variancePp(o.variance)} pp</span>
+        <span class="pf-small">Escalate to ${escChip(o.escalate)}</span>
+        ${actions.length ? '' : '<span class="chip chip-noplan">No recovery plan yet</span>'}
+      </div>
+      ${rows.length ? `<div class="pf-table-wrap"><table class="pf-table"><thead><tr>
+          <th style="width:34%">Concern (from weekly report)</th><th>Root cause</th><th>Open for</th>
+          <th>Recovery action</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead><tbody>
+        ${rows.map(c => `<tr><td>${esc(c.text)}</td>
+          <td><span class="chip chip-cat">${esc(c.cause.label)}</span></td>
+          <td class="nowrap">${ageChip(c.age)}<div class="pf-muted pf-small">since W${c.age.since.week}</div></td>
+          <td>${tbd}</td><td>${tbd}</td><td>${tbd}</td><td><span class="chip chip-noplan">No plan</span></td></tr>`).join('')}
+        </tbody></table></div>`
+      : `<div style="padding:10px 12px" class="pf-small"><b style="color:#a93226">Behind plan but the report lists no concern.</b> <span class="pf-muted">The project team should state the cause of the delay.</span></div>`}
+    </div>`;
+  }).join('');
+
+  const how = `<div class="how">
+    The dashboard can already show <b>why</b> a project is late (root cause), <b>how long</b> each problem has been open, and <b>who</b> should act (escalation).
+    What it cannot do on its own is say <b>what will be done</b> - that has to come from the project teams. Proposed:
+    <ol>
+      <li>Every Red/Yellow project fills the four empty columns (Recovery action, Owner, Due, Status) for each concern - one shared sheet, updated before the weekly run.</li>
+      <li>The weekly run reads that sheet and shows it here; a missed due date turns the action <b>Overdue</b>, and a delayed project with no plan stays flagged <b>No recovery plan</b>.</li>
+      <li>SCOD / forecast COD are filled in <code>automation/config.py</code>, so the page can show the pace each project needs to make SCOD.</li>
+      <li>The management meeting takes the <b>Escalate to: Management</b> projects and the <b>stuck</b> concerns as its agenda, and records decisions against them.</li>
+    </ol></div>`;
+
+  return `${head}${kpis}
+    <div class="pf-card"><h3>1 · Why projects are late - root-cause Pareto</h3>
+      <div class="card-sub">Open concerns on delayed projects, grouped by cause (keyword classification of the report text). Fix the top rows and most of the delay is addressed.</div>
+      ${pareto}</div>
+    <div class="pf-card"><h3>2 · Recovery outlook - is the gap closing, and who must act</h3>
+      <div class="card-sub">Delayed projects only, worst first.</div>
+      ${outlookTable}</div>
+    <div class="pf-card"><h3>3 · Recovery sheet per project</h3>
+      <div class="card-sub">Concerns are taken from the weekly reports, oldest first. The action columns are what we propose the project teams commit to each week.</div>
+      ${sheets || '<div class="empty">No project is flagged Red or Yellow this week.</div>'}
+      ${noConcern.length ? `<div class="pf-legend">${noConcern.length} delayed project(s) report no concern at all: ${noConcern.map(o => esc(o.project.name)).join(', ')}.</div>` : ''}
+    </div>
+    <div class="pf-card"><h3>4 · Proposed way of working</h3>${how}</div>`;
+}
+
+// ══════════════════════════════════════════════
+//  WEEK NAVIGATION / RENDER
+// ══════════════════════════════════════════════
+function changeWeek(dir) {
+  const next = shiftWeek(currentWeek, currentYear, dir);
+  currentWeek = next.week; currentYear = next.year;
+  renderAll();
+}
+
+function updateWeekLabel() {
+  const isLatest = latestWeek && latestWeek.week === currentWeek && latestWeek.year === currentYear;
+  document.getElementById('weekLabel').textContent =
+    `Week ${currentWeek} / ${currentYear}${isLatest ? ' (latest)' : ''}`;
+}
+
+function renderAll() {
+  updateWeekLabel();
+  document.getElementById('view').innerHTML = buildPage();
+}
+
+loadDashboardData()
+  .then(renderAll)
+  .catch(err => {
+    console.error(err);
+    document.getElementById('view').innerHTML =
+      `<div class="loading">Could not load project data from index.html (${esc(err.message)}).<br>` +
+      `Open this page from the published site or a local web server, not as a file.</div>`;
+  });
+</script>
+</body>
+</html>
